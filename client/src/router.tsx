@@ -35,6 +35,10 @@ const SettingsPage = lazy(async () => {
   const mod = await import("./pages/SettingsPage");
   return { default: mod.SettingsPage };
 });
+const NotFoundPage = lazy(async () => {
+  const mod = await import("./pages/NotFoundPage");
+  return { default: mod.NotFoundPage };
+});
 
 export function AppRouter() {
   return (
@@ -61,7 +65,7 @@ export function AppRouter() {
             <Route path="/ia" element={<AiPage />} />
             <Route path="/config" element={<SettingsPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/hub" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

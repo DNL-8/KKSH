@@ -257,9 +257,11 @@ def _extract_json_block(raw: str) -> str:
 
 
 def _get_api_key(user_settings: UserSettings | None = None) -> str:
+    from app.core.secrets import decrypt_secret
+
     # 1. Try user settings
     if user_settings and user_settings.gemini_api_key:
-        raw = user_settings.gemini_api_key.strip()
+        raw = (decrypt_secret(user_settings.gemini_api_key) or "").strip()
         if raw and raw.upper() not in _API_KEY_PLACEHOLDERS:
             return raw
 
@@ -313,7 +315,7 @@ async def _try_generate_with_gemini(
         return None
 
     try:
-        import google.generativeai as genai
+        from google import genai
     except Exception:
         return None
 
@@ -343,15 +345,16 @@ async def _try_generate_with_gemini(
     )
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            model_name=settings.gemini_model,
-            generation_config={"response_mime_type": "application/json"},
-            system_instruction=(
-                "Voce atua como Sistema. Entregue JSON limpo, sem markdown, sem comentarios, sem texto extra."
-            ),
+        client = genai.Client(api_key=api_key)
+        response = await run_in_threadpool(
+            client.models.generate_content,
+            model=settings.gemini_model,
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "system_instruction": "Voce atua como Sistema. Entregue JSON limpo, sem markdown, sem comentarios, sem texto extra.",
+            },
         )
-        response = await run_in_threadpool(model.generate_content, prompt)
     except Exception:
         return None
 

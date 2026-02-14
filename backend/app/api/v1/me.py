@@ -43,6 +43,15 @@ from app.schemas import (
 )
 from app.services.inventory import INVENTORY_CATALOG, list_inventory
 from app.services.quests import ensure_daily_quests, ensure_weekly_quests
+from app.core.secrets import decrypt_secret, encrypt_secret
+
+
+def _mask_api_key(key: str | None) -> str | None:
+    """Return a masked version of an API key for safe frontend display."""
+    if not key or len(key) < 10:
+        return None
+    return f"{key[:4]}{'*' * (len(key) - 8)}{key[-4:]}"
+
 from app.services.utils import date_key, now_local, parse_goals, week_key
 
 router = APIRouter()
@@ -255,7 +264,7 @@ def state(
             reminderEveryMin=int(settings_row.reminder_every_min),
             xpPerMinute=int(settings_row.xp_per_minute),
             goldPerMinute=int(settings_row.gold_per_minute),
-            geminiApiKey=settings_row.gemini_api_key,
+            geminiApiKey=_mask_api_key(decrypt_secret(settings_row.gemini_api_key)),
             agentPersonality=settings_row.agent_personality,
         ),
         progression=ProgressionOut(
@@ -440,7 +449,7 @@ def update_settings(
     if payload.geminiApiKey is not None:
         # Allow clearing if empty string passed? Or just update if provided.
         # Currently assuming strict string.
-        settings_row.gemini_api_key = payload.geminiApiKey
+        settings_row.gemini_api_key = encrypt_secret(payload.geminiApiKey)
     if payload.agentPersonality is not None:
         settings_row.agent_personality = payload.agentPersonality
 
@@ -460,6 +469,6 @@ def update_settings(
         reminderEveryMin=int(settings_row.reminder_every_min),
         xpPerMinute=int(settings_row.xp_per_minute),
         goldPerMinute=int(settings_row.gold_per_minute),
-        geminiApiKey=settings_row.gemini_api_key,
+        geminiApiKey=_mask_api_key(decrypt_secret(settings_row.gemini_api_key)),
         agentPersonality=settings_row.agent_personality,
     )

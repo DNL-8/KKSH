@@ -413,7 +413,7 @@ def _create_model(
         )
 
     try:
-        import google.generativeai as genai
+        from google import genai
     except Exception as exc:
         _error(
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -422,14 +422,15 @@ def _create_model(
         )
         raise exc
 
-    kwargs: dict[str, Any] = {"model_name": model_name}
-    if system_instruction:
-        kwargs["system_instruction"] = system_instruction
-    if response_mime_type:
-        kwargs["generation_config"] = {"response_mime_type": response_mime_type}
+    client = genai.Client(api_key=api_key)
 
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel(**kwargs)
+    config: dict[str, Any] = {}
+    if system_instruction:
+        config["system_instruction"] = system_instruction
+    if response_mime_type:
+        config["response_mime_type"] = response_mime_type
+
+    return (client, model_name, config)
 
 
 async def _generate_content_text(
@@ -444,7 +445,7 @@ async def _generate_content_text(
 
     for model_name in models:
         try:
-            model = _create_model(
+            client, resolved_model, config = _create_model(
                 model_name=model_name,
                 system_instruction=system_instruction,
                 response_mime_type=response_mime_type,
@@ -460,7 +461,12 @@ async def _generate_content_text(
             continue
 
         try:
-            response = await run_in_threadpool(model.generate_content, prompt)
+            response = await run_in_threadpool(
+                client.models.generate_content,
+                model=resolved_model,
+                contents=prompt,
+                config=config if config else None,
+            )
         except HTTPException:
             raise
         except Exception as exc:

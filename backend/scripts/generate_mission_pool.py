@@ -5,7 +5,7 @@ import random
 import re
 import time
 from typing import Any, List, Dict
-import google.generativeai as genai
+from google import genai
 import sys
 from pathlib import Path
 
@@ -20,7 +20,7 @@ if not API_KEY:
     print("ERRO: GEMINI_API_KEY nao configurada no settings/ambiente.")
     exit(1)
 
-genai.configure(api_key=API_KEY)
+client = genai.Client(api_key=API_KEY)
 
 SUBJECTS = [
     "SQL", "Python", "Excel", "Data Modeling", "Cloud", 
@@ -28,17 +28,19 @@ SUBJECTS = [
 ]
 
 RANKS = ["F", "E", "D", "C", "B", "A", "S"]
-# MISSIONS_PER_RANK_PER_SUBJECT = 14  # ~100 total per subject (14 * 7 = 98) + 2 extra?
-# Let's do 15 to be safe (105 total) -> trim later.
 
 OUTPUT_FILE = "missions_pool.json"
 
-async def generate_batch_with_retry(model, prompt, subject, rank, max_retries=5) -> List[Dict[str, Any]]:
+async def generate_batch_with_retry(prompt, subject, rank, model_name, max_retries=5) -> List[Dict[str, Any]]:
     base_delay = 20  # Start with 20s delay if hit
     
     for attempt in range(max_retries):
         try:
-            response = await model.generate_content_async(prompt)
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config={"response_mime_type": "application/json"},
+            )
             text = response.text
             # Clean markdown if present
             if text.startswith("```json"):
@@ -79,10 +81,6 @@ async def generate_batch_with_retry(model, prompt, subject, rank, max_retries=5)
 async def generate_batch(subject: str, rank: str, count: int) -> List[Dict[str, Any]]:
     # Use model from settings or fallback
     model_name = settings.gemini_model or "gemini-2.0-flash-exp"
-    model = genai.GenerativeModel(
-        model_name=model_name,
-        generation_config={"response_mime_type": "application/json"}
-    )
     
     prompt = (
         f"Gere {count} missoes de estudo de RPG para o assunto '{subject}' no Rank '{rank}'. "
@@ -96,7 +94,7 @@ async def generate_batch(subject: str, rank: str, count: int) -> List[Dict[str, 
         "Idioma: PT-BR."
     )
     
-    return await generate_batch_with_retry(model, prompt, subject, rank)
+    return await generate_batch_with_retry(prompt, subject, rank, model_name)
 
 async def main():
     all_missions = {} # {subject: [missions]}

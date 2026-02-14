@@ -94,6 +94,13 @@ export function AppShell() {
 
   return (
     <div className="relative flex min-h-screen overflow-hidden bg-[#020203] font-sans text-slate-300 selection:bg-cyan-500/30">
+      {/* Skip to content — visible only on keyboard focus */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-xl focus:bg-[hsl(var(--accent))] focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-black focus:shadow-lg"
+      >
+        Pular para o conteúdo
+      </a>
       <ScrollToTop />
       <RouteProgressBar />
       <ParticleBackground />
@@ -127,7 +134,7 @@ export function AppShell() {
 
         <TopBar onMobileMenuOpen={() => setIsMobileMenuOpen(true)} />
 
-        <main className="custom-scrollbar relative z-10 flex-1 overflow-y-auto p-6 scroll-smooth md:p-14">
+        <main id="main-content" className="custom-scrollbar relative z-10 flex-1 overflow-y-auto p-6 scroll-smooth md:p-14">
           <div className="mx-auto max-w-[1400px] pb-40">
             <Outlet context={outletContext} />
           </div>

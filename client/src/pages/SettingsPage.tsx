@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { DetailedToggle, ThemeOption } from "../components/common";
+import { useToast } from "../components/common/Toast";
 import { useTheme, type ThemeId } from "../contexts/ThemeContext";
 import { ApiRequestError, getMeState, logout, resetMeState, updateSettings } from "../lib/api";
 import type { AppShellContextValue } from "../layout/types";
@@ -54,6 +55,7 @@ function usePersistedState<T>(key: string, fallback: T): [T, React.Dispatch<Reac
 export function SettingsPage() {
   const { authUser, openAuthPanel, syncProgressionFromApi, navigateTo } = useOutletContext<AppShellContextValue>();
   const { themeId, setTheme } = useTheme();
+  const { showToast } = useToast();
 
   const [difficulty, setDifficulty] = usePersistedState("cmd8_difficulty", "cacador");
   const [stealthMode, setStealthMode] = usePersistedState("cmd8_stealth", false);
@@ -97,9 +99,9 @@ export function SettingsPage() {
       });
       // success toast or feedback? reusing dangerFeedback for now or add new state?
       // actually let's use a local simple feedback
-      alert("Configuracoes de IA salvas com sucesso.");
+      showToast("Configurações de IA salvas com sucesso.", "success");
     } catch {
-      alert("Erro ao salvar configuracoes.");
+      showToast("Erro ao salvar configurações.", "error");
     } finally {
       setAiSettings((prev) => ({ ...prev, saving: false }));
     }
@@ -275,8 +277,8 @@ export function SettingsPage() {
                   type="button"
                   onClick={() => setAiSettings((prev) => ({ ...prev, personality: p.id }))}
                   className={`flex flex-col gap-1 rounded-2xl border px-4 py-3 transition-all ${aiSettings.personality === p.id
-                      ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                      : "border-slate-800 bg-[#050506] text-slate-500 hover:bg-slate-800/50"
+                    ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                    : "border-slate-800 bg-[#050506] text-slate-500 hover:bg-slate-800/50"
                     }`}
                 >
                   <span className="text-[10px] font-black uppercase">{p.label}</span>

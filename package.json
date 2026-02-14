@@ -24,7 +24,8 @@
     "lucide-react": "^0.547.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
@@ -40,6 +41,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^7.0.0",
     "postcss": "^8.5.6",
+    "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.3",
     "vite": "^7.1.12"

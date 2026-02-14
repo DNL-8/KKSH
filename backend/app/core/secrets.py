@@ -46,3 +46,24 @@ def decrypt_webhook_secret(secret_encrypted: str | None) -> str | None:
         return value.decode("utf-8")
     except InvalidToken:
         return None
+
+
+# ── Generic helpers (used for gemini_api_key and other sensitive fields) ──
+
+def encrypt_secret(plaintext: str) -> str:
+    """Encrypt an arbitrary secret using the same Fernet key."""
+    if not plaintext:
+        return ""
+    return _fernet().encrypt(plaintext.encode("utf-8")).decode("utf-8")
+
+
+def decrypt_secret(ciphertext: str | None) -> str | None:
+    """Decrypt an arbitrary secret. Returns original plaintext on failure (migration)."""
+    if not ciphertext:
+        return None
+    try:
+        return _fernet().decrypt(ciphertext.encode("utf-8")).decode("utf-8")
+    except InvalidToken:
+        # Not encrypted yet (pre-migration plaintext) — return as-is.
+        return ciphertext
+

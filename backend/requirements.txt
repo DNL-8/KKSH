@@ -15,5 +15,5 @@ prometheus-client==0.20.0
 sentry-sdk==2.13.0
 redis==5.0.8
 email-validator==2.2.0
-google-generativeai==0.8.6
+google-genai>=1.0.0
 cryptography==46.0.5

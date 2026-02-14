@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: /sitemap.xml
+
+# Disallow API and internal routes
+Disallow: /api/
+Disallow: /metrics

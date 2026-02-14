@@ -15,7 +15,8 @@ from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.metrics import render_metrics
 from app.core.rate_limit import client_ip, init_redis, limiter  # noqa: F401
-from app.db import create_db_and_tables, get_session
+from app.db import create_db_and_tables, engine, get_session
+from sqlalchemy import text as sa_text
 from app.error_handlers import register_error_handlers
 from app.frontend_serving import mount_frontend
 from app.middlewares import (
@@ -117,7 +118,41 @@ else:
 
 @app.get("/api/v1/health")
 def health():
-    return {"ok": True}
+    checks: dict[str, str] = {}
+
+    # DB check
+    try:
+        with engine.connect() as conn:
+            conn.execute(sa_text("SELECT 1"))
+        checks["database"] = "ok"
+    except Exception as exc:
+        checks["database"] = f"error: {exc.__class__.__name__}"
+
+    # Redis check (optional)
+    try:
+        from app.core.rate_limit import get_redis_client
+        import asyncio
+
+        redis = get_redis_client()
+        if redis is not None:
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(redis.ping())
+                checks["redis"] = "ok"
+            except Exception:
+                checks["redis"] = "error"
+            finally:
+                loop.close()
+        else:
+            checks["redis"] = "not_configured"
+    except Exception:
+        checks["redis"] = "not_configured"
+
+    all_ok = all(v == "ok" or v == "not_configured" for v in checks.values())
+    status_code = 200 if all_ok else 503
+    from starlette.responses import JSONResponse
+
+    return JSONResponse({"ok": all_ok, "checks": checks}, status_code=status_code)
 
 
 @app.get("/metrics")
