@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
-import { Badge, BentoMini, ProgressBar, StatPill } from "../components/common";
+import { Badge, BentoMini, ProgressBar, StatPill, Tooltip } from "../components/common";
 import { assetPaths } from "../lib/assets";
 import type { AppShellContextValue } from "../layout/types";
 
@@ -23,13 +23,13 @@ export function HubPage() {
   return (
     <div className="animate-in fade-in zoom-in space-y-6 pb-20 duration-500">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12">
-        <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-cyan-500/30 lg:col-span-4">
+        <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-[hsl(var(--accent)/0.3)] lg:col-span-4">
           <div className="absolute -right-10 -top-10 rotate-12 opacity-5 transition-opacity group-hover:opacity-10">
-            <Hexagon size={220} className="text-cyan-500" />
+            <Hexagon size={220} className="text-[hsl(var(--accent))]" />
           </div>
           <div className="mb-6 flex items-start justify-between">
             <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-              <Activity size={14} className="text-cyan-500" /> Biometria Hunter
+              <Activity size={14} className="text-[hsl(var(--accent))]" /> Biometria Hunter
             </h3>
             <Badge icon={Activity} color="border-green-500/20 bg-green-500/10 text-green-500">
               Estavel
@@ -38,7 +38,7 @@ export function HubPage() {
 
           <div className="mb-8 flex items-center gap-5">
             <div className="relative shrink-0">
-              <div className="w-24 rotate-2 rounded-[28px] bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-2xl transition-transform duration-700 group-hover:rotate-0">
+              <div className="w-24 rotate-2 rounded-[28px] bg-gradient-to-br from-[hsl(var(--accent))] via-blue-600 to-purple-600 p-0.5 shadow-2xl transition-transform duration-700 group-hover:rotate-0">
                 <div className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-[26px] border border-black/40 bg-[#050506]">
                   <img
                     src={assetPaths.hunterAvatar}
@@ -46,10 +46,10 @@ export function HubPage() {
                     className="z-10 h-16 w-16 object-contain"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                  <div className="absolute inset-0 bg-[hsl(var(--accent)/0.1)] mix-blend-overlay" />
                 </div>
               </div>
-              <div className="absolute -bottom-2 -right-2 rounded-xl border-2 border-[#0a0a0b] bg-cyan-500 px-3 py-1 text-[11px] font-black text-black shadow-lg">
+              <div className="absolute -bottom-2 -right-2 rounded-xl border-2 border-[#0a0a0b] bg-[hsl(var(--accent))] px-3 py-1 text-[11px] font-black text-black shadow-lg">
                 RANK {globalStats.rank}
               </div>
             </div>
@@ -57,23 +57,25 @@ export function HubPage() {
               <div className="text-2xl font-black uppercase italic leading-none tracking-tighter text-white">
                 Shadow Hunter
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-cyan-500">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]" />
+              <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-[hsl(var(--accent))]">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-[hsl(var(--accent))] shadow-[0_0_8px_rgba(var(--glow),1)]" />
                 Nivel {globalStats.level} Operacional
               </div>
               <div className="flex gap-1.5 pt-1">
-                <div
-                  className="flex h-6 w-6 items-center justify-center rounded border border-slate-700 bg-slate-900 text-yellow-500"
-                  title="Buff: Cafeina (+10% INT)"
-                >
-                  <Zap size={12} fill="currentColor" />
-                </div>
-                <div
-                  className="flex h-6 w-6 items-center justify-center rounded border border-slate-700 bg-slate-900 text-blue-500"
-                  title="Buff: Foco (+5% MP Regen)"
-                >
-                  <Brain size={12} />
-                </div>
+                <Tooltip content="Buff: Cafeina (+10% INT)">
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded border border-slate-700 bg-slate-900 text-yellow-500"
+                  >
+                    <Zap size={12} fill="currentColor" />
+                  </div>
+                </Tooltip>
+                <Tooltip content="Buff: Foco (+5% MP Regen)">
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded border border-slate-700 bg-slate-900 text-blue-500"
+                  >
+                    <Brain size={12} />
+                  </div>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -180,9 +182,8 @@ export function HubPage() {
               {[3, 5, 2, 4, 1, 0, 0, 0, 0, 0].map((value, index) => (
                 <div
                   key={`${value}-${index}`}
-                  className={`flex-1 rounded-sm ${
-                    value > 0 ? "bg-orange-500 shadow-[0_0_5px_#f97316]" : "bg-slate-800"
-                  }`}
+                  className={`flex-1 rounded-sm ${value > 0 ? "bg-orange-500 shadow-[0_0_5px_#f97316]" : "bg-slate-800"
+                    }`}
                   style={{ height: `${value * 20}%` }}
                 />
               ))}
@@ -194,7 +195,7 @@ export function HubPage() {
             title="Protocolo Treino"
             val="P-SQL-01"
             sub="65% Sincronizado"
-            color="text-cyan-400"
+            color="text-[hsl(var(--accent))]"
             onClick={() => navigateTo("/arquivos")}
           >
             <div className="mt-4 space-y-1">
@@ -203,7 +204,7 @@ export function HubPage() {
                 <span>65%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full border border-slate-800 bg-slate-900">
-                <div className="h-full w-[65%] bg-cyan-500 shadow-[0_0_10px_#06b6d4]" />
+                <div className="h-full w-[65%] bg-[hsl(var(--accent))] shadow-[0_0_10px_rgba(var(--glow),1)]" />
               </div>
             </div>
           </BentoMini>
@@ -255,6 +256,6 @@ export function HubPage() {
           </BentoMini>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

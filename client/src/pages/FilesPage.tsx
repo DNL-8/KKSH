@@ -2,8 +2,6 @@ import {
   AlertTriangle,
   ArrowUpDown,
   CheckCircle2,
-  ChevronDown,
-  ChevronRight,
   Film,
   FolderOpen,
   List,
@@ -30,10 +28,8 @@ import {
   DEFAULT_RELATIVE_PATH,
   MAX_LIBRARY_VIDEOS,
   buildStoredVideoFromFile,
-  buildStoredVideoFromHandle,
   clearVideos,
   listVideos,
-  resolveRelativePath,
   saveStoredVideos,
   saveVideos,
   supportsDirectoryHandles,
@@ -41,254 +37,31 @@ import {
   type VideoImportSource,
 } from "../lib/localVideosStore";
 import type { AppShellContextValue } from "../layout/types";
+import { LessonSidebar, LESSONS_VISIBLE_DEFAULT, LESSONS_VISIBLE_INCREMENT } from "../components/files/LessonSidebar";
+import {
+  type FolderSection,
+  type OrderMode,
+  type TabMode,
+  VIDEO_COMPLETION_PREFIX,
+  buildImportStatusMessage,
+  buildVideoRef,
+  countFoldersFromFiles,
+  countFoldersFromVideos,
+  extractVideoRefFromNotes,
+  formatBytes,
+  formatDate,
+  formatStorageKind,
+  normalizePathForTestId,
+  resolvePlayableFile,
+  scanDirectoryHandle,
+  sortGroupPaths,
+  subjectFromRelativePath,
+  summarizeNames,
+  toErrorMessage,
+} from "../components/files/utils";
 
-interface FolderSection {
-  path: string;
-  pathId: string;
-  lessons: StoredVideo[];
-}
-
-type OrderMode = "newest" | "oldest";
-type TabMode = "overview" | "metadata";
-interface DirectoryHandleScanResult {
-  videos: StoredVideo[];
-  rejected: string[];
-  processed: number;
-}
-type FileHandlePermissionMode = "read" | "readwrite";
-type FileSystemPermissionCompat = {
-  queryPermission?: (descriptor?: { mode?: FileHandlePermissionMode }) => Promise<PermissionState>;
-  requestPermission?: (descriptor?: { mode?: FileHandlePermissionMode }) => Promise<PermissionState>;
-};
-type DirectoryHandleCompat = FileSystemDirectoryHandle & {
-  entries?: () => AsyncIterable<[string, FileSystemHandle]>;
-  values?: () => AsyncIterable<FileSystemHandle>;
-};
-
-const VIDEO_COMPLETION_PREFIX = "video_completion::";
 const MAX_SESSION_PAGES = 300;
-const LESSONS_VISIBLE_DEFAULT = 120;
-const LESSONS_VISIBLE_INCREMENT = 200;
 
-function normalizePathForTestId(path: string): string {
-  const normalized = path
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return normalized || "folder";
-}
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return fallback;
-}
-
-function summarizeNames(names: string[]): string {
-  if (names.length <= 3) {
-    return names.join(", ");
-  }
-
-  const preview = names.slice(0, 3).join(", ");
-  return `${preview} (+${names.length - 3})`;
-}
-
-function countFoldersFromFiles(files: File[]): number {
-  const folderSet = new Set<string>();
-  for (const file of files) {
-    if (!file.type.startsWith("video/")) {
-      continue;
-    }
-    folderSet.add(resolveRelativePath(file));
-  }
-  return folderSet.size;
-}
-
-function countFoldersFromVideos(videos: StoredVideo[]): number {
-  const folderSet = new Set<string>();
-  for (const video of videos) {
-    folderSet.add(video.relativePath || DEFAULT_RELATIVE_PATH);
-  }
-  return folderSet.size;
-}
-
-function sortGroupPaths(a: string, b: string): number {
-  if (a === DEFAULT_RELATIVE_PATH) {
-    return b === DEFAULT_RELATIVE_PATH ? 0 : -1;
-  }
-  if (b === DEFAULT_RELATIVE_PATH) {
-    return 1;
-  }
-  return a.localeCompare(b, "pt-BR", { sensitivity: "base" });
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 ** 2) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-  if (bytes < 1024 ** 3) {
-    return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  }
-  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-}
-
-function formatDate(timestamp: number): string {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(timestamp));
-}
-
-function formatStorageKind(video: StoredVideo): string {
-  return video.storageKind === "handle" ? "Conectado (Handle)" : "Local (Blob)";
-}
-
-function buildVideoRef(video: StoredVideo): string {
-  return video.id;
-}
-
-function extractVideoRefFromNotes(notes: string | null | undefined): string | null {
-  if (!notes || !notes.startsWith(VIDEO_COMPLETION_PREFIX)) {
-    return null;
-  }
-
-  const value = notes.slice(VIDEO_COMPLETION_PREFIX.length).trim();
-  return value || null;
-}
-
-function subjectFromRelativePath(path: string): string {
-  const normalized = path.replace(/\\/g, "/").trim();
-  if (!normalized || normalized === DEFAULT_RELATIVE_PATH) {
-    return DEFAULT_RELATIVE_PATH;
-  }
-
-  const [root] = normalized.split("/");
-  const subject = (root || DEFAULT_RELATIVE_PATH).trim();
-  return subject || DEFAULT_RELATIVE_PATH;
-}
-
-function buildImportStatusMessage(
-  options: {
-    added: number;
-    ignored: number;
-    rejected: number;
-    skippedNoSpace: number;
-    skippedByLimit: number;
-    folderCount: number;
-    processed: number;
-  },
-  prefix = "Importacao concluida",
-): string {
-  const parts: string[] = [
-    `${options.processed} processado(s)`,
-    `${options.added} adicionado(s)`,
-  ];
-  if (options.ignored > 0) {
-    parts.push(`${options.ignored} ignorado(s)`);
-  }
-  if (options.rejected > 0) {
-    parts.push(`${options.rejected} rejeitado(s)`);
-  }
-  if (options.skippedNoSpace > 0) {
-    parts.push(`${options.skippedNoSpace} sem espaco`);
-  }
-  if (options.skippedByLimit > 0) {
-    parts.push(`${options.skippedByLimit} acima do limite (${MAX_LIBRARY_VIDEOS})`);
-  }
-  parts.push(`${options.folderCount} pasta(s)`);
-  return `${prefix}: ${parts.join(" | ")}.`;
-}
-
-async function resolvePlayableFile(video: StoredVideo): Promise<File> {
-  if (video.storageKind === "handle") {
-    const handle = video.fileHandle as (FileSystemFileHandle & FileSystemPermissionCompat) | undefined;
-    if (!handle) {
-      throw new Error("Arquivo conectado indisponivel.");
-    }
-
-    let permission: PermissionState = "prompt";
-    if (typeof handle.queryPermission === "function") {
-      permission = await handle.queryPermission({ mode: "read" });
-    }
-
-    if (permission !== "granted" && typeof handle.requestPermission === "function") {
-      permission = await handle.requestPermission({ mode: "read" });
-    }
-
-    if (permission !== "granted") {
-      throw new Error("Permissao necessaria para reproduzir este arquivo.");
-    }
-
-    return handle.getFile();
-  }
-
-  if (!video.file) {
-    throw new Error("Arquivo local indisponivel para reproducao.");
-  }
-
-  if (video.file instanceof File) {
-    return video.file;
-  }
-
-  return new File([video.file], video.name, {
-    type: video.type || "video/*",
-    lastModified: video.lastModified,
-  });
-}
-
-async function scanDirectoryHandle(rootHandle: FileSystemDirectoryHandle): Promise<DirectoryHandleScanResult> {
-  const videos: StoredVideo[] = [];
-  const rejected: string[] = [];
-  let processed = 0;
-
-  const walkDirectory = async (directory: DirectoryHandleCompat, segments: string[]): Promise<void> => {
-    const iteratorFactory =
-      typeof directory.entries === "function"
-        ? async function* () {
-            for await (const [, handle] of directory.entries!()) {
-              yield handle;
-            }
-          }
-        : typeof directory.values === "function"
-          ? directory.values.bind(directory)
-          : null;
-
-    if (!iteratorFactory) {
-      throw new Error("Navegador sem suporte para leitura de diretorio conectado.");
-    }
-
-    for await (const handle of iteratorFactory()) {
-      if (handle.kind === "directory") {
-        await walkDirectory(handle as DirectoryHandleCompat, [...segments, handle.name]);
-        continue;
-      }
-
-      const fileHandle = handle as FileSystemFileHandle;
-      const file = await fileHandle.getFile();
-      processed += 1;
-
-      if (!file.type.startsWith("video/")) {
-        rejected.push(file.name);
-        continue;
-      }
-
-      const relativePath = segments.length > 0 ? segments.join("/") : DEFAULT_RELATIVE_PATH;
-      videos.push(buildStoredVideoFromHandle(file, fileHandle, relativePath));
-    }
-  };
-
-  const rootSegment = rootHandle.name?.trim() || DEFAULT_RELATIVE_PATH;
-  await walkDirectory(rootHandle as DirectoryHandleCompat, rootSegment === DEFAULT_RELATIVE_PATH ? [DEFAULT_RELATIVE_PATH] : [rootSegment]);
-
-  return { videos, rejected, processed };
-}
 
 export function FilesPage() {
   const { globalStats, authUser, syncProgressionFromApi } =
@@ -853,116 +626,20 @@ export function FilesPage() {
     }
   };
 
-  const renderSidebar = (mobile = false) => {
-    const wrapperClasses = mobile
-      ? "h-full w-[320px] max-w-[88vw] bg-[#0b0d12] border-l border-slate-800 shadow-2xl p-4 overflow-y-auto"
-      : "h-full rounded-[28px] border border-slate-800 bg-[#0b0d12]/90 p-4";
-
-    return (
-      <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
-        <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Conteudo</h3>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{folderSections.length} pastas</p>
-          </div>
-          {mobile && (
-            <button
-              className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300"
-              onClick={() => setIsSidebarMobileOpen(false)}
-              type="button"
-            >
-              Fechar
-            </button>
-          )}
-        </div>
-        <div className="space-y-3">
-          {folderSections.map((section) => {
-            const collapsed = collapsedFolders[section.path] ?? false;
-            const visibleCount = visibleCountByFolder[section.path] ?? LESSONS_VISIBLE_DEFAULT;
-            const visibleLessons = section.lessons.slice(0, visibleCount);
-            const hiddenLessons = Math.max(0, section.lessons.length - visibleLessons.length);
-
-            return (
-              <section
-                key={section.path}
-                className="overflow-hidden rounded-2xl border border-slate-800 bg-[#06070a]"
-                data-testid={`folder-section-${section.pathId}`}
-              >
-                <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-[11px] font-black uppercase tracking-wider text-slate-200" title={section.path}>
-                      {section.path}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-500">{section.lessons.length} aula(s)</p>
-                  </div>
-                  <button
-                    aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-                    className="rounded-lg border border-slate-700 bg-slate-900 p-1.5 text-slate-400 transition-colors hover:text-cyan-300"
-                    data-testid={`folder-toggle-${section.pathId}`}
-                    onClick={() => handleToggleFolder(section.path)}
-                    type="button"
-                  >
-                    {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
-                  </button>
-                </div>
-
-                {!collapsed && (
-                  <div className="space-y-1 border-t border-slate-800 p-2">
-                    {visibleLessons.map((lesson, index) => {
-                      const active = selectedLessonId === lesson.id;
-                      const lessonCompleted = completedVideoRefs.has(buildVideoRef(lesson));
-
-                      return (
-                        <button
-                          key={lesson.id}
-                          className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-all ${
-                            active
-                              ? "border border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
-                              : "border border-transparent bg-slate-950/50 text-slate-300 hover:border-slate-700 hover:bg-slate-900"
-                          }`}
-                          data-active={active ? "true" : "false"}
-                          data-testid={`lesson-item-${section.pathId}-${index}`}
-                          onClick={() => handleSelectLesson(lesson.id)}
-                          type="button"
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-[11px] font-semibold">{lesson.name}</span>
-                            <span
-                              className={`text-[9px] font-bold uppercase tracking-wider ${
-                                lessonCompleted ? "text-emerald-400" : "text-slate-500"
-                              }`}
-                            >
-                              {lessonCompleted ? "Concluida (+XP)" : formatBytes(lesson.size)} | {formatStorageKind(lesson)}
-                            </span>
-                          </span>
-
-                          {lessonCompleted ? (
-                            <CheckCircle2 className="shrink-0 text-emerald-400" size={15} />
-                          ) : active ? (
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-cyan-400" />
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                    {hiddenLessons > 0 && (
-                      <button
-                        className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300"
-                        data-testid={`folder-show-more-${section.pathId}`}
-                        onClick={() => handleShowMoreLessons(section.path)}
-                        type="button"
-                      >
-                        Mostrar mais ({hiddenLessons} restante)
-                      </button>
-                    )}
-                  </div>
-                )}
-              </section>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
+  const renderSidebar = (mobile = false) => (
+    <LessonSidebar
+      folderSections={folderSections}
+      selectedLessonId={selectedLessonId}
+      completedVideoRefs={completedVideoRefs}
+      collapsedFolders={collapsedFolders}
+      visibleCountByFolder={visibleCountByFolder}
+      mobile={mobile}
+      onToggleFolder={handleToggleFolder}
+      onSelectLesson={handleSelectLesson}
+      onShowMore={handleShowMoreLessons}
+      onClose={() => setIsSidebarMobileOpen(false)}
+    />
+  );
 
   return (
     <div className="animate-in slide-in-from-right-10 space-y-6 duration-700">
@@ -989,7 +666,7 @@ export function FilesPage() {
         <div className="flex flex-col gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-              Biblioteca de <span className="text-cyan-500">Aulas</span>
+              Biblioteca de <span className="text-[hsl(var(--accent))]">Aulas</span>
             </h2>
             <p className="mt-1 text-xs font-medium text-slate-500">
               Layout de curso com player principal, trilha lateral por pasta e abas de detalhes.
@@ -998,7 +675,7 @@ export function FilesPage() {
 
           <div className="flex flex-wrap gap-2">
             <button
-              className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-cyan-900/20 transition-all hover:bg-cyan-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-[rgba(var(--glow),0.2)] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={saving}
               onClick={handleOpenPicker}
               type="button"
@@ -1029,7 +706,7 @@ export function FilesPage() {
               </button>
             )}
             <button
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))] disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="toggle-order"
               disabled={visibleVideos.length === 0 || loading}
               onClick={() => setOrderMode((value) => (value === "newest" ? "oldest" : "newest"))}
@@ -1050,7 +727,7 @@ export function FilesPage() {
             </button>
             <button
               aria-label="Abrir conteudo"
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 lg:hidden"
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))] lg:hidden"
               data-testid="sidebar-mobile-toggle"
               disabled={visibleVideos.length === 0}
               onClick={() => setIsSidebarMobileOpen(true)}
@@ -1099,28 +776,28 @@ export function FilesPage() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
                 <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Nivel</p>
-                <p className="mt-1 text-lg font-black text-cyan-300">{globalStats.level}</p>
+                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.level}</p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
                 <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Rank</p>
-                <p className="mt-1 text-lg font-black text-cyan-300">{globalStats.rank}</p>
+                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.rank}</p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
                 <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">XP</p>
-                <p className="mt-1 text-lg font-black text-cyan-300">
+                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">
                   {globalStats.xp}/{globalStats.maxXp}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
                 <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Gold</p>
-                <p className="mt-1 text-lg font-black text-cyan-300">{globalStats.gold}</p>
+                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.gold}</p>
               </div>
             </div>
 
             <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-400">
               <span>{completedVideoRefs.size} aula(s) concluidas nesta conta</span>
               {loadingCompletions && (
-                <span className="flex items-center gap-1 text-cyan-300">
+                <span className="flex items-center gap-1 text-[hsl(var(--accent-light))]">
                   <Loader2 size={12} className="animate-spin" />
                   sincronizando
                 </span>
@@ -1133,21 +810,21 @@ export function FilesPage() {
       {loading ? (
         <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-800 bg-[#0a0a0b]/60">
           <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
-            <Loader2 className="animate-spin text-cyan-500" size={20} />
+            <Loader2 className="animate-spin text-[hsl(var(--accent))]" size={20} />
             Carregando biblioteca local...
           </div>
         </div>
       ) : visibleVideos.length === 0 ? (
         <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center">
-          <div className="mb-6 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
-            <Film className="text-cyan-400" size={36} />
+          <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
+            <Film className="text-[hsl(var(--accent))]" size={36} />
           </div>
           <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
           <p className="mt-2 max-w-xl text-sm text-slate-500">
             Selecione videos ou pasta para montar sua trilha de estudos em /arquivos.
           </p>
           <button
-            className="mt-8 flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-cyan-500 active:scale-95"
+            className="mt-8 flex items-center gap-2 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95"
             onClick={handleOpenPicker}
             type="button"
           >
@@ -1223,11 +900,10 @@ export function FilesPage() {
                 </div>
 
                 <button
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${
-                    selectedVideoCompleted
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      : "border-cyan-500/30 bg-cyan-600 text-white hover:bg-cyan-500"
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                    : "border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] text-white hover:brightness-110"
+                    } disabled:cursor-not-allowed disabled:opacity-60`}
                   data-testid="complete-lesson-button"
                   disabled={
                     !selectedVideo ||
@@ -1254,11 +930,10 @@ export function FilesPage() {
             <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
               <div className="mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
                 <button
-                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
-                    activeTab === "overview"
-                      ? "bg-cyan-500/20 text-cyan-300"
-                      : "bg-slate-900 text-slate-400 hover:text-slate-200"
-                  }`}
+                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === "overview"
+                    ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
+                    : "bg-slate-900 text-slate-400 hover:text-slate-200"
+                    }`}
                   data-testid="tab-overview"
                   onClick={() => setActiveTab("overview")}
                   type="button"
@@ -1266,11 +941,10 @@ export function FilesPage() {
                   Visao geral
                 </button>
                 <button
-                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${
-                    activeTab === "metadata"
-                      ? "bg-cyan-500/20 text-cyan-300"
-                      : "bg-slate-900 text-slate-400 hover:text-slate-200"
-                  }`}
+                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === "metadata"
+                    ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
+                    : "bg-slate-900 text-slate-400 hover:text-slate-200"
+                    }`}
                   data-testid="tab-metadata"
                   onClick={() => setActiveTab("metadata")}
                   type="button"
@@ -1289,19 +963,19 @@ export function FilesPage() {
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                     <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total de videos</p>
-                      <p className="mt-1 text-lg font-black text-cyan-300">{visibleVideos.length}</p>
+                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{visibleVideos.length}</p>
                     </div>
                     <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total de pastas</p>
-                      <p className="mt-1 text-lg font-black text-cyan-300">{folderSections.length}</p>
+                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{folderSections.length}</p>
                     </div>
                     <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Pasta atual</p>
-                      <p className="mt-1 truncate text-lg font-black text-cyan-300">{selectedVideo?.relativePath ?? "-"}</p>
+                      <p className="mt-1 truncate text-lg font-black text-[hsl(var(--accent-light))]">{selectedVideo?.relativePath ?? "-"}</p>
                     </div>
                     <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Status RPG</p>
-                      <p className="mt-1 text-lg font-black text-cyan-300">
+                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">
                         {selectedVideoCompleted ? "Concluida" : "Pendente"}
                       </p>
                     </div>

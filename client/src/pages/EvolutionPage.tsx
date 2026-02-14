@@ -59,7 +59,7 @@ export function EvolutionPage() {
           {ATTRIBUTES.map((attribute) => (
             <div
               key={attribute.label}
-              className="group rounded-[24px] border border-slate-800 bg-slate-950 p-5 transition-all duration-300 hover:border-cyan-500/50"
+              className="group rounded-[24px] border border-slate-800 bg-slate-950 p-5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)]"
             >
               <div className="mb-1 flex items-center justify-between">
                 <span className={`text-xs font-black uppercase tracking-widest ${attribute.color}`}>
@@ -67,7 +67,7 @@ export function EvolutionPage() {
                 </span>
                 <span className="text-lg font-black text-white">{attribute.value}</span>
               </div>
-              <div className="text-[8px] font-bold uppercase text-slate-600">{attribute.desc}</div>
+              <div className="text-[10px] font-bold uppercase text-slate-400">{attribute.desc}</div>
             </div>
           ))}
         </div>
@@ -85,13 +85,12 @@ export function EvolutionPage() {
               return (
                 <div
                   key={index}
-                  className={`h-5 w-5 cursor-pointer rounded-[4px] border border-transparent transition-all hover:scale-150 hover:border-white ${
-                    randomValue > 0.85
-                      ? "bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.6)]"
-                      : randomValue > 0.4
-                        ? "border border-emerald-700/20 bg-emerald-800/40"
-                        : "border border-slate-800 bg-slate-900"
-                  }`}
+                  className={`h-5 w-5 cursor-pointer rounded-[4px] border border-transparent transition-all hover:scale-150 hover:border-white ${randomValue > 0.85
+                    ? "bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.6)]"
+                    : randomValue > 0.4
+                      ? "border border-emerald-700/20 bg-emerald-800/40"
+                      : "border border-slate-800 bg-slate-900"
+                    }`}
                 />
               );
             })}
@@ -122,11 +121,10 @@ export function EvolutionPage() {
                 className={`flex flex-col items-center gap-3 transition-all ${achievement.unlocked ? "" : "grayscale opacity-20"}`}
               >
                 <div
-                  className={`rounded-2xl border p-4 ${
-                    achievement.unlocked
-                      ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-500 shadow-lg"
-                      : "border-slate-800 bg-slate-900 text-slate-700"
-                  }`}
+                  className={`rounded-2xl border p-4 ${achievement.unlocked
+                    ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-500 shadow-lg"
+                    : "border-slate-800 bg-slate-900 text-slate-700"
+                    }`}
                 >
                   <achievement.icon size={20} />
                 </div>

@@ -67,19 +67,19 @@
 47. ✅ Request ID + logs por request
 48. ⬜ Métricas (Prometheus) + endpoint `/metrics`
 49. ⬜ Sentry (ou equivalente) para erros
-50. ⬜ Auditoria (log de eventos: login, refresh, create_session, claim_quest)
-51. ⬜ CORS hardening + lista por ambiente
-52. ⬜ Cookie hardening (SameSite/secure por ambiente, domínio)
-53. ⬜ CSRF protection (double-submit cookie ou header)
-54. ⬜ Rate limiting com Redis (produção multi-instância)
+50. ✅ Auditoria (log de eventos: login, refresh, create_session, claim_quest)
+51. ✅ CORS hardening + lista por ambiente
+52. ✅ Cookie hardening (SameSite/secure por ambiente, domínio)
+53. ✅ CSRF protection (double-submit cookie ou header)
+54. ✅ Rate limiting com Redis (produção multi-instância)
 
 ## Qualidade / DX
 55. ✅ Scripts e documentação de execução
 56. ✅ Dockerfile/compose ajustados para migrations
-57. ⬜ Lint/format (ruff/black) + pre-commit
-58. ⬜ Typecheck (mypy) no backend
-59. ⬜ Testes E2E do front (Playwright)
-60. ⬜ Seed de dados para dev (conta demo, drills demo)
+57. ✅ Lint/format (ruff/black) + pre-commit
+58. ✅ Typecheck (mypy) no backend
+59. ✅ Testes E2E do front (Playwright)
+60. ✅ Seed de dados para dev (conta demo, drills demo)
 61. ⬜ Monorepo tooling (turbo/nx) (opcional)
 
 ## Gamificação / Estudo (Produto)

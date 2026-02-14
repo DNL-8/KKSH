@@ -1,6 +1,8 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+
 const AppShell = lazy(async () => {
   const mod = await import("./layout/AppShell");
   return { default: mod.AppShell };
@@ -36,26 +38,32 @@ const SettingsPage = lazy(async () => {
 
 export function AppRouter() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#020203] p-4 text-xs font-bold uppercase tracking-[0.3em] text-cyan-400">
-          Carregando modulo...
-        </div>
-      }
-    >
-      <Routes>
-        <Route path="/" element={<Navigate to="/hub" replace />} />
-        <Route element={<AppShell />}>
-          <Route path="/hub" element={<HubPage />} />
-          <Route path="/combate" element={<CombatPage />} />
-          <Route path="/revisoes" element={<ReviewsPage />} />
-          <Route path="/arquivos" element={<FilesPage />} />
-          <Route path="/evolucao" element={<EvolutionPage />} />
-          <Route path="/ia" element={<AiPage />} />
-          <Route path="/config" element={<SettingsPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/hub" replace />} />
-      </Routes>
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div
+            className="flex min-h-screen items-center justify-center bg-[#020203] p-4 text-xs font-bold uppercase tracking-[0.3em] text-[hsl(var(--accent))]"
+            role="status"
+            aria-live="polite"
+          >
+            Carregando modulo...
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<Navigate to="/hub" replace />} />
+          <Route element={<AppShell />}>
+            <Route path="/hub" element={<HubPage />} />
+            <Route path="/combate" element={<CombatPage />} />
+            <Route path="/revisoes" element={<ReviewsPage />} />
+            <Route path="/arquivos" element={<FilesPage />} />
+            <Route path="/evolucao" element={<EvolutionPage />} />
+            <Route path="/ia" element={<AiPage />} />
+            <Route path="/config" element={<SettingsPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/hub" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

@@ -15,16 +15,46 @@ import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { DetailedToggle, ThemeOption } from "../components/common";
+import { useTheme, type ThemeId } from "../contexts/ThemeContext";
 import { ApiRequestError, logout, resetMeState } from "../lib/api";
 import type { AppShellContextValue } from "../layout/types";
 
+/* ------------------------------------------------------------------ */
+/*  Hook: persist simple values in localStorage                       */
+/* ------------------------------------------------------------------ */
+
+function usePersistedState<T>(key: string, fallback: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const stored = window.localStorage.getItem(key);
+      return stored !== null ? (JSON.parse(stored) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  });
+
+  const setPersisted: React.Dispatch<React.SetStateAction<T>> = (action) => {
+    setValue((prev) => {
+      const next = typeof action === "function" ? (action as (p: T) => T)(prev) : action;
+      try {
+        window.localStorage.setItem(key, JSON.stringify(next));
+      } catch {
+        /* ignore full storage */
+      }
+      return next;
+    });
+  };
+
+  return [value, setPersisted];
+}
+
 export function SettingsPage() {
   const { authUser, openAuthPanel, syncProgressionFromApi, navigateTo } = useOutletContext<AppShellContextValue>();
+  const { themeId, setTheme } = useTheme();
 
-  const [hudTheme, setHudTheme] = useState("cyan");
-  const [difficulty, setDifficulty] = useState("cacador");
-  const [stealthMode, setStealthMode] = useState(false);
-  const [glitchEffects, setGlitchEffects] = useState(true);
+  const [difficulty, setDifficulty] = usePersistedState("cmd8_difficulty", "cacador");
+  const [stealthMode, setStealthMode] = usePersistedState("cmd8_stealth", false);
+  const [glitchEffects, setGlitchEffects] = usePersistedState("cmd8_glitch", true);
 
   const [dangerBusy, setDangerBusy] = useState<"reset" | "logout" | null>(null);
   const [dangerFeedback, setDangerFeedback] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
@@ -111,8 +141,8 @@ export function SettingsPage() {
           <Palette size={150} />
         </div>
         <div className="flex items-center gap-6 border-b border-slate-800 pb-8">
-          <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4 shadow-xl">
-            <Monitor size={32} className="text-cyan-500" />
+          <div className="rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] p-4 shadow-xl">
+            <Monitor size={32} className="text-[hsl(var(--accent))]" />
           </div>
           <div>
             <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Interface Neural (HUD)</h2>
@@ -126,11 +156,13 @@ export function SettingsPage() {
               Espectro Cromatico do Sistema
             </label>
             <div className="flex flex-wrap gap-8">
-              <ThemeOption color="bg-cyan-500" active={hudTheme === "cyan"} onClick={() => setHudTheme("cyan")} label="Ciano" />
-              <ThemeOption color="bg-red-600" active={hudTheme === "red"} onClick={() => setHudTheme("red")} label="Carmesim" />
-              <ThemeOption color="bg-purple-600" active={hudTheme === "purple"} onClick={() => setHudTheme("purple")} label="Violeta" />
-              <ThemeOption color="bg-emerald-500" active={hudTheme === "emerald"} onClick={() => setHudTheme("emerald")} label="Esmeralda" />
-              <ThemeOption color="bg-orange-500" active={hudTheme === "orange"} onClick={() => setHudTheme("orange")} label="Ambar" />
+              <ThemeOption color="bg-cyan-500" active={themeId === "cyan"} onClick={() => setTheme("cyan" as ThemeId)} label="Ciano" />
+              <ThemeOption color="bg-red-600" active={themeId === "red"} onClick={() => setTheme("red" as ThemeId)} label="Carmesim" />
+              <ThemeOption color="bg-purple-600" active={themeId === "purple"} onClick={() => setTheme("purple" as ThemeId)} label="Violeta" />
+              <ThemeOption color="bg-emerald-500" active={themeId === "emerald"} onClick={() => setTheme("emerald" as ThemeId)} label="Esmeralda" />
+              <ThemeOption color="bg-orange-500" active={themeId === "orange"} onClick={() => setTheme("orange" as ThemeId)} label="Ambar" />
+              <ThemeOption color="bg-[#00af00]" active={themeId === "matrix"} onClick={() => setTheme("matrix" as ThemeId)} label="Matrix" />
+              <ThemeOption color="bg-[#0b1c35] border-blue-500" active={themeId === "sololeveling"} onClick={() => setTheme("sololeveling" as ThemeId)} label="Solo Leveling" />
             </div>
           </div>
 
@@ -171,14 +203,14 @@ export function SettingsPage() {
 
           <div className="group col-span-1 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-slate-800 bg-[#050506] p-8 transition-all hover:border-emerald-500/30 md:col-span-2 md:flex-row">
             <div className="flex items-center gap-5">
-              <Globe size={28} className="text-cyan-500" />
+              <Globe size={28} className="text-[hsl(var(--accent))]" />
               <div className="space-y-1">
                 <div className="text-lg font-black uppercase tracking-widest text-white">Protocolo de Comunicacao</div>
                 <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Saida Atual: Portugues (Portugal) - V4.2</div>
               </div>
             </div>
             <button
-              className="rounded-2xl border border-slate-700 px-8 py-3 text-[10px] font-black uppercase text-slate-500 transition-all hover:border-cyan-500 hover:text-cyan-400 active:scale-95"
+              className="rounded-2xl border border-slate-700 px-8 py-3 text-[10px] font-black uppercase text-slate-500 transition-all hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--accent))] active:scale-95"
               type="button"
             >
               Alterar Link Linguistico
@@ -206,20 +238,18 @@ export function SettingsPage() {
               <button
                 key={level}
                 onClick={() => setDifficulty(id)}
-                className={`relative flex flex-col items-center gap-4 overflow-hidden rounded-[32px] border-2 p-10 transition-all ${
-                  active
-                    ? "scale-105 border-orange-500 bg-orange-500/5 shadow-[0_20px_50px_rgba(249,115,22,0.2)]"
-                    : "border-slate-800 bg-[#050506] opacity-60 hover:opacity-100"
-                }`}
+                className={`relative flex flex-col items-center gap-4 overflow-hidden rounded-[32px] border-2 p-10 transition-all ${active
+                  ? "scale-105 border-orange-500 bg-orange-500/5 shadow-[0_20px_50px_rgba(249,115,22,0.2)]"
+                  : "border-slate-800 bg-[#050506] opacity-60 hover:opacity-100"
+                  }`}
                 type="button"
               >
                 {active && <div className="absolute right-0 top-0 h-20 w-20 rounded-full bg-orange-500 opacity-10 blur-3xl" />}
                 <div
-                  className={`rounded-full p-4 ${
-                    active
-                      ? "bg-orange-500 text-black shadow-[0_0_20px_#f97316]"
-                      : "bg-slate-800 text-slate-500 group-hover:text-slate-300"
-                  }`}
+                  className={`rounded-full p-4 ${active
+                    ? "bg-orange-500 text-black shadow-[0_0_20px_#f97316]"
+                    : "bg-slate-800 text-slate-500 group-hover:text-slate-300"
+                    }`}
                 >
                   {level === "Iniciado" ? <Zap size={20} /> : level === "Cacador" ? <Target size={20} /> : <Skull size={20} />}
                 </div>
@@ -275,13 +305,12 @@ export function SettingsPage() {
 
           {dangerFeedback && (
             <div
-              className={`rounded-xl border p-3 text-xs font-semibold ${
-                dangerFeedback.type === "success"
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                  : dangerFeedback.type === "info"
-                    ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-200"
-                    : "border-red-500/30 bg-red-500/10 text-red-300"
-              }`}
+              className={`rounded-xl border p-3 text-xs font-semibold ${dangerFeedback.type === "success"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                : dangerFeedback.type === "info"
+                  ? "border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))]"
+                  : "border-red-500/30 bg-red-500/10 text-red-300"
+                }`}
             >
               {dangerFeedback.text}
             </div>
