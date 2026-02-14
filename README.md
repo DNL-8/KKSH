@@ -5,10 +5,12 @@ Aplicacao fullstack com backend FastAPI e frontend React + Vite + Tailwind, serv
 ## Stack
 
 - Backend: FastAPI + SQLModel + Alembic
-- Frontend: React + TypeScript + Vite + Tailwind v3
+- Frontend: React 19 + TypeScript + Vite 7 + Tailwind v3
+- IA: Google Gemini (`google-genai` SDK)
 - Banco: Postgres (Docker) / SQLite (local)
 - Cache/rate limiting compartilhado: Redis
 - E2E: Playwright
+- CI: GitHub Actions
 
 ## Rotas web
 
@@ -20,6 +22,7 @@ Aplicacao fullstack com backend FastAPI e frontend React + Vite + Tailwind, serv
 - `/ia`
 - `/config`
 - `/` redireciona para `/hub`
+- Rotas desconhecidas exibem pagina 404 tematica
 
 ## Rodando local
 
@@ -57,6 +60,10 @@ Output: `dist/public`.
 
 O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini fica apenas no backend (`GEMINI_API_KEY`).
 
+- SDK: `google-genai` (Client-based API)
+- Chave do usuario encriptada com Fernet no DB (mesma infra dos webhook secrets)
+- Response mascara a chave (ex: `AIza****abcd`)
+
 ## Arquivos locais (/arquivos)
 
 - A tela `Arquivos` carrega videos locais via seletor do navegador (`input file`).
@@ -93,6 +100,7 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `WEBHOOK_OUTBOX_SEND_ENABLED` ativa processamento por worker (desativa envio legacy in-process)
 - `WEBHOOK_WORKER_*` controla batch/poll/locks/retries/backoff do worker
 - `WEBHOOK_DELIVERY_TIMEOUT_SEC` timeout de entrega HTTP por webhook
+- `GEMINI_API_KEY` chave de API do Gemini (fallback do sistema)
 
 ## Hardening de producao
 
@@ -103,6 +111,21 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `WEBHOOK_SECRET_ENC_KEY` definido
 - `CORS_ORIGINS` vazio para same-origin (ou lista explicita para cross-origin)
 
+## SEO & PWA
+
+- `robots.txt` e `sitemap.xml` em `client/public/`
+- `manifest.webmanifest` para PWA (installable)
+- Open Graph, Twitter Card e Schema.org JSON-LD em `index.html`
+- Google Fonts com `display=swap`
+- Web Vitals (CLS/INP/LCP) reportados ao backend
+
+## Acessibilidade
+
+- Skip-to-content link
+- ARIA attributes nos toggles (`role="switch"`, `aria-checked`)
+- Focus-visible ring global
+- Font-size minimo 11px
+
 ## Scripts uteis
 
 - `pnpm dev:client`
@@ -111,6 +134,7 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `pnpm build`
 - `pnpm e2e`
 - `pnpm check`
+- `$env:ANALYZE="true"; pnpm build:client` (gera `stats.html` com mapa de bundle)
 - `PYTHONPATH=. python backend/scripts/run_webhook_worker.py --once`
 - `PYTHONPATH=. python backend/scripts/requeue_webhook_outbox.py --all-dead --limit 100`
 - `PYTHONPATH=. python backend/scripts/cleanup_webhook_outbox.py --sent-days 14 --shadow-days 7 --dead-days 30`

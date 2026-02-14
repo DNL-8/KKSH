@@ -22,7 +22,7 @@ docker compose up -d --build redis db api webhook_worker
 curl http://localhost:8000/api/v1/health
 ```
 
-Esperado: HTTP 200 com `{"ok": true}`.
+Esperado: HTTP 200 com `{"ok": true, "checks": {"database": "ok", "redis": "ok|not_configured"}}`.
 
 ### 1.3 SPA same-origin
 

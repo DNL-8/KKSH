@@ -137,24 +137,11 @@ Plano executavel em 2 sprints, focado em risco primeiro e depois escala/manuteni
 - Aceite:
   - Boot do app com 1 request principal de estado.
 
-### 3) Web Vitals no cliente (P2)
+### 3) Web Vitals no cliente (P2) — ✅ CONCLUÍDO
 
-- Objetivo: habilitar medicao real de UX.
-- Arquivos:
-  - `package.json`
-  - `client/src/main.tsx`
-  - `client/src/lib/api.ts`
-  - `backend/app/api/v1/reports.py`
-  - `backend/tests/test_reports_web_vitals.py`
-- Implementacao:
-  - Integrar coleta de `LCP`, `INP`, `CLS` no frontend.
-  - Enviar eventos para `/api/v1/reports/web-vitals`.
-  - Manter endpoint robusto a payload invalido e com rate-limit atual.
-- Testes:
-  - Backend: ingestao com payload valido/invalido.
-  - Frontend: smoke de envio sem quebrar boot.
-- Aceite:
-  - Eventos reais chegando no backend.
+- Implementado em `client/src/lib/webVitals.ts` e `App.tsx`
+- Coleta CLS, INP e LCP via `web-vitals` library
+- Envia para `/api/v1/reports/web-vitals` usando `navigator.sendBeacon`
 
 ### 4) Otimizacao de custo de depth no worker (P2)
 

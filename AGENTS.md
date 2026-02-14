@@ -60,9 +60,11 @@ Recompensa de claim e dinamica por `rank + difficulty + cycle`:
 
 ## Qualidade e seguranca
 1. Chave Gemini nunca no frontend.
-2. Endpoint protegido por auth + CSRF.
-3. Log de auditoria obrigatorio em `missions.regenerate` com `reason`, `source`, `durationMs`, contagens.
-4. PT-BR como lingua primaria dos textos gerados.
+2. Chave do usuario encriptada com Fernet no DB (via `secrets.encrypt_secret`).
+3. SDK: `google-genai` (Client-based API).
+4. Endpoint protegido por auth + CSRF.
+5. Log de auditoria obrigatorio em `missions.regenerate` com `reason`, `source`, `durationMs`, contagens.
+6. PT-BR como lingua primaria dos textos gerados.
 
 ## Checklist minimo de testes
 1. Regeneracao gera 5+5 e sem duplicata de `subject` por ciclo.

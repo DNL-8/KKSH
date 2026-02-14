@@ -56,7 +56,7 @@ Configure secrets in Render dashboard:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `WEBHOOK_SECRET_ENC_KEY`
-- `GEMINI_API_KEY` (if AI enabled)
+- `GEMINI_API_KEY` (if AI enabled — stored encrypted with Fernet)
 - `METRICS_TOKEN` (if metrics enabled)
 
 ## CSRF
@@ -68,12 +68,13 @@ Cookie-auth flow:
 
 ## Health/observability
 
-- Health: `/api/v1/health`
+- Health: `/api/v1/health` (checks DB + Redis connectivity, returns `503` on failure)
 - Metrics: `/metrics` (protect in production)
+- Web Vitals: `/api/v1/reports/web-vitals` (frontend CLS/INP/LCP reporting)
 
 ## Post-deploy smoke
 
-1. `GET /api/v1/health` returns 200
+1. `GET /api/v1/health` returns 200 with `{"ok": true, "checks": {"database": "ok"}}`
 2. `GET /hub` returns app HTML
 3. Route navigation works without 404
 4. `POST /api/v1/ai/hunter` works (or controlled upstream error)

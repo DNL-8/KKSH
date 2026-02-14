@@ -65,8 +65,8 @@
 
 ## Observabilidade / Segurança
 47. ✅ Request ID + logs por request
-48. ⬜ Métricas (Prometheus) + endpoint `/metrics`
-49. ⬜ Sentry (ou equivalente) para erros
+48. ✅ Métricas (Prometheus) + endpoint `/metrics`
+49. ✅ Sentry (ou equivalente) para erros
 50. ✅ Auditoria (log de eventos: login, refresh, create_session, claim_quest)
 51. ✅ CORS hardening + lista por ambiente
 52. ✅ Cookie hardening (SameSite/secure por ambiente, domínio)
