@@ -41,9 +41,74 @@ export interface VitalsOut {
   maxFatigue: number;
 }
 
+export interface DailyQuestOut {
+  id: string;
+  date: string;
+  subject: string;
+  title?: string | null;
+  description?: string | null;
+  rank?: string | null;
+  difficulty?: string | null;
+  objective?: string | null;
+  tags?: string[];
+  rewardXp?: number | null;
+  rewardGold?: number | null;
+  source?: string;
+  generatedAt?: string | null;
+  targetMinutes: number;
+  progressMinutes: number;
+  claimed: boolean;
+}
+
+export interface WeeklyQuestOut {
+  id: string;
+  week: string;
+  subject: string;
+  title?: string | null;
+  description?: string | null;
+  rank?: string | null;
+  difficulty?: string | null;
+  objective?: string | null;
+  tags?: string[];
+  rewardXp?: number | null;
+  rewardGold?: number | null;
+  source?: string;
+  generatedAt?: string | null;
+  targetMinutes: number;
+  progressMinutes: number;
+  claimed: boolean;
+}
+
+export interface InventoryItemOut {
+  id: string;
+  name: string;
+  desc: string;
+  qty: number;
+  consumable: boolean;
+}
+
+export interface StudyBlockOut {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  durationMin: number;
+  subject: string;
+  mode: string;
+  isActive: boolean;
+}
+
 export interface AppStateOut {
   user: UserOut;
+  onboardingDone?: boolean;
+  todayMinutes?: number;
+  weekMinutes?: number;
   streakDays: number;
+  goals?: Record<string, number>;
+  dueReviews?: number;
+  dailyQuests?: DailyQuestOut[];
+  weeklyQuests?: WeeklyQuestOut[];
+  inventory?: InventoryItemOut[];
+  studyBlocks?: StudyBlockOut[];
   progression?: ProgressionOut | null;
   vitals?: VitalsOut | null;
   settings?: UserSettingsOut | null;
@@ -77,6 +142,55 @@ export interface SessionOut {
 export interface SessionListOut {
   sessions: SessionOut[];
   nextCursor?: string | null;
+}
+
+export interface ListSessionsParams {
+  limit?: number;
+  cursor?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  subject?: string;
+  mode?: string;
+}
+
+export interface AchievementOut {
+  key: string;
+  name: string;
+  description: string;
+  icon?: string | null;
+  unlocked: boolean;
+  unlockedAt?: string | null;
+}
+
+export interface WeeklyReportDayOut {
+  date: string;
+  minutes: number;
+}
+
+export interface WeeklyReportSubjectOut {
+  subject: string;
+  minutes: number;
+}
+
+export interface WeeklyReportOut {
+  from: string;
+  to: string;
+  totalMinutes: number;
+  byDay: WeeklyReportDayOut[];
+  bySubject: WeeklyReportSubjectOut[];
+  streakDays: number;
+}
+
+export interface MonthlyReportRowOut {
+  month: string;
+  minutes: number;
+  sessions: number;
+  xp: number;
+  gold: number;
+}
+
+export interface MonthlyReportOut {
+  months: MonthlyReportRowOut[];
 }
 
 export type ResetScope = "missions" | "progression" | "sessions" | "inventory" | "reviews" | "all";
@@ -308,15 +422,55 @@ export async function createSession(payload: CreateSessionIn): Promise<CreateSes
   });
 }
 
-export async function listVideoSessions(cursor?: string, limit = 200): Promise<SessionListOut> {
-  const params = new URLSearchParams();
-  params.set("mode", "video_lesson");
-  params.set("limit", String(limit));
-  if (cursor) {
-    params.set("cursor", cursor);
+export async function listSessions(params: ListSessionsParams = {}): Promise<SessionListOut> {
+  const query = new URLSearchParams();
+  query.set("limit", String(params.limit ?? 200));
+  if (params.cursor) {
+    query.set("cursor", params.cursor);
+  }
+  if (params.dateFrom) {
+    query.set("date_from", params.dateFrom);
+  }
+  if (params.dateTo) {
+    query.set("date_to", params.dateTo);
+  }
+  if (params.subject) {
+    query.set("subject", params.subject);
+  }
+  if (params.mode) {
+    query.set("mode", params.mode);
   }
 
-  return requestJson<SessionListOut>(`/api/v1/sessions?${params.toString()}`, {
+  return requestJson<SessionListOut>(`/api/v1/sessions?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function listVideoSessions(cursor?: string, limit = 200): Promise<SessionListOut> {
+  return listSessions({
+    cursor,
+    limit,
+    mode: "video_lesson",
+  });
+}
+
+export async function getWeeklyReport(): Promise<WeeklyReportOut> {
+  return requestJson<WeeklyReportOut>("/api/v1/reports/weekly", {
+    method: "GET",
+  });
+}
+
+export async function getMonthlyReport(months = 12): Promise<MonthlyReportOut> {
+  const params = new URLSearchParams();
+  params.set("months", String(months));
+
+  return requestJson<MonthlyReportOut>(`/api/v1/reports/monthly?${params.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function listAchievements(): Promise<AchievementOut[]> {
+  return requestJson<AchievementOut[]>("/api/v1/achievements", {
     method: "GET",
   });
 }

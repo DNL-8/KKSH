@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "20260214_0016_indexes_constraints"
-down_revision = "20260214_0015_webhook_outbox"
+down_revision = "20260214_0015"
 branch_labels = None
 depends_on = None
 

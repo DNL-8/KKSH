@@ -19,7 +19,7 @@ else:
 
 engine = create_engine(settings.database_url, connect_args=connect_args, **pool_kwargs)
 
-_SQLITE_QUEST_COLUMNS: dict[str, dict[str, str]] = {
+_SQLITE_COMPAT_COLUMNS: dict[str, dict[str, str]] = {
     "daily_quests": {
         "title": "TEXT",
         "description": "TEXT",
@@ -48,6 +48,10 @@ _SQLITE_QUEST_COLUMNS: dict[str, dict[str, str]] = {
         "secret_encrypted": "TEXT",
         "secret_key_id": "TEXT",
     },
+    "user_settings": {
+        "gemini_api_key": "TEXT",
+        "agent_personality": "TEXT DEFAULT 'standard'",
+    },
 }
 
 _SQLITE_QUEST_INDEXES = (
@@ -75,12 +79,12 @@ def _sqlite_table_columns(connection: Any, table: str) -> set[str]:
     return {str(row[1]) for row in rows}
 
 
-def _ensure_sqlite_quest_schema_compatibility() -> None:
+def _ensure_sqlite_schema_compatibility() -> None:
     if engine.url.get_backend_name() != "sqlite":
         return
 
     with engine.begin() as connection:
-        for table, columns in _SQLITE_QUEST_COLUMNS.items():
+        for table, columns in _SQLITE_COMPAT_COLUMNS.items():
             existing = _sqlite_table_columns(connection, table)
             if not existing:
                 continue
@@ -107,6 +111,10 @@ def _ensure_sqlite_quest_schema_compatibility() -> None:
         connection.exec_driver_sql(
             "UPDATE weekly_quests SET generated_at = created_at WHERE generated_at IS NULL"
         )
+        connection.exec_driver_sql(
+            "UPDATE user_settings SET agent_personality = 'standard' "
+            "WHERE agent_personality IS NULL OR TRIM(agent_personality) = ''"
+        )
 
         for statement in _SQLITE_QUEST_INDEXES:
             connection.exec_driver_sql(statement)
@@ -114,7 +122,7 @@ def _ensure_sqlite_quest_schema_compatibility() -> None:
 
 def create_db_and_tables() -> None:
     SQLModel.metadata.create_all(engine)
-    _ensure_sqlite_quest_schema_compatibility()
+    _ensure_sqlite_schema_compatibility()
 
 
 def get_session() -> Session:

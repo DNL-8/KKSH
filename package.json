@@ -18,6 +18,8 @@
     "check": "pnpm lint:frontend && pnpm typecheck && pnpm lint:backend && pnpm test:backend",
     "e2e:serve": "concurrently -n api,client -c auto \"cross-env ENV=test JWT_SECRET=change-me-in-prod AUTO_CREATE_DB=true SEED_DEV_DATA=true DATABASE_URL=sqlite:///./e2e.db CORS_ORIGINS=http://127.0.0.1:3000 SERVE_FRONTEND=false TZ=America/Sao_Paulo python -m uvicorn app.main:app --app-dir backend --port 18000\" \"cross-env VITE_DEV_API_TARGET=http://127.0.0.1:18000 pnpm dev:client -- --host 127.0.0.1 --port 3000 --strictPort\"",
     "e2e": "playwright test",
+    "e2e:hub": "playwright test e2e/hub.dynamic.spec.ts",
+    "e2e:evolution": "playwright test e2e/evolution.dynamic.spec.ts",
     "e2e:install": "playwright install --with-deps"
   },
   "dependencies": {

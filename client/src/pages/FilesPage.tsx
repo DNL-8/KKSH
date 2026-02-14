@@ -131,7 +131,7 @@ function FilesStatCard({ label, value, subtext, icon: Icon }: FilesStatCardProps
 
 
 export function FilesPage() {
-  const { globalStats, authUser, syncProgressionFromApi } =
+  const { globalStats, authUser, syncProgressionFromApi, openAuthPanel } =
     useOutletContext<AppShellContextValue>();
 
   const [videos, setVideos] = useState<StoredVideo[]>([]);
@@ -463,13 +463,14 @@ export function FilesPage() {
     }
   };
 
-  const handleCompleteLesson = async () => {
+  const handleCompleteLesson = useCallback(async () => {
     if (!selectedVideo || !selectedVideoRef) {
       return;
     }
 
     if (!authUser) {
       setStatusMessage("Faca login no topo para contabilizar XP e nivel.");
+      openAuthPanel();
       return;
     }
 
@@ -528,7 +529,7 @@ export function FilesPage() {
     } finally {
       setCompletingLesson(false);
     }
-  };
+  }, [authUser, loadingCompletions, openAuthPanel, selectedDurationSec, selectedVideo, selectedVideoCompleted, selectedVideoRef, syncProgressionFromApi]);
 
   const handleVideoEnded = useCallback(() => {
     if (!selectedLessonId) return;
@@ -803,10 +804,8 @@ export function FilesPage() {
                   data-testid="complete-lesson-button"
                   disabled={
                     !selectedVideo ||
-                    !authUser ||
                     selectedVideoCompleted ||
-                    completingLesson ||
-                    loadingCompletions
+                    completingLesson
                   }
                   onClick={() => void handleCompleteLesson()}
                   type="button"
@@ -814,6 +813,8 @@ export function FilesPage() {
                   {completingLesson ? <Loader2 className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}
                   {!authUser
                     ? "Faca login para concluir"
+                    : loadingCompletions
+                      ? "Sincronizando..."
                     : selectedVideoCompleted
                       ? "Ja concluida"
                       : completingLesson
