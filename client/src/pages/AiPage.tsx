@@ -1,0 +1,162 @@
+import { Activity, Cpu, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import { ApiRequestError, postHunterMessage } from "../lib/api";
+
+interface TerminalMessage {
+  id: number;
+  text: string;
+  type: "user" | "system" | "error";
+}
+
+export function AiPage() {
+  const [input, setInput] = useState("");
+  const [logs, setLogs] = useState<TerminalMessage[]>([
+    {
+      id: 1,
+      text: "SISTEMA: Ligação estabelecida. O que pretendes processar, Caçador?",
+      type: "system",
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  const sendCommand = async () => {
+    if (!input.trim() || loading) {
+      return;
+    }
+
+    const message = input.trim();
+    setInput("");
+    setLogs((prev) => [...prev, { id: Date.now(), text: `CAÇADOR: ${message}`, type: "user" }]);
+    setLoading(true);
+
+    try {
+      const response = await postHunterMessage(message);
+      const systemText = [response.resposta_texto, `[STATUS] ${response.status_mensagem}`].join("\n");
+      setLogs((prev) => [...prev, { id: Date.now() + 1, text: `SISTEMA: ${systemText}`, type: "system" }]);
+    } catch (error) {
+      let messageText = "ERRO: Falha de uplink com o núcleo IA.";
+      if (error instanceof ApiRequestError) {
+        const retryAfter = String(error.details.retryAfterSec ?? "").trim();
+        if (error.code === "ai_quota_exceeded" && retryAfter) {
+          messageText = `ERRO: Quota do provedor atingida. Tente novamente em ~${retryAfter}s.`;
+        } else {
+          messageText = `ERRO: ${error.message}`;
+        }
+      }
+      setLogs((prev) => [...prev, { id: Date.now() + 1, text: messageText, type: "error" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="animate-in zoom-in relative flex h-[750px] flex-col overflow-hidden rounded-[48px] border border-cyan-900/30 bg-[#020204] shadow-2xl duration-700">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] opacity-20" />
+
+      <div className="z-10 flex items-center justify-between border-b border-cyan-900/30 bg-[#0c0e12]/90 p-8 shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-5">
+          <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+            <Cpu size={28} className="animate-pulse text-cyan-500" />
+          </div>
+          <div>
+            <h2 className="mb-2 text-xl font-black uppercase italic leading-none tracking-[0.4em] text-cyan-500">
+              Neural IQ Core
+            </h2>
+            <div className="flex gap-4 text-[9px] font-mono font-black uppercase text-cyan-900">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-500" /> Sincronizado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-900" /> CPU Load: 12%
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="hidden gap-2 md:flex">
+          <div className="h-1.5 w-12 overflow-hidden rounded-full bg-cyan-900/30">
+            <div className="animate-shimmer h-full w-[60%] bg-cyan-500" />
+          </div>
+          <div className="h-1.5 w-12 overflow-hidden rounded-full bg-cyan-900/30">
+            <div className="animate-shimmer h-full w-[85%] bg-cyan-400" />
+          </div>
+        </div>
+      </div>
+
+      <div className="custom-scrollbar z-10 flex-1 space-y-8 overflow-y-auto p-10 font-mono text-[13px] scroll-smooth">
+        {logs.map((log) => (
+          <div
+            key={log.id}
+            className={`animate-in fade-in slide-in-from-bottom-2 flex flex-col duration-500 ${
+              log.type === "user" ? "items-end" : "items-start"
+            }`}
+          >
+            <div
+              className={`relative max-w-[85%] rounded-3xl border px-6 py-4 shadow-2xl ${
+                log.type === "user"
+                  ? "rounded-br-none border-slate-700 bg-[#12141c] text-white"
+                  : log.type === "error"
+                    ? "rounded-bl-none border-red-900/40 bg-red-950/20 text-red-200"
+                    : "rounded-bl-none border-cyan-900/30 bg-cyan-950/10 text-cyan-100"
+              }`}
+            >
+              <div
+                className={`mb-2 text-[9px] font-black uppercase tracking-[0.3em] ${
+                  log.type === "user"
+                    ? "text-slate-500"
+                    : log.type === "error"
+                      ? "text-red-400"
+                      : "text-cyan-600"
+                }`}
+              >
+                {log.type === "user" ? ">> Hunter #9284-AX" : log.type === "error" ? "> System Error" : "> System Output"}
+              </div>
+              <p className="whitespace-pre-wrap leading-relaxed">{log.text}</p>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="ml-2 flex items-center gap-4 animate-pulse text-cyan-800">
+            <Activity size={18} className="animate-spin" />
+            <span className="text-xs font-black uppercase tracking-[0.5em]">Processando diretrizes táticas...</span>
+          </div>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      <div className="z-10 border-t border-cyan-900/30 bg-[#0a0c10]/95 p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <div className="relative mx-auto flex max-w-4xl items-center">
+          <div className="pointer-events-none absolute left-6 font-mono text-lg font-bold tracking-widest text-cyan-900 opacity-50">
+            {">"}
+          </div>
+          <input
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                void sendCommand();
+              }
+            }}
+            placeholder="Introduza diretriz para o Sistema..."
+            className="w-full rounded-[28px] border border-cyan-900/50 bg-[#050506] py-5 pl-14 pr-20 font-mono text-sm text-cyan-100 shadow-[inset_0_2px_10px_rgba(0,0,0,1)] transition-all placeholder:text-cyan-950 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/20"
+          />
+          <button
+            onClick={() => {
+              void sendCommand();
+            }}
+            disabled={loading || !input.trim()}
+            className="absolute right-3 flex items-center justify-center rounded-2xl bg-cyan-600 p-3.5 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:bg-cyan-500 active:scale-90 disabled:opacity-20"
+            type="button"
+          >
+            <Send size={22} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

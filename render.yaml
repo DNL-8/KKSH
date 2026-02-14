@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: study-leveling
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: prod
+      - key: AUTO_CREATE_DB
+        value: "false"
+      - key: SEED_DEV_DATA
+        value: "false"
+      - key: PERSIST_REFRESH_TOKENS
+        value: "true"
+      - key: METRICS_ENABLED
+        value: "false"
+      - key: CORS_ORIGINS
+        value: ""
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: FRONTEND_DIST_PATH
+        value: /app/dist/public
+      - key: WEBHOOK_OUTBOX_ENABLED
+        value: "true"
+      - key: WEBHOOK_OUTBOX_SEND_ENABLED
+        value: "true"
+      # Set DATABASE_URL and JWT_SECRET in Render dashboard (secrets)
+  - type: worker
+    name: study-leveling-webhook-worker
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerCommand: PYTHONPATH=. python scripts/run_webhook_worker.py
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: prod
+      - key: AUTO_CREATE_DB
+        value: "false"
+      - key: SEED_DEV_DATA
+        value: "false"
+      - key: PERSIST_REFRESH_TOKENS
+        value: "true"
+      - key: METRICS_ENABLED
+        value: "false"
+      - key: CORS_ORIGINS
+        value: ""
+      - key: SERVE_FRONTEND
+        value: "false"
+      - key: FRONTEND_DIST_PATH
+        value: /app/dist/public
+      - key: WEBHOOK_OUTBOX_ENABLED
+        value: "true"
+      - key: WEBHOOK_OUTBOX_SEND_ENABLED
+        value: "true"

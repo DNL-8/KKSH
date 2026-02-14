@@ -1,0 +1,74 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Build outputs
+build/
+dist/
+*.dist
+node_modules/
+client/node_modules/
+.pnpm-store/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+.manus-logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and caches
+coverage/
+*.lcov
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.nyc_output/
+.cache/
+
+# Temporary folders
+tmp/
+temp/
+.tmp_*
+test-results/
+.run-logs/
+
+# Database artifacts
+*.db
+*.sqlite
+*.sqlite3
+
+# Webdev artifacts (checkpoint zips, migrations, etc.)
+.webdev/

@@ -1,0 +1,83 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: study_leveling
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ENV: dev
+      JWT_SECRET: change-me-in-prod
+      ACCESS_TOKEN_EXPIRE_MIN: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/study_leveling
+      TZ: America/Sao_Paulo
+      AUTO_CREATE_DB: "false"
+      SEED_DEV_DATA: "true"
+      REDIS_URL: redis://redis:6379/0
+      SERVE_FRONTEND: "true"
+      FRONTEND_DIST_PATH: /app/dist/public
+      CORS_ORIGINS: ""
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-preview-09-2025}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      - db
+      - redis
+
+  webhook_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "scripts/run_webhook_worker.py"]
+    environment:
+      ENV: dev
+      JWT_SECRET: change-me-in-prod
+      ACCESS_TOKEN_EXPIRE_MIN: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/study_leveling
+      TZ: America/Sao_Paulo
+      AUTO_CREATE_DB: "false"
+      SEED_DEV_DATA: "true"
+      REDIS_URL: redis://redis:6379/0
+      SERVE_FRONTEND: "false"
+      FRONTEND_DIST_PATH: /app/dist/public
+      CORS_ORIGINS: ""
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-preview-09-2025}
+      WEBHOOK_OUTBOX_ENABLED: "true"
+      WEBHOOK_OUTBOX_SEND_ENABLED: "true"
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  pgdata:

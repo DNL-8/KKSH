@@ -1,0 +1,32 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "alembic/versions"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = false
+warn_unused_ignores = true
+no_implicit_optional = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+ignore_missing_imports = true
+pretty = true
+show_error_codes = true
+exclude = "alembic/versions"
+
+[[tool.mypy.overrides]]
+module = ["app.api.v1.*", "app.services.*"]
+ignore_errors = true

@@ -1,0 +1,47 @@
+name: db-backup
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # daily 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: "Artifact retention days"
+        required: false
+        default: "30"
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Run pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "Missing secret DATABASE_URL" >&2
+            exit 1
+          fi
+          ts=$(date -u +"%Y%m%dT%H%M%SZ")
+          mkdir -p backups
+          dump_file="backups/db-$ts.dump"
+          pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges --file "$dump_file"
+          echo "DUMP_FILE=$dump_file" >> $GITHUB_ENV
+
+      - name: Validate dump integrity
+        run: |
+          if [ -z "$DUMP_FILE" ] || [ ! -f "$DUMP_FILE" ]; then
+            echo "Missing dump file for validation" >&2
+            exit 1
+          fi
+          pg_restore --list "$DUMP_FILE" >/dev/null
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: backups/*.dump
+          retention-days: ${{ github.event.inputs.retention_days || (github.ref == 'refs/heads/main' && 30 || 14) }}

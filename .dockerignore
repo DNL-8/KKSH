@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+client/node_modules/
+node_modules/
+coverage/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+.manus-logs/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local runtime data
+*.db
+*.sqlite
+*.sqlite3
+backend/tests/test.db
+backend/e2e.db

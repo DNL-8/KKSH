@@ -1,0 +1,115 @@
+from __future__ import annotations
+
+from typing import Any
+
+from sqlalchemy import event
+from sqlmodel import Session, SQLModel, create_engine
+
+from app.core.config import settings
+
+connect_args = {}
+if settings.database_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(settings.database_url, pool_pre_ping=True, connect_args=connect_args)
+
+_SQLITE_QUEST_COLUMNS: dict[str, dict[str, str]] = {
+    "daily_quests": {
+        "title": "TEXT",
+        "description": "TEXT",
+        "rank": "TEXT",
+        "difficulty": "TEXT",
+        "objective": "TEXT",
+        "tags_json": "TEXT DEFAULT '[]'",
+        "reward_xp": "INTEGER",
+        "reward_gold": "INTEGER",
+        "source": "TEXT DEFAULT 'fallback'",
+        "generated_at": "DATETIME",
+    },
+    "weekly_quests": {
+        "title": "TEXT",
+        "description": "TEXT",
+        "rank": "TEXT",
+        "difficulty": "TEXT",
+        "objective": "TEXT",
+        "tags_json": "TEXT DEFAULT '[]'",
+        "reward_xp": "INTEGER",
+        "reward_gold": "INTEGER",
+        "source": "TEXT DEFAULT 'fallback'",
+        "generated_at": "DATETIME",
+    },
+    "user_webhooks": {
+        "secret_encrypted": "TEXT",
+        "secret_key_id": "TEXT",
+    },
+}
+
+_SQLITE_QUEST_INDEXES = (
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_daily_quest ON daily_quests (user_id, date_key, subject)",
+    "CREATE INDEX IF NOT EXISTS ix_daily_quests_rank ON daily_quests (rank)",
+    "CREATE INDEX IF NOT EXISTS ix_daily_quests_source ON daily_quests (source)",
+    "CREATE INDEX IF NOT EXISTS ix_daily_quests_generated_at ON daily_quests (generated_at)",
+    "CREATE INDEX IF NOT EXISTS ix_weekly_quests_rank ON weekly_quests (rank)",
+    "CREATE INDEX IF NOT EXISTS ix_weekly_quests_source ON weekly_quests (source)",
+    "CREATE INDEX IF NOT EXISTS ix_weekly_quests_generated_at ON weekly_quests (generated_at)",
+)
+
+# Enable foreign keys on SQLite (important for tests/dev)
+if engine.url.get_backend_name() == "sqlite":
+
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+def _sqlite_table_columns(connection: Any, table: str) -> set[str]:
+    rows = connection.exec_driver_sql(f"PRAGMA table_info('{table}')").all()
+    return {str(row[1]) for row in rows}
+
+
+def _ensure_sqlite_quest_schema_compatibility() -> None:
+    if engine.url.get_backend_name() != "sqlite":
+        return
+
+    with engine.begin() as connection:
+        for table, columns in _SQLITE_QUEST_COLUMNS.items():
+            existing = _sqlite_table_columns(connection, table)
+            if not existing:
+                continue
+            for column, ddl in columns.items():
+                if column in existing:
+                    continue
+                connection.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+
+        connection.exec_driver_sql(
+            "UPDATE daily_quests SET source = 'fallback' WHERE source IS NULL OR TRIM(source) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE weekly_quests SET source = 'fallback' WHERE source IS NULL OR TRIM(source) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE daily_quests SET tags_json = '[]' WHERE tags_json IS NULL OR TRIM(tags_json) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE weekly_quests SET tags_json = '[]' WHERE tags_json IS NULL OR TRIM(tags_json) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE daily_quests SET generated_at = created_at WHERE generated_at IS NULL"
+        )
+        connection.exec_driver_sql(
+            "UPDATE weekly_quests SET generated_at = created_at WHERE generated_at IS NULL"
+        )
+
+        for statement in _SQLITE_QUEST_INDEXES:
+            connection.exec_driver_sql(statement)
+
+
+def create_db_and_tables() -> None:
+    SQLModel.metadata.create_all(engine)
+    _ensure_sqlite_quest_schema_compatibility()
+
+
+def get_session() -> Session:
+    return Session(engine)
