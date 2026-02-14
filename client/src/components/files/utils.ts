@@ -10,6 +10,7 @@ import {
     type StoredVideo,
     buildStoredVideoFromHandle,
     resolveRelativePath,
+    getFileFromVideo,
 } from "../../lib/localVideosStore";
 
 /* ------------------------------------------------------------------ */
@@ -71,6 +72,9 @@ export function formatDate(timestamp: number): string {
 }
 
 export function formatStorageKind(video: StoredVideo): string {
+    if (video.storageKind === "chunks") {
+        return `Local (Chunks: ${video.chunkCount ?? "?"})`;
+    }
     return video.storageKind === "handle" ? "Conectado (Handle)" : "Local (Blob)";
 }
 
@@ -197,15 +201,18 @@ export async function resolvePlayableFile(video: StoredVideo): Promise<File> {
         return handle.getFile();
     }
 
-    if (!video.file) {
+    // Try to get file from chunks or direct property
+    const file = await getFileFromVideo(video);
+
+    if (!file) {
         throw new Error("Arquivo local indisponivel para reproducao.");
     }
 
-    if (video.file instanceof File) {
-        return video.file;
+    if (file instanceof File) {
+        return file;
     }
 
-    return new File([video.file], video.name, {
+    return new File([file], video.name, {
         type: video.type || "video/*",
         lastModified: video.lastModified,
     });

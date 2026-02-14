@@ -205,6 +205,10 @@ class UserSettingsOut(BaseModel):
     reminderEveryMin: int = 5
     xpPerMinute: int = 5
     goldPerMinute: int = 1
+    
+    # New fields
+    geminiApiKey: Optional[str] = None
+    agentPersonality: str = "standard"
 
 
 class UpdateSettingsIn(BaseModel):
@@ -218,6 +222,8 @@ class UpdateSettingsIn(BaseModel):
     reminderEveryMin: Optional[int] = Field(default=None, ge=1, le=180)
     xpPerMinute: Optional[int] = Field(default=None, ge=0, le=100)
     goldPerMinute: Optional[int] = Field(default=None, ge=0, le=100)
+    geminiApiKey: Optional[str] = None
+    agentPersonality: Optional[str] = Field(default=None, max_length=32)
 
 
 ResetScope = Literal["missions", "progression", "sessions", "inventory", "reviews", "all"]

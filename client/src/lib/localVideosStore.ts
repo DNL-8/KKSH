@@ -1,12 +1,14 @@
 export const LOCAL_MEDIA_DB_NAME = "cmd8_local_media";
-export const LOCAL_MEDIA_DB_VERSION = 3;
+export const LOCAL_MEDIA_DB_VERSION = 4;
 export const LOCAL_MEDIA_STORE_VIDEOS = "videos";
+export const LOCAL_MEDIA_STORE_CHUNKS = "chunks";
 export const DEFAULT_RELATIVE_PATH = "Arquivos avulsos";
 export const MAX_LIBRARY_VIDEOS = 5000;
 const SAVE_CHUNK_SIZE = 250;
+const FILE_CHUNK_SIZE = 50 * 1024 * 1024; // 50MB chunks
 
 export type VideoSourceKind = "folder" | "file";
-export type VideoStorageKind = "blob" | "handle";
+export type VideoStorageKind = "blob" | "handle" | "chunks";
 export type VideoImportSource = "input_file" | "input_folder" | "directory_handle";
 
 export interface StoredVideo {
@@ -22,7 +24,9 @@ export interface StoredVideo {
   importSource: VideoImportSource;
   file?: Blob;
   fileHandle?: FileSystemFileHandle;
+  chunkCount?: number;
 }
+
 
 export interface SaveResult {
   added: StoredVideo[];
@@ -160,7 +164,7 @@ export function buildStoredVideo(file: File, createdAt = Date.now()): StoredVide
 function ensureCompatibleRow(row: StoredVideo): StoredVideo {
   const relativePath = row.relativePath ? normalizeRelativePath(row.relativePath) || DEFAULT_RELATIVE_PATH : DEFAULT_RELATIVE_PATH;
   const sourceKind: VideoSourceKind = row.sourceKind === "folder" || row.sourceKind === "file" ? row.sourceKind : "file";
-  const storageKind: VideoStorageKind = row.storageKind === "handle" ? "handle" : "blob";
+  const storageKind: VideoStorageKind = row.storageKind === "handle" || row.storageKind === "chunks" ? row.storageKind : "blob";
   const importSource: VideoImportSource =
     row.importSource === "directory_handle" || row.importSource === "input_folder" || row.importSource === "input_file"
       ? row.importSource
@@ -223,6 +227,11 @@ export async function initDb(): Promise<IDBDatabase> {
       }
       if (!store.indexNames.contains("storageKind")) {
         store.createIndex("storageKind", "storageKind", { unique: false });
+      }
+
+      // Create chunks store if it doesn't exist
+      if (!db.objectStoreNames.contains(LOCAL_MEDIA_STORE_CHUNKS)) {
+        db.createObjectStore(LOCAL_MEDIA_STORE_CHUNKS);
       }
     };
 
@@ -292,6 +301,8 @@ function waitForUiBreath(): Promise<void> {
   });
 }
 
+const LARGE_FILE_THRESHOLD = 100 * 1024 * 1024; // 100MB
+
 async function saveStoredVideosInternal(db: IDBDatabase, rows: StoredVideo[]): Promise<SaveResult> {
   const result: SaveResult = {
     added: [],
@@ -304,7 +315,9 @@ async function saveStoredVideosInternal(db: IDBDatabase, rows: StoredVideo[]): P
 
   const existingIds = await loadExistingVideoIds(db);
   let existingCount = existingIds.size;
-  const pending: StoredVideo[] = [];
+
+  const pendingSmall: StoredVideo[] = [];
+  const pendingLarge: StoredVideo[] = [];
   const pendingIds = new Set<string>();
 
   for (const row of rows) {
@@ -322,16 +335,23 @@ async function saveStoredVideosInternal(db: IDBDatabase, rows: StoredVideo[]): P
       result.ignored.push(stored.name);
       continue;
     }
-    if (existingCount + pending.length >= MAX_LIBRARY_VIDEOS) {
+    if (existingCount + pendingSmall.length + pendingLarge.length >= MAX_LIBRARY_VIDEOS) {
       result.skippedByLimit.push(stored.name);
       continue;
     }
 
-    pending.push(stored);
+    // Separa arquivos grandes para salvar individualmente
+    if (stored.size > LARGE_FILE_THRESHOLD) {
+      pendingLarge.push(stored);
+    } else {
+      pendingSmall.push(stored);
+    }
+
     pendingIds.add(stored.id);
   }
 
-  const chunks = splitIntoChunks(pending, SAVE_CHUNK_SIZE);
+  // 1. Processa arquivos pequenos em lotes (transação compartilhada para performance)
+  const chunks = splitIntoChunks(pendingSmall, SAVE_CHUNK_SIZE);
   for (const chunk of chunks) {
     try {
       await putVideosChunk(db, chunk);
@@ -342,10 +362,30 @@ async function saveStoredVideosInternal(db: IDBDatabase, rows: StoredVideo[]): P
       }
     } catch (chunkError) {
       if (!isQuotaError(chunkError)) {
-        throw toStorageError(chunkError, "Falha ao salvar lote de videos.");
+        // Se não for erro de cota, tenta salvar individualmente (fallback)
+        // Isso ajuda se um arquivo específico do lote estiver corrompido ou causando erro
+        for (const stored of chunk) {
+          try {
+            await putVideo(db, stored);
+            existingIds.add(stored.id);
+            existingCount += 1;
+            result.added.push(stored);
+          } catch (itemError) {
+            if (isQuotaError(itemError)) {
+              result.skippedNoSpace.push(stored.name);
+            } else {
+              // Loga mas não para tudo, apenas marca como falha (neste caso, rejeitado ou ignorado seria impreciso,
+              // mas vamos tratar como erro de storage genérico se precisar, 
+              // por enquanto vamos deixar rejeitado apenas se não for video)
+              console.error(`Falha ao salvar video pequeno individualmente: ${stored.name}`, itemError);
+              // Opcional: Adicionar a um array de falhas se quisermos reportar ao usuário
+            }
+          }
+        }
+        continue;
       }
 
-      // Se faltar espaco no lote, cai para escrita individual e continua o processamento.
+      // Se for erro de cota no lote, tenta um por um
       for (const stored of chunk) {
         try {
           await putVideo(db, stored);
@@ -361,7 +401,70 @@ async function saveStoredVideosInternal(db: IDBDatabase, rows: StoredVideo[]): P
         }
       }
     }
+    await waitForUiBreath();
+  }
 
+  async function putVideoWithChunks(db: IDBDatabase, video: StoredVideo): Promise<void> {
+    const file = video.file;
+    if (!file || video.storageKind !== "blob") {
+      return putVideo(db, video);
+    }
+
+    // Calculate chunks
+    const chunks: Blob[] = [];
+    let start = 0;
+    while (start < file.size) {
+      const end = Math.min(start + FILE_CHUNK_SIZE, file.size);
+      chunks.push(file.slice(start, end));
+      start = end;
+    }
+
+    const metadata: StoredVideo = {
+      ...video,
+      storageKind: "chunks",
+      chunkCount: chunks.length,
+      file: undefined
+    };
+
+    // 1. Save chunks individually
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const chunkKey = `${video.id}::chunk_${i}`;
+
+      try {
+        const tx = db.transaction([LOCAL_MEDIA_STORE_CHUNKS], "readwrite");
+        const store = tx.objectStore(LOCAL_MEDIA_STORE_CHUNKS);
+        store.put(chunk, chunkKey);
+        await transactionDone(tx);
+      } catch (e) {
+        console.error(`Falha ao salvar chunk ${i} do video ${video.name}`, e);
+        throw e;
+      }
+    }
+
+    // 2. Save metadata
+    const txMeta = db.transaction([LOCAL_MEDIA_STORE_VIDEOS], "readwrite");
+    const storeMeta = txMeta.objectStore(LOCAL_MEDIA_STORE_VIDEOS);
+    storeMeta.put(metadata);
+    await transactionDone(txMeta);
+  }
+
+  // ... existing code ...
+
+  // 2. Processa arquivos grandes individualmente (transação isolada para evitar timeout)
+  for (const stored of pendingLarge) {
+    try {
+      await putVideoWithChunks(db, stored);
+      existingIds.add(stored.id);
+      existingCount += 1;
+      result.added.push(stored);
+    } catch (error) {
+      if (isQuotaError(error)) {
+        result.skippedNoSpace.push(stored.name);
+      } else {
+        console.error(`Falha ao salvar video grande chunkado: ${stored.name}`, error);
+      }
+    }
     await waitForUiBreath();
   }
 
@@ -406,9 +509,59 @@ export async function saveVideos(
   }
 }
 
+export async function getFileFromVideo(video: StoredVideo): Promise<Blob | File | undefined> {
+  if (video.storageKind === "chunks" && video.chunkCount && video.chunkCount > 0) {
+    const db = await initDb();
+    try {
+      const chunks: Blob[] = [];
+      const ids: string[] = [];
+      for (let i = 0; i < video.chunkCount; i++) {
+        ids.push(`${video.id}::chunk_${i}`);
+      }
+
+      const tx = db.transaction([LOCAL_MEDIA_STORE_CHUNKS], "readonly");
+      const store = tx.objectStore(LOCAL_MEDIA_STORE_CHUNKS);
+
+      const promises = ids.map(id => requestToPromise(store.get(id)));
+      const results = await Promise.all(promises);
+      await transactionDone(tx);
+
+      for (const res of results) {
+        if (!res) {
+          throw new Error("Partes do video corrompidas ou faltantes.");
+        }
+        chunks.push(res as Blob);
+      }
+
+      return new File(chunks, video.name, { type: video.type, lastModified: video.lastModified });
+    } catch (error) {
+      console.error("Falha ao reconstruir video:", error);
+      throw error;
+    } finally {
+      db.close();
+    }
+  }
+
+  return video.fileHandle ? undefined : video.file;
+}
+
 export async function deleteVideo(id: string): Promise<void> {
   const db = await initDb();
   try {
+    const txRead = db.transaction([LOCAL_MEDIA_STORE_VIDEOS], "readonly");
+    const storeRead = txRead.objectStore(LOCAL_MEDIA_STORE_VIDEOS);
+    const video = await requestToPromise<StoredVideo | undefined>(storeRead.get(id));
+    await transactionDone(txRead);
+
+    if (video && video.storageKind === "chunks" && video.chunkCount) {
+      const txChunks = db.transaction([LOCAL_MEDIA_STORE_CHUNKS], "readwrite");
+      const storeChunks = txChunks.objectStore(LOCAL_MEDIA_STORE_CHUNKS);
+      for (let i = 0; i < video.chunkCount; i++) {
+        storeChunks.delete(`${video.id}::chunk_${i}`);
+      }
+      await transactionDone(txChunks);
+    }
+
     const transaction = db.transaction(LOCAL_MEDIA_STORE_VIDEOS, "readwrite");
     const store = transaction.objectStore(LOCAL_MEDIA_STORE_VIDEOS);
     store.delete(id);
@@ -423,9 +576,20 @@ export async function deleteVideo(id: string): Promise<void> {
 export async function clearVideos(): Promise<void> {
   const db = await initDb();
   try {
-    const transaction = db.transaction(LOCAL_MEDIA_STORE_VIDEOS, "readwrite");
+    const list = [LOCAL_MEDIA_STORE_VIDEOS];
+    if (db.objectStoreNames.contains(LOCAL_MEDIA_STORE_CHUNKS)) {
+      list.push(LOCAL_MEDIA_STORE_CHUNKS);
+    }
+
+    const transaction = db.transaction(list, "readwrite");
     const store = transaction.objectStore(LOCAL_MEDIA_STORE_VIDEOS);
     store.clear();
+
+    if (db.objectStoreNames.contains(LOCAL_MEDIA_STORE_CHUNKS)) {
+      const chunkStore = transaction.objectStore(LOCAL_MEDIA_STORE_CHUNKS);
+      chunkStore.clear();
+    }
+
     await transactionDone(transaction);
   } catch (error) {
     throw toStorageError(error, "Falha ao limpar biblioteca local.");

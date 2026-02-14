@@ -10,11 +10,9 @@ import {
   Upload,
 } from "lucide-react";
 import {
-  type ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -27,38 +25,30 @@ import {
 import {
   DEFAULT_RELATIVE_PATH,
   MAX_LIBRARY_VIDEOS,
-  buildStoredVideoFromFile,
   clearVideos,
   listVideos,
-  saveStoredVideos,
-  saveVideos,
-  supportsDirectoryHandles,
   type StoredVideo,
-  type VideoImportSource,
 } from "../lib/localVideosStore";
 import type { AppShellContextValue } from "../layout/types";
+import { VideoPlayer } from "../components/files/VideoPlayer";
+import { VideoMetadata } from "../components/files/VideoMetadata";
 import { LessonSidebar, LESSONS_VISIBLE_DEFAULT, LESSONS_VISIBLE_INCREMENT } from "../components/files/LessonSidebar";
 import {
   type FolderSection,
   type OrderMode,
   type TabMode,
   VIDEO_COMPLETION_PREFIX,
-  buildImportStatusMessage,
   buildVideoRef,
-  countFoldersFromFiles,
-  countFoldersFromVideos,
   extractVideoRefFromNotes,
-  formatBytes,
-  formatDate,
   formatStorageKind,
   normalizePathForTestId,
   resolvePlayableFile,
-  scanDirectoryHandle,
   sortGroupPaths,
   subjectFromRelativePath,
   summarizeNames,
   toErrorMessage,
 } from "../components/files/utils";
+import { useFileImporter } from "../hooks/useFileImporter";
 
 const MAX_SESSION_PAGES = 300;
 
@@ -67,19 +57,13 @@ export function FilesPage() {
   const { globalStats, authUser, syncProgressionFromApi } =
     useOutletContext<AppShellContextValue>();
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const folderInputRef = useRef<HTMLInputElement | null>(null);
-  const playerRef = useRef<HTMLVideoElement | null>(null);
-
   const [videos, setVideos] = useState<StoredVideo[]>([]);
   const [runtimeVideos, setRuntimeVideos] = useState<StoredVideo[]>([]);
   const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
 
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
@@ -95,8 +79,71 @@ export function FilesPage() {
   const [completingLesson, setCompletingLesson] = useState(false);
 
   const authUserId = authUser?.id ?? null;
-  const directoryHandleSupported = supportsDirectoryHandles();
   const visibleVideos = storageUnavailable ? runtimeVideos : videos;
+
+  const loadVideos = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const rows = await listVideos();
+      setVideos(rows);
+      setStorageUnavailable(false);
+    } catch (loadError) {
+      setVideos([]);
+      setStorageUnavailable(true);
+      setError(toErrorMessage(loadError, "Nao foi possivel carregar a biblioteca local."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const mergeRuntimeVideos = useCallback((incoming: StoredVideo[]) => {
+    let addedCount = 0;
+    let ignoredCount = 0;
+    let skippedByLimitCount = 0;
+
+    setRuntimeVideos((current) => {
+      const ids = new Set(current.map((video) => video.id));
+      const added: StoredVideo[] = [];
+      for (const video of incoming) {
+        if (ids.has(video.id)) {
+          ignoredCount += 1;
+          continue;
+        }
+        if (ids.size >= MAX_LIBRARY_VIDEOS) {
+          skippedByLimitCount += 1;
+          continue;
+        }
+        ids.add(video.id);
+        added.push(video);
+      }
+      addedCount = added.length;
+      return [...added, ...current].sort((a, b) => b.createdAt - a.createdAt);
+    });
+
+    return { addedCount, ignoredCount, skippedByLimitCount };
+  }, []);
+
+  const {
+    fileInputRef,
+    folderInputRef,
+    saving,
+    rejectedFiles,
+    directoryHandleSupported,
+    handleOpenPicker,
+    handleOpenFolderPicker,
+    handleOpenDirectoryPicker,
+    handleFilesSelected,
+    handleFolderSelected,
+  } = useFileImporter({
+    onReload: loadVideos,
+    mergeRuntimeVideos,
+    setError,
+    setStatusMessage,
+    setStorageUnavailable,
+    storageUnavailable,
+  });
 
   const folderSections = useMemo<FolderSection[]>(() => {
     const groups = new Map<string, StoredVideo[]>();
@@ -135,23 +182,6 @@ export function FilesPage() {
     selectedDurationSec && Number.isFinite(selectedDurationSec)
       ? Math.max(1, Math.ceil(selectedDurationSec / 60))
       : null;
-
-  const loadVideos = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const rows = await listVideos();
-      setVideos(rows);
-      setStorageUnavailable(false);
-    } catch (loadError) {
-      setVideos([]);
-      setStorageUnavailable(true);
-      setError(toErrorMessage(loadError, "Nao foi possivel carregar a biblioteca local."));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   const loadCompletedVideoRefs = useCallback(async () => {
     if (!authUserId) {
@@ -211,7 +241,7 @@ export function FilesPage() {
     }
     folderInput.setAttribute("webkitdirectory", "");
     folderInput.setAttribute("directory", "");
-  }, []);
+  }, [folderInputRef]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -318,14 +348,6 @@ export function FilesPage() {
     setSelectedDurationSec(null);
   }, [selectedVideo?.id]);
 
-  const handleOpenPicker = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleOpenFolderPicker = () => {
-    folderInputRef.current?.click();
-  };
-
   const handleToggleFolder = (path: string) => {
     setCollapsedFolders((current) => ({
       ...current,
@@ -343,198 +365,6 @@ export function FilesPage() {
       ...current,
       [path]: (current[path] ?? LESSONS_VISIBLE_DEFAULT) + LESSONS_VISIBLE_INCREMENT,
     }));
-  };
-
-  const mergeRuntimeVideos = useCallback((incoming: StoredVideo[]) => {
-    let addedCount = 0;
-    let ignoredCount = 0;
-    let skippedByLimitCount = 0;
-
-    setRuntimeVideos((current) => {
-      const ids = new Set(current.map((video) => video.id));
-      const added: StoredVideo[] = [];
-      for (const video of incoming) {
-        if (ids.has(video.id)) {
-          ignoredCount += 1;
-          continue;
-        }
-        if (ids.size >= MAX_LIBRARY_VIDEOS) {
-          skippedByLimitCount += 1;
-          continue;
-        }
-        ids.add(video.id);
-        added.push(video);
-      }
-      addedCount = added.length;
-      return [...added, ...current].sort((a, b) => b.createdAt - a.createdAt);
-    });
-
-    return { addedCount, ignoredCount, skippedByLimitCount };
-  }, []);
-
-  const saveToRuntimeFallback = useCallback(
-    (incoming: StoredVideo[], rejected: string[], processed: number, folderCount: number, prefix = "Modo temporario ativo") => {
-      const { addedCount, ignoredCount, skippedByLimitCount } = mergeRuntimeVideos(incoming);
-      setRejectedFiles(rejected);
-      if (incoming.length === 0) {
-        setStatusMessage("Nenhum video valido selecionado.");
-        return;
-      }
-
-      setStatusMessage(
-        buildImportStatusMessage(
-          {
-            added: addedCount,
-            ignored: ignoredCount,
-            rejected: rejected.length,
-            skippedNoSpace: 0,
-            skippedByLimit: skippedByLimitCount,
-            folderCount,
-            processed,
-          },
-          prefix,
-        ),
-      );
-    },
-    [mergeRuntimeVideos],
-  );
-
-  const processSelectedFiles = useCallback(
-    async (selectedFiles: File[], importSource: VideoImportSource) => {
-      if (selectedFiles.length === 0) {
-        return;
-      }
-
-      const validVideos = selectedFiles.filter((file) => file.type.startsWith("video/"));
-      const rejected = selectedFiles.filter((file) => !file.type.startsWith("video/")).map((file) => file.name);
-      const incoming = validVideos.map((file) => buildStoredVideoFromFile(file, importSource));
-      const folderCount = countFoldersFromFiles(selectedFiles);
-
-      setSaving(true);
-      setError(null);
-      setStatusMessage(null);
-      setRejectedFiles([]);
-
-      if (storageUnavailable) {
-        saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
-        setSaving(false);
-        return;
-      }
-
-      try {
-        const result = await saveVideos(selectedFiles, importSource);
-        await loadVideos();
-        setRejectedFiles(result.rejected);
-        setStatusMessage(
-          buildImportStatusMessage({
-            added: result.added.length,
-            ignored: result.ignored.length,
-            rejected: result.rejected.length,
-            skippedNoSpace: result.skippedNoSpace.length,
-            skippedByLimit: result.skippedByLimit.length,
-            folderCount,
-            processed: result.processed,
-          }),
-        );
-      } catch (saveError) {
-        const message = toErrorMessage(saveError, "Falha ao salvar videos.");
-        setError(message);
-        if (message.toLowerCase().includes("indisponivel")) {
-          setStorageUnavailable(true);
-          saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
-        }
-      } finally {
-        setSaving(false);
-      }
-    },
-    [loadVideos, saveToRuntimeFallback, storageUnavailable],
-  );
-
-  const handleOpenDirectoryPicker = async () => {
-    if (!directoryHandleSupported) {
-      setStatusMessage(
-        "Seu navegador nao suporta Conectar pasta. Abrindo carregamento de pasta tradicional.",
-      );
-      handleOpenFolderPicker();
-      return;
-    }
-
-    const pickerWindow = window as Window & {
-      showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
-    };
-
-    if (typeof pickerWindow.showDirectoryPicker !== "function") {
-      setStatusMessage(
-        "Conectar pasta nao esta disponivel neste navegador. Abrindo carregamento de pasta tradicional.",
-      );
-      handleOpenFolderPicker();
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-    setStatusMessage(null);
-    setRejectedFiles([]);
-
-    try {
-      const rootHandle = await pickerWindow.showDirectoryPicker();
-      const scanned = await scanDirectoryHandle(rootHandle);
-      const folderCount = countFoldersFromVideos(scanned.videos);
-
-      if (storageUnavailable) {
-        saveToRuntimeFallback(scanned.videos, scanned.rejected, scanned.processed, folderCount);
-        return;
-      }
-
-      const result = await saveStoredVideos(scanned.videos);
-      await loadVideos();
-      setRejectedFiles(scanned.rejected);
-      setStatusMessage(
-        buildImportStatusMessage(
-          {
-            added: result.added.length,
-            ignored: result.ignored.length,
-            rejected: scanned.rejected.length,
-            skippedNoSpace: result.skippedNoSpace.length,
-            skippedByLimit: result.skippedByLimit.length,
-            folderCount,
-            processed: scanned.processed,
-          },
-          "Conexao de pasta concluida",
-        ),
-      );
-    } catch (connectError) {
-      if (connectError instanceof DOMException && connectError.name === "AbortError") {
-        return;
-      }
-      if (connectError instanceof DOMException && connectError.name === "SecurityError") {
-        setStatusMessage(
-          "Conectar pasta exige contexto seguro. Usando carregamento de pasta tradicional.",
-        );
-        handleOpenFolderPicker();
-        return;
-      }
-
-      const message = toErrorMessage(connectError, "Falha ao conectar pasta.");
-      setError(message);
-      if (message.toLowerCase().includes("indisponivel")) {
-        setStorageUnavailable(true);
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleFilesSelected = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files ?? []);
-    event.currentTarget.value = "";
-    void processSelectedFiles(selectedFiles, "input_file");
-  };
-
-  const handleFolderSelected = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files ?? []);
-    event.currentTarget.value = "";
-    void processSelectedFiles(selectedFiles, "input_folder");
   };
 
   const handleClearAll = async () => {
@@ -576,15 +406,12 @@ export function FilesPage() {
       return;
     }
 
-    const durationFromPlayer = playerRef.current?.duration;
-    let durationSec =
-      selectedDurationSec && Number.isFinite(selectedDurationSec)
-        ? selectedDurationSec
-        : durationFromPlayer && Number.isFinite(durationFromPlayer)
-          ? durationFromPlayer
-          : Number.NaN;
+    // Duration is now tracked via onDurationChange in VideoPlayer
+    let durationSec = selectedDurationSec;
     let usedFallbackDuration = false;
-    if (!Number.isFinite(durationSec) || durationSec <= 0) {
+
+    // Fallback if no duration detected (e.g. error or very short video)
+    if (typeof durationSec !== "number" || !Number.isFinite(durationSec) || durationSec <= 0) {
       durationSec = 60;
       usedFallbackDuration = true;
     }
@@ -625,21 +452,6 @@ export function FilesPage() {
       setCompletingLesson(false);
     }
   };
-
-  const renderSidebar = (mobile = false) => (
-    <LessonSidebar
-      folderSections={folderSections}
-      selectedLessonId={selectedLessonId}
-      completedVideoRefs={completedVideoRefs}
-      collapsedFolders={collapsedFolders}
-      visibleCountByFolder={visibleCountByFolder}
-      mobile={mobile}
-      onToggleFolder={handleToggleFolder}
-      onSelectLesson={handleSelectLesson}
-      onShowMore={handleShowMoreLessons}
-      onClose={() => setIsSidebarMobileOpen(false)}
-    />
-  );
 
   return (
     <div className="animate-in slide-in-from-right-10 space-y-6 duration-700">
@@ -855,33 +667,12 @@ export function FilesPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-5" data-testid="course-player">
             <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-black/80">
-              {selectedVideo ? (
-                <video
-                  key={selectedVideo.id}
-                  ref={playerRef}
-                  className="h-[320px] w-full bg-black object-contain md:h-[440px]"
-                  controls
-                  onDurationChange={(event) => {
-                    const duration = event.currentTarget.duration;
-                    if (Number.isFinite(duration) && duration > 0) {
-                      setSelectedDurationSec(duration);
-                    }
-                  }}
-                  onLoadedMetadata={(event) => {
-                    const duration = event.currentTarget.duration;
-                    if (Number.isFinite(duration) && duration > 0) {
-                      setSelectedDurationSec(duration);
-                    }
-                  }}
-                  playsInline
-                  preload="metadata"
-                  src={selectedVideoUrl}
-                />
-              ) : (
-                <div className="flex h-[320px] items-center justify-center text-sm font-semibold text-slate-500 md:h-[440px]">
-                  Nenhuma aula selecionada.
-                </div>
-              )}
+              <VideoPlayer
+                video={selectedVideo}
+                videoUrl={selectedVideoUrl}
+                onDurationChange={setSelectedDurationSec}
+                onEnded={undefined} // Optional: auto-complete
+              />
             </div>
 
             <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
@@ -927,106 +718,30 @@ export function FilesPage() {
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
-              <div className="mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
-                <button
-                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === "overview"
-                    ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                    : "bg-slate-900 text-slate-400 hover:text-slate-200"
-                    }`}
-                  data-testid="tab-overview"
-                  onClick={() => setActiveTab("overview")}
-                  type="button"
-                >
-                  Visao geral
-                </button>
-                <button
-                  className={`rounded-lg px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === "metadata"
-                    ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                    : "bg-slate-900 text-slate-400 hover:text-slate-200"
-                    }`}
-                  data-testid="tab-metadata"
-                  onClick={() => setActiveTab("metadata")}
-                  type="button"
-                >
-                  Metadados
-                </button>
-              </div>
-
-              {activeTab === "overview" ? (
-                <div className="space-y-4 text-sm text-slate-300">
-                  <p className="text-base font-semibold text-white">
-                    {selectedVideo
-                      ? `Aula atual: ${selectedVideo.name}`
-                      : "Selecione uma aula na trilha lateral para iniciar."}
-                  </p>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total de videos</p>
-                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{visibleVideos.length}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total de pastas</p>
-                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{folderSections.length}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Pasta atual</p>
-                      <p className="mt-1 truncate text-lg font-black text-[hsl(var(--accent-light))]">{selectedVideo?.relativePath ?? "-"}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Status RPG</p>
-                      <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">
-                        {selectedVideoCompleted ? "Concluida" : "Pendente"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 text-sm text-slate-300">
-                  {selectedVideo ? (
-                    <>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Nome do arquivo</p>
-                          <p className="mt-1 font-semibold text-white">{selectedVideo.name}</p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Pasta</p>
-                          <p className="mt-1 font-semibold text-white">{selectedVideo.relativePath}</p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Tipo</p>
-                          <p className="mt-1 font-semibold text-white">{selectedVideo.type || "video/*"}</p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Tamanho</p>
-                          <p className="mt-1 font-semibold text-white">{formatBytes(selectedVideo.size)}</p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Adicionado em</p>
-                          <p className="mt-1 font-semibold text-white">{formatDate(selectedVideo.createdAt)}</p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Origem</p>
-                          <p className="mt-1 font-semibold uppercase text-white">
-                            {formatStorageKind(selectedVideo)} | {selectedVideo.sourceKind}
-                          </p>
-                        </div>
-                        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 sm:col-span-2">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Video ref (dedupe)</p>
-                          <p className="mt-1 break-all font-mono text-xs text-white">{selectedVideoRef}</p>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-slate-500">Nenhuma aula selecionada para exibir metadados.</p>
-                  )}
-                </div>
-              )}
-            </div>
+            <VideoMetadata
+              selectedVideo={selectedVideo}
+              selectedVideoRef={selectedVideoRef}
+              videoCount={visibleVideos.length}
+              folderCount={folderSections.length}
+              completed={selectedVideoCompleted}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
           </div>
 
-          <aside className="hidden lg:block">{renderSidebar(false)}</aside>
+          <aside className="hidden lg:block">
+            <LessonSidebar
+              folderSections={folderSections}
+              selectedLessonId={selectedLessonId}
+              completedVideoRefs={completedVideoRefs}
+              collapsedFolders={collapsedFolders}
+              visibleCountByFolder={visibleCountByFolder}
+              onToggleFolder={handleToggleFolder}
+              onSelectLesson={handleSelectLesson}
+              onShowMore={handleShowMoreLessons}
+              onClose={() => setIsSidebarMobileOpen(false)}
+            />
+          </aside>
         </div>
       )}
 
@@ -1037,7 +752,20 @@ export function FilesPage() {
             onClick={() => setIsSidebarMobileOpen(false)}
             type="button"
           />
-          <div className="absolute bottom-0 right-0 top-0">{renderSidebar(true)}</div>
+          <div className="absolute bottom-0 right-0 top-0">
+            <LessonSidebar
+              folderSections={folderSections}
+              selectedLessonId={selectedLessonId}
+              completedVideoRefs={completedVideoRefs}
+              collapsedFolders={collapsedFolders}
+              visibleCountByFolder={visibleCountByFolder}
+              mobile={true}
+              onToggleFolder={handleToggleFolder}
+              onSelectLesson={handleSelectLesson}
+              onShowMore={handleShowMoreLessons}
+              onClose={() => setIsSidebarMobileOpen(false)}
+            />
+          </div>
         </div>
       )}
     </div>

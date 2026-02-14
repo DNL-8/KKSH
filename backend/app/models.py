@@ -94,6 +94,11 @@ class UserSettings(SQLModel, table=True):
     reminder_every_min: int = Field(default=5)
     xp_per_minute: int = Field(default=5)
     gold_per_minute: int = Field(default=1)
+    
+    # New fields
+    gemini_api_key: Optional[str] = Field(default=None)
+    agent_personality: str = Field(default="standard")
+    
     updated_at: datetime = Field(default_factory=utcnow)
 
 
