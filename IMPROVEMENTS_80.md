@@ -101,9 +101,9 @@
 74. ✅ Largura máxima e grid melhor no desktop
 
 ## Deploy
-75. ✅ Deploy do backend (Render + Turso) — Configurado (render.yaml + requirements)
-76. ✅ Deploy do front (Netlify) + envs — Configurado (netlify.toml)
-77. ✅ HTTPS e domínio (Render/Netlify forçam HTTPS automaticamente)
+75. ✅ Deploy do backend (Render Plano Gratuito + Turso Plano Hacker) — Configurado
+76. ✅ Deploy do front (Netlify Starter Gratuito) + envs — Configurado
+77. ✅ HTTPS e domínio (Automático e Gratuito)
 78. ✅ Backup automático do banco (script `backup_turso.sh`)
 79. ⬜ Documentação pública (OpenAPI + exemplos de requests)
-80. ✅ Pipeline de release (CI com GitHub Actions)
+80. ✅ Pipeline de release (GitHub Actions Gratuito - 2000 min/mês)
