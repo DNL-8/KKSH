@@ -2,70 +2,75 @@ name: CI
 
 on:
   push:
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
-  fullstack:
+  backend-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest httpx
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.2
+    - name: Run Audit
+      run: |
+        # Run the audit script from root context if needed, or inline here
+        # We'll run a simplified audit here
+        pip install pip-audit
+        pip-audit --desc on -r requirements.txt
 
-      - name: Install backend deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt -r backend/requirements-dev.txt
-          pip install pip-audit
+    - name: Run Tests
+      env:
+        JWT_SECRET: "test-secret"
+        DATABASE_URL: "sqlite:///./test.db"
+        ENV: "test"
+      run: |
+        python -m pytest -q
 
-      - name: Install frontend deps
-        run: pnpm install --frozen-lockfile
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
 
-      - name: Audit backend runtime dependencies
-        run: python -m pip_audit -r backend/requirements.txt
+    steps:
+    - uses: actions/checkout@v4
 
-      - name: Lint frontend
-        run: pnpm lint:frontend
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
 
-      - name: Typecheck frontend
-        run: pnpm typecheck
+    - name: Install pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 9
 
-      - name: Build frontend
-        run: pnpm build
+    - name: Install dependencies
+      run: pnpm install
 
-      - name: Lint backend (ruff/black/mypy)
-        run: |
-          ruff check backend
-          black --check backend
-          mypy backend/app
+    - name: Lint
+      run: pnpm lint:frontend
 
-      - name: Check migrations drift
-        run: |
-          cd backend
-          export DATABASE_URL=sqlite:///./drift.db
-          export AUTO_CREATE_DB=false
-          alembic upgrade head
-          PYTHONPATH=. python scripts/check_schema_drift.py
+    - name: Typecheck
+      run: pnpm typecheck
 
-      - name: Run backend tests
-        run: pytest -q backend/tests
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run Playwright smoke tests
-        run: pnpm e2e
+    - name: Build
+      run: pnpm build

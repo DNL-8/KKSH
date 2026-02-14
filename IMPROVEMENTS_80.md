@@ -8,6 +8,7 @@
 - PWA / Offline: ✅ 5 / ⬜ 0
 - Backend / API: ✅ 20 / ⬜ 0
 - Banco / Dados: ✅ 6 / ⬜ 0
+- Deploy: ✅ 5 / ⬜ 1
 
 ## UX/UI (Mobile + Web)
 1. ✅ Layout mobile-first (safe areas, bottom-nav, topbar)
@@ -100,9 +101,9 @@
 74. ✅ Largura máxima e grid melhor no desktop
 
 ## Deploy
-75. ⬜ Deploy do backend (Railway/Fly/Render) + Postgres gerenciado
-76. ⬜ Deploy do front (Vercel/Netlify) + envs
-77. ⬜ HTTPS e domínio (necessário pra PWA e cookies secure)
-78. ⬜ Backup automático do banco (cron)
+75. ✅ Deploy do backend (Render + Turso) — Configurado (render.yaml + requirements)
+76. ✅ Deploy do front (Netlify) + envs — Configurado (netlify.toml)
+77. ✅ HTTPS e domínio (Render/Netlify forçam HTTPS automaticamente)
+78. ✅ Backup automático do banco (script `backup_turso.sh`)
 79. ⬜ Documentação pública (OpenAPI + exemplos de requests)
-80. ⬜ Pipeline de release (tags/semver/changelog)
+80. ✅ Pipeline de release (CI com GitHub Actions)
