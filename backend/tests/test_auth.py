@@ -89,12 +89,14 @@ def test_refresh_tokens_include_unique_jti_even_same_second(monkeypatch):
         t1,
         settings.jwt_secret,
         algorithms=["HS256"],
+        audience=settings.app_name,
         options={"verify_exp": False},
     )
     p2 = jwt.decode(
         t2,
         settings.jwt_secret,
         algorithms=["HS256"],
+        audience=settings.app_name,
         options={"verify_exp": False},
     )
     assert isinstance(p1.get("jti"), str) and p1["jti"]
@@ -117,6 +119,8 @@ def test_refresh_accepts_legacy_token_without_jti(client, csrf_headers):
         "type": "refresh",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(days=settings.refresh_token_expire_days)).timestamp()),
+        "aud": settings.app_name,
+        "iss": settings.app_name,
     }
     legacy_token = jwt.encode(legacy_payload, settings.jwt_secret, algorithm="HS256")
     client.cookies.set("refresh_token", legacy_token)

@@ -51,20 +51,43 @@ def is_refresh_token_active(session: Session, *, refresh_token: str) -> bool:
     """Return True if refresh token is known + not revoked + not expired.
 
     If persistence is disabled, always True.
+    If the token was already revoked (potential reuse attack), revoke ALL
+    tokens for the user as a security precaution.
     """
     if not settings.persist_refresh_tokens:
         return True
 
     token_hash = sha256(refresh_token)
     row = session.exec(
-        select(RefreshToken).where(
-            RefreshToken.token_hash == token_hash,
-            RefreshToken.revoked_at.is_(None),
-        )
+        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
     ).first()
     if not row:
         return False
+
+    # Reuse detection: if token was already revoked, revoke entire family
+    if row.revoked_at is not None:
+        _revoke_all_for_user(session, user_id=row.user_id)
+        return False
+
     return row.expires_at >= utcnow()
+
+
+def _revoke_all_for_user(session: Session, *, user_id: str) -> int:
+    """Revoke ALL refresh tokens for a user (paranoid mode on reuse detection)."""
+    from sqlalchemy import update
+
+    now = utcnow()
+    stmt = (
+        update(RefreshToken)
+        .where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+    )
+    result = session.execute(stmt)
+    session.commit()
+    return result.rowcount
 
 
 def rotate_refresh_token(session: Session, *, old_token: str, user_id: str, new_token: str) -> None:
@@ -76,27 +99,27 @@ def rotate_refresh_token(session: Session, *, old_token: str, user_id: str, new_
 
 
 def cleanup_expired_refresh_tokens(session: Session, *, keep_revoked_days: int = 7) -> int:
-    """Delete expired tokens and old revoked tokens.
+    """Delete expired tokens and old revoked tokens using bulk DELETE.
 
     Returns number of rows deleted.
     """
     if not settings.persist_refresh_tokens:
         return 0
 
+    from sqlalchemy import delete, or_, and_
+
     now = utcnow()
     revoked_cutoff = now - timedelta(days=keep_revoked_days)
 
-    rows = session.exec(select(RefreshToken)).all()
-    to_delete: list[RefreshToken] = []
-    for r in rows:
-        if r.expires_at < now:
-            to_delete.append(r)
-        elif r.revoked_at is not None and r.revoked_at < revoked_cutoff:
-            to_delete.append(r)
-
-    for r in to_delete:
-        session.delete(r)
-
-    if to_delete:
-        session.commit()
-    return len(to_delete)
+    stmt = delete(RefreshToken).where(
+        or_(
+            RefreshToken.expires_at < now,
+            and_(
+                RefreshToken.revoked_at.isnot(None),
+                RefreshToken.revoked_at < revoked_cutoff,
+            ),
+        )
+    )
+    result = session.execute(stmt)
+    session.commit()
+    return result.rowcount

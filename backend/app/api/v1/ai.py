@@ -14,6 +14,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_optional_user
+from app.core.metrics import record_ai_error, record_ai_request
 from app.core.rate_limit import Rule, client_ip, get_redis_client, rate_limit
 from app.models import SystemWindowMessage, User
 
@@ -442,6 +443,7 @@ async def _generate_content_text(
     models = _resolve_model_chain()
     last_provider_error: dict[str, Any] | None = None
     got_empty_payload = False
+    t0 = time.perf_counter()
 
     for model_name in models:
         try:
@@ -458,6 +460,7 @@ async def _generate_content_text(
                 stage="initialization",
                 model_name=model_name,
             )
+            record_ai_error("generate", error_type="init_error")
             continue
 
         try:
@@ -475,10 +478,13 @@ async def _generate_content_text(
                 stage="request",
                 model_name=model_name,
             )
+            error_type = last_provider_error.get("code", "unknown") if last_provider_error else "unknown"
+            record_ai_error("generate", error_type=error_type)
             continue
 
         text = _extract_sdk_text(response)
         if text:
+            record_ai_request("generate", time.perf_counter() - t0)
             return text
         got_empty_payload = True
 
@@ -486,12 +492,14 @@ async def _generate_content_text(
         _raise_provider_error(last_provider_error)
 
     if got_empty_payload:
+        record_ai_error("generate", error_type="empty_payload")
         _error(
             status.HTTP_502_BAD_GATEWAY,
             code="ai_invalid_response",
             message="AI provider returned empty payload",
         )
 
+    record_ai_error("generate", error_type="all_failed")
     _error(
         status.HTTP_502_BAD_GATEWAY,
         code="ai_upstream_error",

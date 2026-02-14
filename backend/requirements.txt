@@ -17,3 +17,4 @@ redis==5.0.8
 email-validator==2.2.0
 google-genai>=1.0.0
 cryptography==46.0.5
+libsql-experimental>=0.0.10

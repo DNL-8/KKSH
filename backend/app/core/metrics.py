@@ -46,6 +46,21 @@ WEBHOOK_OUTBOX_QUEUE_DEPTH = Gauge(
     labelnames=["status"],
 )
 
+# ── AI / Gemini metrics (P2 #24) ──
+
+AI_REQUEST_DURATION_SECONDS = Histogram(
+    "ai_request_duration_seconds",
+    "Duration of AI/Gemini API calls in seconds",
+    labelnames=["endpoint"],
+    buckets=(0.1, 0.5, 1, 2, 5, 10, 30, 60),
+)
+
+AI_REQUEST_ERRORS_TOTAL = Counter(
+    "ai_request_errors_total",
+    "Total AI/Gemini API errors",
+    labelnames=["endpoint", "error_type"],
+)
+
 
 def route_label(scope: dict[str, Any]) -> str:
     """Return a stable route label (template path) when possible."""
@@ -99,6 +114,16 @@ def record_webhook_outbox_dead(count: int = 1) -> None:
 def set_webhook_outbox_depth(depth_by_status: dict[str, int]) -> None:
     for status, count in depth_by_status.items():
         WEBHOOK_OUTBOX_QUEUE_DEPTH.labels(status=status).set(max(0, int(count)))
+
+
+def record_ai_request(endpoint: str, duration_s: float) -> None:
+    """Record a successful AI request duration."""
+    AI_REQUEST_DURATION_SECONDS.labels(endpoint=endpoint).observe(duration_s)
+
+
+def record_ai_error(endpoint: str, error_type: str = "unknown") -> None:
+    """Record an AI request error (quota, timeout, invalid, etc)."""
+    AI_REQUEST_ERRORS_TOTAL.labels(endpoint=endpoint, error_type=error_type).inc()
 
 
 def render_metrics() -> tuple[bytes, str]:

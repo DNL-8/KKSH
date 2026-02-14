@@ -1,19 +1,32 @@
 from app.api.v1 import ai as ai_module
 
 
-class _QuotaModel:
-    def generate_content(self, _: str):
+class _QuotaModels:
+    """Stub for client.models that raises a quota error."""
+    def generate_content(self, *, model, contents, config=None):
         raise RuntimeError("429 RESOURCE_EXHAUSTED: quota exceeded, retry after 7 seconds")
 
 
-class _UpstreamErrorModel:
-    def generate_content(self, _: str):
+class _QuotaClient:
+    models = _QuotaModels()
+
+
+class _UpstreamModels:
+    """Stub for client.models that raises a non-quota error."""
+    def generate_content(self, *, model, contents, config=None):
         raise RuntimeError("upstream connection reset by peer")
+
+
+class _UpstreamClient:
+    models = _UpstreamModels()
 
 
 def test_ai_hunter_maps_provider_quota_to_429(client, csrf_headers, monkeypatch):
     ai_module._guest_daily_hits.clear()
-    monkeypatch.setattr(ai_module, "_create_model", lambda **_: _QuotaModel())
+    monkeypatch.setattr(
+        ai_module, "_create_model",
+        lambda **_: (_QuotaClient(), "gemini-2.0-flash", {}),
+    )
 
     response = client.post(
         "/api/v1/ai/hunter",
@@ -33,7 +46,10 @@ def test_ai_hunter_maps_provider_quota_to_429(client, csrf_headers, monkeypatch)
 
 def test_ai_hunter_keeps_502_for_non_quota_upstream_errors(client, csrf_headers, monkeypatch):
     ai_module._guest_daily_hits.clear()
-    monkeypatch.setattr(ai_module, "_create_model", lambda **_: _UpstreamErrorModel())
+    monkeypatch.setattr(
+        ai_module, "_create_model",
+        lambda **_: (_UpstreamClient(), "gemini-2.0-flash", {}),
+    )
 
     response = client.post(
         "/api/v1/ai/hunter",
@@ -47,3 +63,4 @@ def test_ai_hunter_keeps_502_for_non_quota_upstream_errors(client, csrf_headers,
     assert "Retry-After" not in response.headers
 
     ai_module._guest_daily_hits.clear()
+

@@ -36,11 +36,18 @@ def validate_csrf(request: Request) -> None:
     has_auth_cookie = bool(
         request.cookies.get(ACCESS_COOKIE) or request.cookies.get(REFRESH_COOKIE)
     )
-    has_csrf_cookie = bool(request.cookies.get(settings.csrf_cookie_name))
+    # Check both plain and __Host- prefixed cookie names for compatibility
+    plain_name = settings.csrf_cookie_name
+    host_name = f"__Host-{plain_name}"
+    has_csrf_cookie = bool(
+        request.cookies.get(plain_name) or request.cookies.get(host_name)
+    )
     if not has_auth_cookie and not has_csrf_cookie:
         return
 
-    cookie_token = request.cookies.get(settings.csrf_cookie_name)
+    cookie_token = (
+        request.cookies.get(host_name) or request.cookies.get(plain_name)
+    )
     header_token = request.headers.get(settings.csrf_header_name)
     if not cookie_token or not header_token or cookie_token != header_token:
         raise HTTPException(

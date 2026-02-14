@@ -60,15 +60,21 @@ def mint_csrf_token() -> str:
 
 
 def set_csrf_cookie(response: Response, token: str) -> None:
+    # In production (Secure=True), use __Host- prefix for stronger binding.
+    # __Host- requires Secure, Path=/, no Domain — prevents subdomain injection.
+    cookie_name = settings.csrf_cookie_name
+    if settings.cookie_secure_effective:
+        cookie_name = f"__Host-{cookie_name}"
+
     response.set_cookie(
-        key=settings.csrf_cookie_name,
+        key=cookie_name,
         value=token,
         httponly=False,  # required for double-submit cookie pattern
         samesite=_cookie_samesite(),
         secure=settings.cookie_secure_effective,
         max_age=int(settings.csrf_cookie_max_age_sec),
-        path=settings.cookie_path,
-        domain=settings.cookie_domain_or_none,
+        path="/",  # __Host- requires Path=/
+        # __Host- prefix requires NO Domain; omit domain entirely
     )
 
 

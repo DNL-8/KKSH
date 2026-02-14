@@ -126,7 +126,7 @@ def state(
 
     plan = get_or_create_study_plan(user, session)
     settings_row = get_or_create_user_settings(user, session)
-    stats_row = get_or_create_user_stats(user, session)
+    stats_row = get_or_create_user_stats(session, user)
     goals = parse_goals(plan.goals_json)
 
     today_minutes = _sum_minutes(session, user, today_dk)
@@ -357,7 +357,7 @@ def reset_state(
         summary["weeklyQuestsReset"] = len(weekly_rows)
 
     if "progression" in normalized:
-        stats_row = get_or_create_user_stats(user, session)
+        stats_row = get_or_create_user_stats(session, user)
         stats_row.level = 1
         stats_row.xp = 0
         stats_row.max_xp = 1000

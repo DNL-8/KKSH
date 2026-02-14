@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from jwt import InvalidTokenError
 from sqlalchemy import func
@@ -14,6 +13,7 @@ from app.core.rate_limit import Rule, rate_limit
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    decode_token,
     hash_password,
     verify_password,
 )
@@ -130,7 +130,7 @@ def refresh_token(request: Request, response: Response, session: Session = Depen
         raise HTTPException(status_code=401, detail="Missing refresh token")
 
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = decode_token(token)
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token")
         user_id = payload.get("sub")

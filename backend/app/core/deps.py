@@ -3,12 +3,12 @@ from __future__ import annotations
 from collections.abc import Generator
 from datetime import datetime, timezone
 
-import jwt
 from fastapi import Depends, HTTPException, Request, status
 from jwt import InvalidTokenError
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.security import decode_token
 from app.db import get_session
 from app.models import (
     DailyQuest,
@@ -35,7 +35,7 @@ def get_current_user(request: Request, session: Session = Depends(db_session)) -
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = decode_token(token)
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token")
         user_id = payload.get("sub")
@@ -60,7 +60,7 @@ def get_optional_user(request: Request, session: Session = Depends(db_session)) 
         return None
 
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = decode_token(token)
         if payload.get("type") != "access":
             return None
         user_id = payload.get("sub")
@@ -220,20 +220,5 @@ def get_or_create_user_settings(
     return row
 
 
-def get_or_create_user_stats(
-    user: User,
-    session: Session,
-    *,
-    autocommit: bool = True,
-) -> UserStats:
-    row = session.exec(select(UserStats).where(UserStats.user_id == user.id)).first()
-    if row:
-        return row
-    row = UserStats(user_id=user.id, updated_at=datetime.now(timezone.utc))
-    session.add(row)
-    if autocommit:
-        session.commit()
-        session.refresh(row)
-    else:
-        session.flush()
-    return row
+# Re-export from canonical location (services/progression.py) to avoid breakage.
+from app.services.progression import get_or_create_user_stats  # noqa: F401

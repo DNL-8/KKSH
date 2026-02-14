@@ -48,7 +48,32 @@ async def lifespan(_: FastAPI):
                 ensure_dev_seed_data(s)
             else:
                 ensure_default_drills(s)
+
+    # Schedule daily retention cleanup (P0 #4/#5, P1 #17/#18)
+    scheduler = None
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+
+        def _run_retention() -> None:
+            try:
+                from app.services.retention import run_all_retention
+
+                with get_session() as s:
+                    run_all_retention(s)
+            except Exception:
+                logger.exception("retention_job_failed")
+
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(_run_retention, "cron", hour=3, minute=0, id="retention_cleanup")
+        scheduler.start()
+        logger.info("retention_scheduler_started")
+    except Exception:
+        logger.exception("retention_scheduler_init_failed")
+
     yield
+
+    if scheduler is not None:
+        scheduler.shutdown(wait=False)
 
 
 # ------------------------------------------------------------------
@@ -84,6 +109,7 @@ def _init_sentry() -> None:
             environment=settings.env,
             integrations=[FastApiIntegration()],
             traces_sample_rate=float(settings.sentry_traces_sample_rate or 0.0),
+            send_default_pii=False,
         )
     except Exception:
         logger.exception("sentry_init_failed")
@@ -128,25 +154,19 @@ def health():
     except Exception as exc:
         checks["database"] = f"error: {exc.__class__.__name__}"
 
-    # Redis check (optional)
+    # Redis check (optional) — sync ping avoids creating event loops in ASGI context
     try:
-        from app.core.rate_limit import get_redis_client
-        import asyncio
+        if settings.redis_url:
+            import redis as redis_sync
 
-        redis = get_redis_client()
-        if redis is not None:
-            loop = asyncio.new_event_loop()
-            try:
-                loop.run_until_complete(redis.ping())
-                checks["redis"] = "ok"
-            except Exception:
-                checks["redis"] = "error"
-            finally:
-                loop.close()
+            r = redis_sync.from_url(settings.redis_url, socket_connect_timeout=2)
+            r.ping()
+            r.close()
+            checks["redis"] = "ok"
         else:
             checks["redis"] = "not_configured"
     except Exception:
-        checks["redis"] = "not_configured"
+        checks["redis"] = "error"
 
     all_ok = all(v == "ok" or v == "not_configured" for v in checks.values())
     status_code = 200 if all_ok else 503

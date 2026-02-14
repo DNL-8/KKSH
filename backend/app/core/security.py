@@ -25,6 +25,8 @@ def create_token(*, sub: str, token_type: str, expires_delta: timedelta) -> str:
     payload: dict[str, Any] = {
         "sub": sub,
         "type": token_type,
+        "aud": settings.app_name,
+        "iss": settings.app_name,
         # jti prevents deterministic token collisions when two tokens are minted
         # within the same second for the same subject/type.
         "jti": str(uuid4()),
@@ -32,6 +34,17 @@ def create_token(*, sub: str, token_type: str, expires_delta: timedelta) -> str:
         "exp": int((now + expires_delta).timestamp()),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """Decode and validate a JWT token with audience/issuer checks."""
+    return jwt.decode(
+        token,
+        settings.jwt_secret,
+        algorithms=["HS256"],
+        audience=settings.app_name,
+        issuer=settings.app_name,
+    )
 
 
 def create_access_token(user_id: str) -> str:

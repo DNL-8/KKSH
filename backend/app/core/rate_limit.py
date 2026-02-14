@@ -85,7 +85,12 @@ def client_ip(request: Request) -> str:
     return "unknown"
 
 
-def rate_limit(name: str, rule: Rule | None = None) -> Callable[[Request], Awaitable[None]]:
+def rate_limit(
+    name: str,
+    rule: Rule | None = None,
+    *,
+    user_key: str | None = None,
+) -> Callable[[Request], Awaitable[None]]:
     if rule is None:
         rule = Rule(
             max_requests=int(settings.rate_limit_default_max),
@@ -94,11 +99,16 @@ def rate_limit(name: str, rule: Rule | None = None) -> Callable[[Request], Await
 
     async def _dep(request: Request) -> None:
         ip = client_ip(request)
+        # Compose rate-limit key: include user_key when provided for per-user limiting
+        rl_key_parts = [name, ip]
+        if user_key:
+            rl_key_parts.append(user_key)
+        rl_key = ":".join(rl_key_parts)
 
         # Use Redis if configured; otherwise, use in-memory.
         if _redis is not None:
             bucket = int(time.time() // rule.window_seconds)
-            key = f"rl:{name}:{ip}:{bucket}"
+            key = f"rl:{rl_key}:{bucket}"
             try:
                 # Fixed window counter; set TTL on every hit (cheap + safe).
                 count = int(await _redis.incr(key))
@@ -106,9 +116,9 @@ def rate_limit(name: str, rule: Rule | None = None) -> Callable[[Request], Await
                 ok = count <= rule.max_requests
             except Exception:
                 # If Redis fails at runtime, degrade gracefully.
-                ok = limiter.hit(f"{name}:{ip}", rule)
+                ok = limiter.hit(rl_key, rule)
         else:
-            ok = limiter.hit(f"{name}:{ip}", rule)
+            ok = limiter.hit(rl_key, rule)
 
         if not ok:
             raise HTTPException(

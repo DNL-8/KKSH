@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite:///./study_leveling.db"
+    db_pool_size: int = 5       # SQLAlchemy pool_size for Postgres (ignored for SQLite)
+    db_max_overflow: int = 10   # SQLAlchemy max_overflow for Postgres
     auto_create_db: bool = True  # recommended only for dev/tests (use Alembic in prod)
     seed_dev_data: bool = False  # optional demo data in dev/tests
 
@@ -49,8 +51,8 @@ class Settings(BaseSettings):
     content_security_policy: str = (
         "default-src 'self'; "
         "script-src 'self'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "font-src 'self' data:; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         "connect-src 'self'; "
         "frame-ancestors 'none'; "

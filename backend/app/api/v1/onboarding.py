@@ -61,7 +61,7 @@ def complete_onboarding(
     session.add(settings_row)
 
     # ensure core rows exist
-    get_or_create_user_stats(user, session)
+    get_or_create_user_stats(session, user)
     ensure_subjects_from_goals(session, user, payload.goals)
 
     # mark user
