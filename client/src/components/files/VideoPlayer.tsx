@@ -61,6 +61,26 @@ export function VideoPlayer({
         }
     };
 
+    // Load saved speed
+    useEffect(() => {
+        const player = playerRef.current;
+        if (!player) return;
+
+        const savedSpeed = localStorage.getItem("cmd8_video_speed");
+        if (savedSpeed) {
+            const speed = parseFloat(savedSpeed);
+            if (Number.isFinite(speed) && speed > 0 && speed <= 16) {
+                player.playbackRate = speed;
+            }
+        }
+    }, [video]); // Re-apply on video change? Or just mount? Usually persistent across app session. Re-apply on video change is safer if browser resets it.
+
+    // Save speed on change
+    const handleRateChange = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+        const speed = event.currentTarget.playbackRate;
+        localStorage.setItem("cmd8_video_speed", speed.toString());
+    };
+
     if (!video) {
         return (
             <div className="flex h-[320px] items-center justify-center text-sm font-semibold text-slate-500 md:h-[440px]">
@@ -79,6 +99,7 @@ export function VideoPlayer({
             onDurationChange={handleDurationChange}
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
+            onRateChange={handleRateChange}
             onEnded={onEnded}
             playsInline
             preload="metadata"
