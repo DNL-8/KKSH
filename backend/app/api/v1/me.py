@@ -117,171 +117,176 @@ def state(
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    now = now_local()
-    today = now.date()
-    today_dk = date_key(now)
-    today_minus_6 = today - timedelta(days=6)
-    week_start_key = today_minus_6.strftime("%Y-%m-%d")
-    streak_scan_start_key = (today - timedelta(days=365)).strftime("%Y-%m-%d")
+    try:
+        now = now_local()
+        today = now.date()
+        today_dk = date_key(now)
+        today_minus_6 = today - timedelta(days=6)
+        week_start_key = today_minus_6.strftime("%Y-%m-%d")
+        streak_scan_start_key = (today - timedelta(days=365)).strftime("%Y-%m-%d")
 
-    plan = get_or_create_study_plan(user, session)
-    settings_row = get_or_create_user_settings(user, session)
-    stats_row = get_or_create_user_stats(session, user)
-    goals = parse_goals(plan.goals_json)
+        plan = get_or_create_study_plan(user, session)
+        settings_row = get_or_create_user_settings(user, session)
+        stats_row = get_or_create_user_stats(session, user)
+        goals = parse_goals(plan.goals_json)
 
-    today_minutes = _sum_minutes(session, user, today_dk)
+        today_minutes = _sum_minutes(session, user, today_dk)
 
-    # week (last 7 days incl today)
-    week_minutes = int(
-        session.exec(
-            select(func.coalesce(func.sum(StudySession.minutes), 0)).where(
-                StudySession.user_id == user.id,
-                StudySession.date_key >= week_start_key,
-                StudySession.date_key <= today_dk,
-                StudySession.deleted_at.is_(None),
-            )
-        ).one()
-        or 0
-    )
+        # week (last 7 days incl today)
+        week_minutes = int(
+            session.exec(
+                select(func.coalesce(func.sum(StudySession.minutes), 0)).where(
+                    StudySession.user_id == user.id,
+                    StudySession.date_key >= week_start_key,
+                    StudySession.date_key <= today_dk,
+                    StudySession.deleted_at.is_(None),
+                )
+            ).one()
+            or 0
+        )
 
-    # streak: consecutive days ending today with at least 1 minute.
-    minutes_by_day = _minutes_by_day(
-        session,
-        user,
-        date_from=streak_scan_start_key,
-        date_to=today_dk,
-    )
-    streak = 0
-    cursor = today
-    while True:
-        k = cursor.strftime("%Y-%m-%d")
-        if minutes_by_day.get(k, 0) <= 0:
-            break
-        streak += 1
-        cursor = cursor - timedelta(days=1)
-        if streak > 365:
-            break
+        # streak: consecutive days ending today with at least 1 minute.
+        minutes_by_day = _minutes_by_day(
+            session,
+            user,
+            date_from=streak_scan_start_key,
+            date_to=today_dk,
+        )
+        streak = 0
+        cursor = today
+        while True:
+            k = cursor.strftime("%Y-%m-%d")
+            if minutes_by_day.get(k, 0) <= 0:
+                break
+            streak += 1
+            cursor = cursor - timedelta(days=1)
+            if streak > 365:
+                break
 
-    due_reviews_total = int(
-        session.exec(
-            select(func.count())
-            .select_from(DrillReview)
-            .where(
-                DrillReview.user_id == user.id,
-                DrillReview.next_review_at <= datetime.now(timezone.utc),
-            )
-        ).one()
-        or 0
-    )
+        due_reviews_total = int(
+            session.exec(
+                select(func.count())
+                .select_from(DrillReview)
+                .where(
+                    DrillReview.user_id == user.id,
+                    DrillReview.next_review_at <= datetime.now(timezone.utc),
+                )
+            ).one()
+            or 0
+        )
 
-    quests = ensure_daily_quests(session=session, user=user, dk=today_dk, goals=goals)
-    weekly_quests = ensure_weekly_quests(
-        session=session,
-        user=user,
-        wk=week_key(now),
-        goals=goals,
-    )
+        quests = ensure_daily_quests(session=session, user=user, dk=today_dk, goals=goals)
+        weekly_quests = ensure_weekly_quests(
+            session=session,
+            user=user,
+            wk=week_key(now),
+            goals=goals,
+        )
 
-    blocks = session.exec(
-        select(StudyBlock)
-        .where(StudyBlock.user_id == user.id, StudyBlock.is_active == True)  # noqa: E712
-        .order_by(StudyBlock.day_of_week, StudyBlock.start_time)
-    ).all()
+        blocks = session.exec(
+            select(StudyBlock)
+            .where(StudyBlock.user_id == user.id, StudyBlock.is_active == True)  # noqa: E712
+            .order_by(StudyBlock.day_of_week, StudyBlock.start_time)
+        ).all()
 
-    inventory = list_inventory(session, user)
+        inventory = list_inventory(session, user)
 
-    return AppStateOut(
-        user=UserOut(id=user.id, email=user.email, isAdmin=is_admin(user)),
-        onboardingDone=bool(getattr(user, "onboarding_done", False)),
-        todayMinutes=today_minutes,
-        weekMinutes=week_minutes,
-        streakDays=streak,
-        goals={k: int(v) for k, v in goals.items()},
-        dueReviews=due_reviews_total,
-        dailyQuests=[
-            DailyQuestOut(
-                id=q.id,
-                date=q.date_key,
-                subject=q.subject,
-                title=q.title,
-                description=q.description,
-                rank=q.rank,
-                difficulty=q.difficulty,
-                objective=q.objective,
-                tags=_quest_tags(q.tags_json),
-                rewardXp=(int(q.reward_xp) if q.reward_xp is not None else None),
-                rewardGold=(int(q.reward_gold) if q.reward_gold is not None else None),
-                source=(q.source or "fallback"),
-                generatedAt=q.generated_at,
-                targetMinutes=int(q.target_minutes),
-                progressMinutes=int(q.progress_minutes),
-                claimed=bool(q.claimed),
-            )
-            for q in quests
-        ],
-        weeklyQuests=[
-            WeeklyQuestOut(
-                id=q.id,
-                week=q.week_key,
-                subject=q.subject,
-                title=q.title,
-                description=q.description,
-                rank=q.rank,
-                difficulty=q.difficulty,
-                objective=q.objective,
-                tags=_quest_tags(q.tags_json),
-                rewardXp=(int(q.reward_xp) if q.reward_xp is not None else None),
-                rewardGold=(int(q.reward_gold) if q.reward_gold is not None else None),
-                source=(q.source or "fallback"),
-                generatedAt=q.generated_at,
-                targetMinutes=int(q.target_minutes),
-                progressMinutes=int(q.progress_minutes),
-                claimed=bool(q.claimed),
-            )
-            for q in weekly_quests
-        ],
-        inventory=inventory,
-        studyBlocks=[
-            StudyBlockOut(
-                id=b.id,
-                dayOfWeek=int(b.day_of_week),
-                startTime=str(b.start_time),
-                durationMin=int(b.duration_min),
-                subject=str(b.subject),
-                mode=str(b.mode),
-                isActive=bool(b.is_active),
-            )
-            for b in blocks
-        ],
-        settings=UserSettingsOut(
-            dailyTargetMinutes=int(settings_row.daily_target_minutes),
-            pomodoroWorkMin=int(settings_row.pomodoro_work_min),
-            pomodoroBreakMin=int(settings_row.pomodoro_break_min),
-            timezone=settings_row.timezone,
-            language=settings_row.language,
-            reminderEnabled=bool(settings_row.reminder_enabled),
-            reminderTime=settings_row.reminder_time,
-            reminderEveryMin=int(settings_row.reminder_every_min),
-            xpPerMinute=int(settings_row.xp_per_minute),
-            goldPerMinute=int(settings_row.gold_per_minute),
-            geminiApiKey=_mask_api_key(decrypt_secret(settings_row.gemini_api_key)),
-            agentPersonality=settings_row.agent_personality,
-        ),
-        progression=ProgressionOut(
-            level=int(stats_row.level),
-            xp=int(stats_row.xp),
-            maxXp=int(stats_row.max_xp),
-            gold=int(stats_row.gold),
-        ),
-        vitals=VitalsOut(
-            hp=int(stats_row.hp),
-            maxHp=int(stats_row.max_hp),
-            mana=int(stats_row.mana),
-            maxMana=int(stats_row.max_mana),
-            fatigue=int(stats_row.fatigue),
-            maxFatigue=int(stats_row.max_fatigue),
-        ),
-    )
+        return AppStateOut(
+            user=UserOut(id=user.id, email=user.email, isAdmin=is_admin(user)),
+            onboardingDone=bool(getattr(user, "onboarding_done", False)),
+            todayMinutes=today_minutes,
+            weekMinutes=week_minutes,
+            streakDays=streak,
+            goals={k: int(v) for k, v in goals.items()},
+            dueReviews=due_reviews_total,
+            dailyQuests=[
+                DailyQuestOut(
+                    id=q.id,
+                    date=q.date_key,
+                    subject=q.subject,
+                    title=q.title,
+                    description=q.description,
+                    rank=q.rank,
+                    difficulty=q.difficulty,
+                    objective=q.objective,
+                    tags=_quest_tags(q.tags_json),
+                    rewardXp=(int(q.reward_xp) if q.reward_xp is not None else None),
+                    rewardGold=(int(q.reward_gold) if q.reward_gold is not None else None),
+                    source=(q.source or "fallback"),
+                    generatedAt=q.generated_at,
+                    targetMinutes=int(q.target_minutes),
+                    progressMinutes=int(q.progress_minutes),
+                    claimed=bool(q.claimed),
+                )
+                for q in quests
+            ],
+            weeklyQuests=[
+                WeeklyQuestOut(
+                    id=q.id,
+                    week=q.week_key,
+                    subject=q.subject,
+                    title=q.title,
+                    description=q.description,
+                    rank=q.rank,
+                    difficulty=q.difficulty,
+                    objective=q.objective,
+                    tags=_quest_tags(q.tags_json),
+                    rewardXp=(int(q.reward_xp) if q.reward_xp is not None else None),
+                    rewardGold=(int(q.reward_gold) if q.reward_gold is not None else None),
+                    source=(q.source or "fallback"),
+                    generatedAt=q.generated_at,
+                    targetMinutes=int(q.target_minutes),
+                    progressMinutes=int(q.progress_minutes),
+                    claimed=bool(q.claimed),
+                )
+                for q in weekly_quests
+            ],
+            inventory=inventory,
+            studyBlocks=[
+                StudyBlockOut(
+                    id=b.id,
+                    dayOfWeek=int(b.day_of_week),
+                    startTime=str(b.start_time),
+                    durationMin=int(b.duration_min),
+                    subject=str(b.subject),
+                    mode=str(b.mode),
+                    isActive=bool(b.is_active),
+                )
+                for b in blocks
+            ],
+            settings=UserSettingsOut(
+                dailyTargetMinutes=int(settings_row.daily_target_minutes),
+                pomodoroWorkMin=int(settings_row.pomodoro_work_min),
+                pomodoroBreakMin=int(settings_row.pomodoro_break_min),
+                timezone=settings_row.timezone,
+                language=settings_row.language,
+                reminderEnabled=bool(settings_row.reminder_enabled),
+                reminderTime=settings_row.reminder_time,
+                reminderEveryMin=int(settings_row.reminder_every_min),
+                xpPerMinute=int(settings_row.xp_per_minute),
+                goldPerMinute=int(settings_row.gold_per_minute),
+                geminiApiKey=_mask_api_key(decrypt_secret(settings_row.gemini_api_key)),
+                agentPersonality=settings_row.agent_personality,
+            ),
+            progression=ProgressionOut(
+                level=int(stats_row.level),
+                xp=int(stats_row.xp),
+                maxXp=int(stats_row.max_xp),
+                gold=int(stats_row.gold),
+            ),
+            vitals=VitalsOut(
+                hp=int(stats_row.hp),
+                maxHp=int(stats_row.max_hp),
+                mana=int(stats_row.mana),
+                maxMana=int(stats_row.max_mana),
+                fatigue=int(stats_row.fatigue),
+                maxFatigue=int(stats_row.max_fatigue),
+            ),
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise e
 
 
 @router.post(
