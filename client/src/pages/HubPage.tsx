@@ -161,7 +161,7 @@ export function HubPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-12">
         <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-[hsl(var(--accent)/0.3)] lg:col-span-4">
-          <div className="absolute -right-10 -top-10 rotate-12 opacity-5 transition-opacity group-hover:opacity-10">
+          <div className="pointer-events-none absolute -right-10 -top-10 rotate-12 opacity-5 transition-opacity group-hover:opacity-10">
             <Hexagon size={220} className="text-[hsl(var(--accent))]" />
           </div>
           <div className="mb-6 flex items-start justify-between">
@@ -262,7 +262,7 @@ export function HubPage() {
         </section>
 
         <section className="group relative overflow-hidden rounded-[32px] border border-red-900/20 bg-gradient-to-br from-[#150a0a] to-[#0a0a0b] p-8 shadow-xl transition-all hover:border-red-500/40 lg:col-span-8">
-          <div className="absolute right-0 top-0 p-8 opacity-5 transition-all duration-1000 group-hover:opacity-15">
+          <div className="pointer-events-none absolute right-0 top-0 p-8 opacity-5 transition-all duration-1000 group-hover:opacity-15">
             <Swords size={200} className="translate-x-12 -translate-y-12 -rotate-12 text-red-600" />
           </div>
           <div className="relative z-10 flex h-full flex-col">
