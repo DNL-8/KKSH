@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import uuid4
 
 import jwt
 from passlib.context import CryptContext
@@ -24,6 +25,9 @@ def create_token(*, sub: str, token_type: str, expires_delta: timedelta) -> str:
     payload: dict[str, Any] = {
         "sub": sub,
         "type": token_type,
+        # jti prevents deterministic token collisions when two tokens are minted
+        # within the same second for the same subject/type.
+        "jti": str(uuid4()),
         "iat": int(now.timestamp()),
         "exp": int((now + expires_delta).timestamp()),
     }

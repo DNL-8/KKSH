@@ -120,6 +120,7 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - Rollout gradual: `docs/webhook_outbox_rollout.md`
 - Sunset do caminho legado (release futura): `docs/webhook_outbox_legacy_sunset.md`
 - Dashboard SQL (Postgres): `backend/scripts/sql/webhook_outbox_dashboard.sql`
+- Plano de execucao QA + Arquitetura (2 sprints): `docs/sprint-plan-qa-architecture.md`
 
 Executar dashboard SQL no compose local:
 

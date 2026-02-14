@@ -32,7 +32,7 @@ export function HubPage() {
               <Activity size={14} className="text-cyan-500" /> Biometria Hunter
             </h3>
             <Badge icon={Activity} color="border-green-500/20 bg-green-500/10 text-green-500">
-              Estável
+              Estavel
             </Badge>
           </div>
 
@@ -59,12 +59,12 @@ export function HubPage() {
               </div>
               <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-cyan-500">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]" />
-                Nível {globalStats.level} Operacional
+                Nivel {globalStats.level} Operacional
               </div>
               <div className="flex gap-1.5 pt-1">
                 <div
                   className="flex h-6 w-6 items-center justify-center rounded border border-slate-700 bg-slate-900 text-yellow-500"
-                  title="Buff: Cafeína (+10% INT)"
+                  title="Buff: Cafeina (+10% INT)"
                 >
                   <Zap size={12} fill="currentColor" />
                 </div>
@@ -111,7 +111,7 @@ export function HubPage() {
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Badge color="border-red-500/20 bg-red-500/10 text-red-500" icon={Swords}>
-                  Incursão Ativa
+                  Incursao Ativa
                 </Badge>
                 <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">
                   Protocolo: Bug_Exterm_#04
@@ -130,15 +130,15 @@ export function HubPage() {
               <div className="mb-2 flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Rank S</span>
                 <span className="h-1 w-1 rounded-full bg-slate-700" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-900">Ameaça Crítica</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-900">Ameaca Critica</span>
               </div>
               <h2 className="text-4xl font-black uppercase italic leading-tight tracking-tighter text-white drop-shadow-2xl md:text-6xl">
-                BUG DE <span className="animate-shimmer text-red-500">AUTENTICAÇÃO</span>
+                BUG DE <span className="animate-shimmer text-red-500">AUTENTICACAO</span>
               </h2>
               <div className="mt-4 flex gap-4">
-                <StatPill label="Fraqueza" value="Lógica" color="text-blue-400" />
-                <StatPill label="Resistência" value="Brute Force" color="text-red-400" />
-                <StatPill label="Loot" value="Épico" color="text-purple-400" />
+                <StatPill label="Fraqueza" value="Logica" color="text-blue-400" />
+                <StatPill label="Resistencia" value="Brute Force" color="text-red-400" />
+                <StatPill label="Loot" value="Epico" color="text-purple-400" />
               </div>
             </div>
 
@@ -210,9 +210,9 @@ export function HubPage() {
 
           <BentoMini
             icon={Cpu}
-            title="Núcleo Central"
+            title="Nucleo Central"
             val="IA Sistema"
-            sub="Latência: 8ms"
+            sub="Latencia: 8ms"
             color="text-blue-500"
             onClick={() => navigateTo("/ia")}
           >
@@ -232,7 +232,7 @@ export function HubPage() {
 
           <BentoMini
             icon={TrendingUp}
-            title="Status Evolução"
+            title="Status Evolucao"
             val="Classe: Elite"
             sub="Atributo Foco: INT"
             color="text-purple-500"

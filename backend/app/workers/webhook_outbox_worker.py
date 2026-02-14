@@ -371,6 +371,15 @@ def process_once(worker_id: str) -> dict[str, int]:
 
 def run_forever(worker_id: str) -> None:
     poll_interval_sec = max(0.1, float(settings.webhook_worker_poll_interval_ms) / 1000.0)
+    error_backoff_sec = max(1.0, poll_interval_sec)
     while True:
-        process_once(worker_id=worker_id)
+        try:
+            process_once(worker_id=worker_id)
+        except Exception:
+            logger.exception(
+                "webhook_outbox_worker_loop_error",
+                extra={"worker_id": worker_id},
+            )
+            time.sleep(error_backoff_sec)
+            continue
         time.sleep(poll_interval_sec)

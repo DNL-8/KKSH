@@ -17,7 +17,7 @@ export function CombatPage() {
   const [damagePopup, setDamagePopup] = useState<DamagePopup | null>(null);
   const [shake, setShake] = useState(false);
   const [combatLogs, setCombatLogs] = useState<string[]>([
-    "Batalha iniciada: Bug de Autenticação [Rank S]",
+    "Batalha iniciada: Bug de Autenticacao [Rank S]",
   ]);
 
   const attack = () => {
@@ -26,7 +26,7 @@ export function CombatPage() {
     setEnemyHp((value) => Math.max(0, value - damage));
     setDamagePopup({ val: damage, critical: isCritical });
     setShake(true);
-    setCombatLogs((prev) => [`Causou ${damage} dano ${isCritical ? "(CRÍTICO!)" : ""}`.trim(), ...prev].slice(0, 5));
+    setCombatLogs((prev) => [`Causou ${damage} dano ${isCritical ? "(CRITICO!)" : ""}`.trim(), ...prev].slice(0, 5));
     handleGlobalAction("attack");
     window.setTimeout(() => {
       setDamagePopup(null);
@@ -79,7 +79,7 @@ export function CombatPage() {
           <div className="space-y-4">
             <h2 className="text-5xl font-black uppercase italic leading-none tracking-tighter text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] md:text-8xl">
               BUG DE <br />
-              <span className="text-red-600">AUTENTICAÇÃO</span>
+              <span className="text-red-600">AUTENTICACAO</span>
             </h2>
             <div className="flex justify-center gap-2">
               <StatPill label="ATK" value="2.4k" color="text-red-400" />

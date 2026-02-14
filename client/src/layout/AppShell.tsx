@@ -7,6 +7,7 @@
   Heart,
   Hexagon,
   LayoutDashboard,
+  Menu,
   MonitorPlay,
   Settings,
   Star,
@@ -113,6 +114,10 @@ export function AppShell() {
     () => NAV_ITEMS.find((item) => location.pathname === item.path) ?? NAV_ITEMS[0],
     [location.pathname],
   );
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const syncProgressionFromApi = useCallback(async () => {
     try {
@@ -270,7 +275,7 @@ export function AppShell() {
             </div>
           </div>
           <div className="mt-8 text-[9px] font-black uppercase leading-relaxed tracking-[0.3em] text-cyan-900">
-            Estabelecendo conexÃ£o tÃ¡tica com hospedeiro #9284-AX...
+            Estabelecendo conexao tatica com hospedeiro #9284-AX...
           </div>
         </div>
       </div>
@@ -492,6 +497,16 @@ export function AppShell() {
       <div className="hidden h-14 w-px shrink-0 bg-cyan-900/35 lg:block" />
 
       <div className="ml-auto flex items-center gap-2">
+        <button
+          aria-label="Abrir menu de navegacao"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-900/40 bg-[#09152b]/70 p-1 transition-all hover:border-cyan-500/50 lg:hidden"
+          data-testid="mobile-menu-open"
+          onClick={() => setIsMobileMenuOpen(true)}
+          type="button"
+        >
+          <Menu size={18} className="text-cyan-300" />
+        </button>
+
         <div
           className="flex min-w-0 items-center gap-3 rounded-[16px] border border-cyan-900/40 bg-[#09152b]/70 px-3 py-1.5"
           data-testid="top-status-rank"
@@ -619,13 +634,17 @@ export function AppShell() {
       )}
 
       {isMobileMenuOpen && (
-        <div className="animate-in fade-in fixed inset-0 z-[100] duration-500 lg:hidden">
+        <div className="animate-in fade-in fixed inset-0 z-[100] duration-500 lg:hidden" data-testid="mobile-menu-root">
           <button
             className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+            data-testid="mobile-menu-overlay"
             onClick={() => setIsMobileMenuOpen(false)}
             type="button"
           />
-          <div className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800 bg-[#0a0a0b] p-8 shadow-2xl duration-500">
+          <div
+            className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800 bg-[#0a0a0b] p-8 shadow-2xl duration-500"
+            data-testid="mobile-menu-drawer"
+          >
             <div className="mb-14 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Hexagon size={32} className="text-cyan-500 shadow-[0_0_15px_#06b6d4]" />
@@ -634,6 +653,8 @@ export function AppShell() {
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="rounded-2xl bg-slate-900 p-3 text-slate-600"
+                data-testid="mobile-menu-close"
+                aria-label="Fechar menu de navegacao"
                 type="button"
               >
                 <X size={24} />

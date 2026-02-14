@@ -182,34 +182,58 @@ DEFAULT_GOALS: dict[str, int] = {
 }
 
 
-def get_or_create_study_plan(user: User, session: Session) -> StudyPlan:
+def get_or_create_study_plan(
+    user: User,
+    session: Session,
+    *,
+    autocommit: bool = True,
+) -> StudyPlan:
     plan = session.exec(select(StudyPlan).where(StudyPlan.user_id == user.id)).first()
     if plan:
         return plan
     plan = StudyPlan(user_id=user.id, goals_json="{}", updated_at=datetime.now(timezone.utc))
     session.add(plan)
-    session.commit()
-    session.refresh(plan)
+    if autocommit:
+        session.commit()
+        session.refresh(plan)
+    else:
+        session.flush()
     return plan
 
 
-def get_or_create_user_settings(user: User, session: Session) -> UserSettings:
+def get_or_create_user_settings(
+    user: User,
+    session: Session,
+    *,
+    autocommit: bool = True,
+) -> UserSettings:
     row = session.exec(select(UserSettings).where(UserSettings.user_id == user.id)).first()
     if row:
         return row
     row = UserSettings(user_id=user.id, updated_at=datetime.now(timezone.utc))
     session.add(row)
-    session.commit()
-    session.refresh(row)
+    if autocommit:
+        session.commit()
+        session.refresh(row)
+    else:
+        session.flush()
     return row
 
 
-def get_or_create_user_stats(user: User, session: Session) -> UserStats:
+def get_or_create_user_stats(
+    user: User,
+    session: Session,
+    *,
+    autocommit: bool = True,
+) -> UserStats:
     row = session.exec(select(UserStats).where(UserStats.user_id == user.id)).first()
     if row:
         return row
     row = UserStats(user_id=user.id, updated_at=datetime.now(timezone.utc))
     session.add(row)
-    session.commit()
-    session.refresh(row)
+    if autocommit:
+        session.commit()
+        session.refresh(row)
+    else:
+        session.flush()
     return row

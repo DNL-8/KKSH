@@ -17,6 +17,8 @@ def log_event(
     event: str,
     user: User | None = None,
     metadata: dict[str, Any] | None = None,
+    *,
+    commit: bool = True,
 ) -> None:
     """Persist an audit event (best-effort).
 
@@ -37,6 +39,10 @@ def log_event(
             created_at=datetime.now(timezone.utc),
         )
         session.add(row)
-        session.commit()
+        if commit:
+            session.commit()
     except Exception:
-        session.rollback()
+        # Keep audit best-effort; never break caller flow.
+        # Avoid rolling back outer transactions when commit=False.
+        if commit:
+            session.rollback()

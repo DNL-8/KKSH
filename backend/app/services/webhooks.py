@@ -199,6 +199,7 @@ def _enqueue_outbox_rows(
     event: str,
     payload: dict[str, Any],
     targets: list[UserWebhook],
+    commit: bool = True,
 ) -> int:
     if not targets:
         return 0
@@ -219,7 +220,10 @@ def _enqueue_outbox_rows(
         session.add(row)
         count += 1
 
-    session.commit()
+    if commit:
+        session.commit()
+    else:
+        session.flush()
     record_webhook_outbox_enqueued(mode=mode, status=status, count=count)
     logger.info(
         "webhook_outbox_enqueued",
@@ -242,6 +246,7 @@ def enqueue_event(
     payload: dict[str, Any],
     *,
     webhook_id: str | None = None,
+    commit: bool = True,
 ) -> int:
     """Queue webhook delivery with gradual rollout to outbox.
 
@@ -276,6 +281,7 @@ def enqueue_event(
             event=event,
             payload=payload,
             targets=targets,
+            commit=commit,
         )
 
     # Shadow mode: enqueue for observability while keeping legacy send path active.
@@ -287,6 +293,7 @@ def enqueue_event(
         event=event,
         payload=payload,
         targets=targets,
+        commit=commit,
     )
     _legacy_enqueue(
         background_tasks,

@@ -1,3 +1,10 @@
+import pytest
+from sqlmodel import select
+
+from app.db import get_session
+from app.models import AuditEvent, StudySession
+
+
 def _signup(client, csrf_headers, email="b@example.com"):
     r = client.post(
         "/api/v1/auth/signup",
@@ -55,3 +62,33 @@ def test_sessions_update_state_and_quests(client, csrf_headers):
     # idempotent
     r = client.post(f"/api/v1/daily-quests/{qid}/claim", headers=csrf_headers())
     assert r.status_code == 204
+
+
+def test_create_session_is_atomic_when_mid_flow_fails(client, csrf_headers, monkeypatch):
+    user = _signup(client, csrf_headers, email="atomic@example.com")["user"]
+
+    import app.api.v1.sessions as sessions_api
+
+    def _raise_mid_flow(*args, **kwargs):
+        raise RuntimeError("forced_mid_flow_error")
+
+    monkeypatch.setattr(sessions_api, "apply_xp_gold", _raise_mid_flow)
+
+    with pytest.raises(RuntimeError, match="forced_mid_flow_error"):
+        client.post(
+            "/api/v1/sessions",
+            json={"subject": "SQL", "minutes": 15, "mode": "pomodoro"},
+            headers=csrf_headers(),
+        )
+
+    with get_session() as db:
+        sessions = db.exec(select(StudySession).where(StudySession.user_id == user["id"])).all()
+        assert sessions == []
+
+        audit_rows = db.exec(
+            select(AuditEvent).where(
+                AuditEvent.event == "session.created",
+                AuditEvent.user_id == user["id"],
+            )
+        ).all()
+        assert audit_rows == []

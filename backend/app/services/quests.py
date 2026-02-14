@@ -18,7 +18,12 @@ def _spec_for_subject(*, subject: str, cycle: str, minutes_hint: int = 15):
 
 
 def ensure_daily_quests(
-    *, session: Session, user: User, dk: str, goals: dict[str, int]
+    *,
+    session: Session,
+    user: User,
+    dk: str,
+    goals: dict[str, int],
+    autocommit: bool = True,
 ) -> list[DailyQuest]:
     existing = session.exec(
         select(DailyQuest).where(DailyQuest.user_id == user.id, DailyQuest.date_key == dk)
@@ -48,14 +53,22 @@ def ensure_daily_quests(
         session.add(q)
         quests.append(q)
 
-    session.commit()
-    for q in quests:
-        session.refresh(q)
+    if autocommit:
+        session.commit()
+        for q in quests:
+            session.refresh(q)
+    else:
+        session.flush()
     return quests
 
 
 def ensure_weekly_quests(
-    *, session: Session, user: User, wk: str, goals: dict[str, int]
+    *,
+    session: Session,
+    user: User,
+    wk: str,
+    goals: dict[str, int],
+    autocommit: bool = True,
 ) -> list[WeeklyQuest]:
     existing = session.exec(
         select(WeeklyQuest).where(WeeklyQuest.user_id == user.id, WeeklyQuest.week_key == wk)
@@ -85,13 +98,21 @@ def ensure_weekly_quests(
         session.add(q)
         quests.append(q)
 
-    session.commit()
-    for q in quests:
-        session.refresh(q)
+    if autocommit:
+        session.commit()
+        for q in quests:
+            session.refresh(q)
+    else:
+        session.flush()
     return quests
 
 
-def apply_session_to_quests(*, session: Session, study_session: StudySession) -> None:
+def apply_session_to_quests(
+    *,
+    session: Session,
+    study_session: StudySession,
+    autocommit: bool = True,
+) -> None:
     """Update quest progress for a newly created session."""
     dk = study_session.date_key
 
@@ -125,12 +146,18 @@ def apply_session_to_quests(*, session: Session, study_session: StudySession) ->
             progress_minutes=int(study_session.minutes),
         )
         session.add(q)
-        session.commit()
+        if autocommit:
+            session.commit()
+        else:
+            session.flush()
     else:
         for q in qs:
             q.progress_minutes = int(q.progress_minutes) + int(study_session.minutes)
             session.add(q)
-        session.commit()
+        if autocommit:
+            session.commit()
+        else:
+            session.flush()
 
     # ---- weekly ----
     wk = week_key()
@@ -171,29 +198,49 @@ def apply_session_to_quests(*, session: Session, study_session: StudySession) ->
             progress_minutes=int(study_session.minutes),
         )
         session.add(wq)
-        session.commit()
+        if autocommit:
+            session.commit()
+        else:
+            session.flush()
         return
 
     for q in wqs:
         q.progress_minutes = int(q.progress_minutes) + int(study_session.minutes)
         session.add(q)
-    session.commit()
+    if autocommit:
+        session.commit()
+    else:
+        session.flush()
 
 
 def recompute_daily_quests_for_day(
-    *, session: Session, user: User, dk: str, goals: dict[str, int]
+    *,
+    session: Session,
+    user: User,
+    dk: str,
+    goals: dict[str, int],
+    autocommit: bool = True,
 ) -> None:
     """Rebuild quest progress for a day from (non-deleted) sessions.
 
     Used after editing/deleting a session so progress stays consistent.
     """
-    quests = ensure_daily_quests(session=session, user=user, dk=dk, goals=goals)
+    quests = ensure_daily_quests(
+        session=session,
+        user=user,
+        dk=dk,
+        goals=goals,
+        autocommit=autocommit,
+    )
 
     # Reset progress
     for q in quests:
         q.progress_minutes = 0
         session.add(q)
-    session.commit()
+    if autocommit:
+        session.commit()
+    else:
+        session.flush()
 
     # Sum minutes by subject for that day
     rows = session.exec(
@@ -238,19 +285,36 @@ def recompute_daily_quests_for_day(
         )
         session.add(q)
 
-    session.commit()
+    if autocommit:
+        session.commit()
+    else:
+        session.flush()
 
 
 def recompute_weekly_quests_for_week(
-    *, session: Session, user: User, wk: str, goals: dict[str, int]
+    *,
+    session: Session,
+    user: User,
+    wk: str,
+    goals: dict[str, int],
+    autocommit: bool = True,
 ) -> None:
     """Rebuild weekly quest progress for a week from (non-deleted) sessions."""
-    quests = ensure_weekly_quests(session=session, user=user, wk=wk, goals=goals)
+    quests = ensure_weekly_quests(
+        session=session,
+        user=user,
+        wk=wk,
+        goals=goals,
+        autocommit=autocommit,
+    )
 
     for q in quests:
         q.progress_minutes = 0
         session.add(q)
-    session.commit()
+    if autocommit:
+        session.commit()
+    else:
+        session.flush()
 
     # Week is [wk, wk+6]
     end_key = None
@@ -304,4 +368,7 @@ def recompute_weekly_quests_for_week(
         )
         session.add(wq)
 
-    session.commit()
+    if autocommit:
+        session.commit()
+    else:
+        session.flush()

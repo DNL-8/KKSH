@@ -66,60 +66,67 @@ def create_session(
     # date_key is set by frontend via "date" for edits; for creates we keep current date.
     dk = date_key(now_local())
 
-    settings = get_or_create_user_settings(user, session)
-    xp, gold = compute_session_rewards(settings, minutes=int(payload.minutes))
+    try:
+        settings = get_or_create_user_settings(user, session, autocommit=False)
+        xp, gold = compute_session_rewards(settings, minutes=int(payload.minutes))
 
-    s = StudySession(
-        user_id=user.id,
-        subject=payload.subject,
-        minutes=int(payload.minutes),
-        mode=payload.mode,
-        notes=payload.notes,
-        date_key=dk,
-        xp_earned=xp,
-        gold_earned=gold,
-    )
-    session.add(s)
-    session.commit()
-    session.refresh(s)
+        s = StudySession(
+            user_id=user.id,
+            subject=payload.subject,
+            minutes=int(payload.minutes),
+            mode=payload.mode,
+            notes=payload.notes,
+            date_key=dk,
+            xp_earned=xp,
+            gold_earned=gold,
+        )
+        session.add(s)
+        session.flush()
 
-    log_event(
-        session,
-        request,
-        "session.created",
-        user=user,
-        metadata={
-            "id": s.id,
-            "subject": s.subject,
-            "minutes": int(s.minutes),
-            "mode": s.mode,
-            "date": s.date_key,
-        },
-    )
+        log_event(
+            session,
+            request,
+            "session.created",
+            user=user,
+            metadata={
+                "id": s.id,
+                "subject": s.subject,
+                "minutes": int(s.minutes),
+                "mode": s.mode,
+                "date": s.date_key,
+            },
+            commit=False,
+        )
 
-    # update progression
-    apply_xp_gold(session, user, xp_delta=xp, gold_delta=gold)
+        # update progression
+        apply_xp_gold(session, user, xp_delta=xp, gold_delta=gold, autocommit=False)
 
-    plan = get_or_create_study_plan(user, session)
-    goals = parse_goals(plan.goals_json)
-    ensure_daily_quests(session=session, user=user, dk=dk, goals=goals)
-    apply_session_to_quests(session=session, study_session=s)
+        plan = get_or_create_study_plan(user, session, autocommit=False)
+        goals = parse_goals(plan.goals_json)
+        ensure_daily_quests(session=session, user=user, dk=dk, goals=goals, autocommit=False)
+        apply_session_to_quests(session=session, study_session=s, autocommit=False)
 
-    enqueue_event(
-        background,
-        session,
-        user.id,
-        "session.created",
-        {
-            "id": s.id,
-            "subject": s.subject,
-            "minutes": int(s.minutes),
-            "mode": s.mode,
-            "date": s.date_key,
-            "xpEarned": int(xp),
-            "goldEarned": int(gold),
-        },
-    )
+        enqueue_event(
+            background,
+            session,
+            user.id,
+            "session.created",
+            {
+                "id": s.id,
+                "subject": s.subject,
+                "minutes": int(s.minutes),
+                "mode": s.mode,
+                "date": s.date_key,
+                "xpEarned": int(xp),
+                "goldEarned": int(gold),
+            },
+            commit=False,
+        )
+
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
     return {"ok": True, "xpEarned": xp, "goldEarned": gold}
 
@@ -190,72 +197,105 @@ def update_session(
     old_xp = int(row.xp_earned or 0)
     old_gold = int(row.gold_earned or 0)
 
-    if payload.subject is not None:
-        row.subject = payload.subject
-    if payload.minutes is not None:
-        row.minutes = int(payload.minutes)
-    if payload.mode is not None:
-        row.mode = payload.mode
-    if payload.notes is not None:
-        row.notes = payload.notes
-    if payload.date is not None:
-        row.date_key = payload.date
+    try:
+        if payload.subject is not None:
+            row.subject = payload.subject
+        if payload.minutes is not None:
+            row.minutes = int(payload.minutes)
+        if payload.mode is not None:
+            row.mode = payload.mode
+        if payload.notes is not None:
+            row.notes = payload.notes
+        if payload.date is not None:
+            row.date_key = payload.date
 
-    session.add(row)
-    session.commit()
+        session.add(row)
+        session.flush()
 
-    # progression re-calc (only minutes affect rewards today)
-    settings = get_or_create_user_settings(user, session)
-    new_xp, new_gold = compute_session_rewards(settings, minutes=int(row.minutes))
-    row.xp_earned = new_xp
-    row.gold_earned = new_gold
-    session.add(row)
-    session.commit()
+        # progression re-calc (only minutes affect rewards today)
+        settings = get_or_create_user_settings(user, session, autocommit=False)
+        new_xp, new_gold = compute_session_rewards(settings, minutes=int(row.minutes))
+        row.xp_earned = new_xp
+        row.gold_earned = new_gold
+        session.add(row)
 
-    apply_xp_gold(session, user, xp_delta=(new_xp - old_xp), gold_delta=(new_gold - old_gold))
+        apply_xp_gold(
+            session,
+            user,
+            xp_delta=(new_xp - old_xp),
+            gold_delta=(new_gold - old_gold),
+            autocommit=False,
+        )
 
-    # recompute quest progress for affected days
-    plan = get_or_create_study_plan(user, session)
-    goals = parse_goals(plan.goals_json)
-    recompute_daily_quests_for_day(session=session, user=user, dk=old_dk, goals=goals)
-    recompute_weekly_quests_for_week(
-        session=session, user=user, wk=_week_key_from_date_key(old_dk), goals=goals
-    )
-    if row.date_key != old_dk:
-        recompute_daily_quests_for_day(session=session, user=user, dk=row.date_key, goals=goals)
-    # Recompute weekly for the week containing the (possibly updated) session date.
-    recompute_weekly_quests_for_week(
-        session=session, user=user, wk=_week_key_from_date_key(row.date_key), goals=goals
-    )
-    enqueue_event(
-        background,
-        session,
-        user.id,
-        "session.updated",
-        {
-            "id": row.id,
-            "subject": row.subject,
-            "minutes": int(row.minutes),
-            "mode": row.mode,
-            "date": row.date_key,
-            "xpEarned": int(row.xp_earned or 0),
-            "goldEarned": int(row.gold_earned or 0),
-        },
-    )
+        # recompute quest progress for affected days
+        plan = get_or_create_study_plan(user, session, autocommit=False)
+        goals = parse_goals(plan.goals_json)
+        recompute_daily_quests_for_day(
+            session=session,
+            user=user,
+            dk=old_dk,
+            goals=goals,
+            autocommit=False,
+        )
+        recompute_weekly_quests_for_week(
+            session=session,
+            user=user,
+            wk=_week_key_from_date_key(old_dk),
+            goals=goals,
+            autocommit=False,
+        )
+        if row.date_key != old_dk:
+            recompute_daily_quests_for_day(
+                session=session,
+                user=user,
+                dk=row.date_key,
+                goals=goals,
+                autocommit=False,
+            )
+        # Recompute weekly for the week containing the (possibly updated) session date.
+        recompute_weekly_quests_for_week(
+            session=session,
+            user=user,
+            wk=_week_key_from_date_key(row.date_key),
+            goals=goals,
+            autocommit=False,
+        )
+        enqueue_event(
+            background,
+            session,
+            user.id,
+            "session.updated",
+            {
+                "id": row.id,
+                "subject": row.subject,
+                "minutes": int(row.minutes),
+                "mode": row.mode,
+                "date": row.date_key,
+                "xpEarned": int(row.xp_earned or 0),
+                "goldEarned": int(row.gold_earned or 0),
+            },
+            commit=False,
+        )
 
-    log_event(
-        session,
-        request,
-        "session.updated",
-        user=user,
-        metadata={
-            "id": row.id,
-            "subject": row.subject,
-            "minutes": int(row.minutes),
-            "mode": row.mode,
-            "date": row.date_key,
-        },
-    )
+        log_event(
+            session,
+            request,
+            "session.updated",
+            user=user,
+            metadata={
+                "id": row.id,
+                "subject": row.subject,
+                "minutes": int(row.minutes),
+                "mode": row.mode,
+                "date": row.date_key,
+            },
+            commit=False,
+        )
+
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
     return None
 
@@ -268,48 +308,69 @@ def delete_session(
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    # progression rollback
-    apply_xp_gold(
-        session, user, xp_delta=-int(row.xp_earned or 0), gold_delta=-int(row.gold_earned or 0)
-    )
+    try:
+        # progression rollback
+        apply_xp_gold(
+            session,
+            user,
+            xp_delta=-int(row.xp_earned or 0),
+            gold_delta=-int(row.gold_earned or 0),
+            autocommit=False,
+        )
 
-    row.deleted_at = datetime.now(timezone.utc)
-    session.add(row)
-    session.commit()
+        row.deleted_at = datetime.now(timezone.utc)
+        session.add(row)
 
-    plan = get_or_create_study_plan(user, session)
-    goals = parse_goals(plan.goals_json)
-    recompute_daily_quests_for_day(session=session, user=user, dk=row.date_key, goals=goals)
-    recompute_weekly_quests_for_week(
-        session=session, user=user, wk=_week_key_from_date_key(row.date_key), goals=goals
-    )
+        plan = get_or_create_study_plan(user, session, autocommit=False)
+        goals = parse_goals(plan.goals_json)
+        recompute_daily_quests_for_day(
+            session=session,
+            user=user,
+            dk=row.date_key,
+            goals=goals,
+            autocommit=False,
+        )
+        recompute_weekly_quests_for_week(
+            session=session,
+            user=user,
+            wk=_week_key_from_date_key(row.date_key),
+            goals=goals,
+            autocommit=False,
+        )
 
-    enqueue_event(
-        background,
-        session,
-        user.id,
-        "session.deleted",
-        {
-            "id": row.id,
-            "subject": row.subject,
-            "minutes": int(row.minutes),
-            "mode": row.mode,
-            "date": row.date_key,
-        },
-    )
+        enqueue_event(
+            background,
+            session,
+            user.id,
+            "session.deleted",
+            {
+                "id": row.id,
+                "subject": row.subject,
+                "minutes": int(row.minutes),
+                "mode": row.mode,
+                "date": row.date_key,
+            },
+            commit=False,
+        )
 
-    log_event(
-        session,
-        request,
-        "session.deleted",
-        user=user,
-        metadata={
-            "id": row.id,
-            "subject": row.subject,
-            "minutes": int(row.minutes),
-            "mode": row.mode,
-            "date": row.date_key,
-        },
-    )
+        log_event(
+            session,
+            request,
+            "session.deleted",
+            user=user,
+            metadata={
+                "id": row.id,
+                "subject": row.subject,
+                "minutes": int(row.minutes),
+                "mode": row.mode,
+                "date": row.date_key,
+            },
+            commit=False,
+        )
+
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
     return None

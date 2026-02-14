@@ -68,6 +68,25 @@ test("sidebar desktop alterna entre expandido e icones com persistencia", async 
   await expect(page.getByTestId("sidebar-config-card")).toHaveCount(0);
 });
 
+test("menu mobile abre, navega e fecha por overlay", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/hub");
+
+  const openMenu = page.getByTestId("mobile-menu-open");
+  await expect(openMenu).toBeVisible();
+
+  await openMenu.click();
+  await expect(page.getByTestId("mobile-menu-drawer")).toBeVisible();
+  await page.getByRole("link", { name: /arena de exterminio/i }).click();
+  await expect(page).toHaveURL(/\/combate$/);
+  await expect(page.getByTestId("mobile-menu-drawer")).toHaveCount(0);
+
+  await page.getByTestId("mobile-menu-open").click();
+  await expect(page.getByTestId("mobile-menu-drawer")).toBeVisible();
+  await page.mouse.click(370, 120);
+  await expect(page.getByTestId("mobile-menu-drawer")).toHaveCount(0);
+});
+
 test("modulo IA envia mensagem para /api/v1/ai/hunter", async ({ page }) => {
   let endpointCalled = false;
 
@@ -93,7 +112,7 @@ test("modulo IA envia mensagem para /api/v1/ai/hunter", async ({ page }) => {
   await input.fill("Completar missao SQL");
   await input.press("Enter");
 
-  await expect(page.getByText("CAÇADOR: Completar missao SQL")).toBeVisible();
+  await expect(page.getByText(/CA(?:C|[^\x00-\x7F])ADOR: Completar missao SQL/i)).toBeVisible();
   await expect(page.getByText("Hunter, mensagem recebida: Completar missao SQL")).toBeVisible();
   await expect(page.getByText("[STATUS] Sincronizacao estavel.")).toBeVisible();
   expect(endpointCalled).toBeTruthy();
@@ -118,7 +137,7 @@ test("topo exibe painel de comando com nivel e status/rank", async ({ page }) =>
   }
 });
 
-test("topo responsivo mantém status/rank visível em telas menores", async ({ page }) => {
+test("topo responsivo mantem status/rank visivel em telas menores", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/hub");
 

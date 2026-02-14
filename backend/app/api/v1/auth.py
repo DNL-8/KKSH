@@ -134,6 +134,10 @@ def refresh_token(request: Request, response: Response, session: Session = Depen
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token")
         user_id = payload.get("sub")
+        # Backward compatible: legacy refresh tokens may not have jti.
+        token_jti = payload.get("jti")
+        if token_jti is not None and (not isinstance(token_jti, str) or not token_jti.strip()):
+            raise HTTPException(status_code=401, detail="Invalid token")
     except (InvalidTokenError, HTTPException) as err:
         raise HTTPException(status_code=401, detail="Invalid token") from err
 

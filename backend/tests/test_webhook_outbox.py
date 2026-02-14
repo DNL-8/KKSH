@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from sqlmodel import select
 
 from app.core.config import settings
@@ -268,3 +269,28 @@ def test_webhook_worker_marks_dead_when_webhook_becomes_inactive(client, csrf_he
         rows = _outbox_rows_for_webhook(webhook["id"])
         assert rows[0].status == OUTBOX_STATUS_DEAD
         assert rows[0].last_error == "webhook_unavailable"
+
+
+def test_webhook_worker_run_forever_recovers_from_transient_error(monkeypatch):
+    calls = {"count": 0}
+    sleep_calls: list[float] = []
+
+    def _fake_process_once(worker_id: str):
+        _ = worker_id
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise RuntimeError("transient_worker_error")
+        raise KeyboardInterrupt()
+
+    def _fake_sleep(seconds: float):
+        sleep_calls.append(float(seconds))
+
+    monkeypatch.setattr(worker_module, "process_once", _fake_process_once)
+    monkeypatch.setattr(worker_module.time, "sleep", _fake_sleep)
+
+    with _override_settings(webhook_worker_poll_interval_ms=1000):
+        with pytest.raises(KeyboardInterrupt):
+            worker_module.run_forever("worker-loop-test")
+
+    assert calls["count"] == 2
+    assert sleep_calls == [1.0]
