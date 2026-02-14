@@ -2,14 +2,15 @@ import asyncio
 import json
 import os
 import random
+import re
+import time
 from typing import Any, List, Dict
 import google.generativeai as genai
 import sys
 from pathlib import Path
 
 # Add backend to sys.path to allow imports from app
-# backend/scripts/generate.py -> parent=scripts -> parent.parent=backend
-backend_dir = Path(__file__).resolve().parent.parent
+backend_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(backend_dir))
 
 from app.core.config import settings
@@ -27,10 +28,53 @@ SUBJECTS = [
 ]
 
 RANKS = ["F", "E", "D", "C", "B", "A", "S"]
-MISSIONS_PER_RANK_PER_SUBJECT = 14  # ~100 total per subject (14 * 7 = 98) + 2 extra?
+# MISSIONS_PER_RANK_PER_SUBJECT = 14  # ~100 total per subject (14 * 7 = 98) + 2 extra?
 # Let's do 15 to be safe (105 total) -> trim later.
 
 OUTPUT_FILE = "missions_pool.json"
+
+async def generate_batch_with_retry(model, prompt, subject, rank, max_retries=5) -> List[Dict[str, Any]]:
+    base_delay = 20  # Start with 20s delay if hit
+    
+    for attempt in range(max_retries):
+        try:
+            response = await model.generate_content_async(prompt)
+            text = response.text
+            # Clean markdown if present
+            if text.startswith("```json"):
+                text = text[7:]
+            if text.endswith("```"):
+                text = text[:-3]
+            
+            data = json.loads(text)
+            if isinstance(data, list):
+                # Enforce fields
+                valid = []
+                for item in data:
+                    item["subject"] = subject
+                    item["rank"] = rank
+                    valid.append(item)
+                return valid
+            return []
+            
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "quota" in err_str.lower():
+                # Try to extract duration
+                # "Please retry in 43.419686187s."
+                wait_time = base_delay * (attempt + 1)
+                match = re.search(r"retry in (\d+(\.\d+)?)s", err_str)
+                if match:
+                    wait_time = float(match.group(1)) + 2 # Add buffer
+                
+                print(f"\n[429] Limit hit for {subject} {rank}. Waiting {wait_time:.1f}s (Attempt {attempt+1}/{max_retries})...")
+                await asyncio.sleep(wait_time)
+            else:
+                print(f"Erro gerando {subject} [{rank}]: {e}")
+                return []
+    
+    print(f"FAILED {subject} {rank} after {max_retries} retries.")
+    return []
 
 async def generate_batch(subject: str, rank: str, count: int) -> List[Dict[str, Any]]:
     # Use model from settings or fallback
@@ -52,28 +96,7 @@ async def generate_batch(subject: str, rank: str, count: int) -> List[Dict[str, 
         "Idioma: PT-BR."
     )
     
-    try:
-        response = await model.generate_content_async(prompt)
-        text = response.text
-        # Clean markdown if present
-        if text.startswith("```json"):
-            text = text[7:]
-        if text.endswith("```"):
-            text = text[:-3]
-        
-        data = json.loads(text)
-        if isinstance(data, list):
-            # Enforce fields
-            valid = []
-            for item in data:
-                item["subject"] = subject
-                item["rank"] = rank
-                valid.append(item)
-            return valid
-        return []
-    except Exception as e:
-        print(f"Erro gerando {subject} [{rank}]: {e}")
-        return []
+    return await generate_batch_with_retry(model, prompt, subject, rank)
 
 async def main():
     all_missions = {} # {subject: [missions]}
@@ -93,7 +116,8 @@ async def main():
                 batch = await generate_batch(subject, rank, 5)
                 rank_missions.extend(batch)
                 print(".", end="", flush=True)
-                await asyncio.sleep(1) # Rate limit courtesy
+                # Rate limit safety: 5 RPM = 1 req / 12s. Validating with 15s to be safe.
+                await asyncio.sleep(15) 
             
             print(f" {len(rank_missions)} ok")
             all_missions[subject].extend(rank_missions)
