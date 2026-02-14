@@ -1,3 +1,5 @@
+import type { HunterRank } from "../lib/rank";
+
 export type GlobalActionType = "attack";
 
 export interface AuthUser {
@@ -12,7 +14,7 @@ export interface GlobalStats {
   xp: number;
   maxXp: number;
   level: number;
-  rank: string;
+  rank: HunterRank;
   gold: number;
   streak: number;
 }

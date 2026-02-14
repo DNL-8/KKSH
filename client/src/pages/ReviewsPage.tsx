@@ -1,7 +1,9 @@
-import { Clock, Layers, Target } from "lucide-react";
+import { ChevronRight, Clock, Target, Trophy } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Badge, DetailedQuest } from "../components/common";
-import { assetPaths } from "../lib/assets";
+import { EXCEL_MODULES, type ExcelModule } from "../lib/excel_modules";
 
 const RAID_HISTORY = Array.from({ length: 60 }, (_, index) => ({
   day: index,
@@ -10,97 +12,115 @@ const RAID_HISTORY = Array.from({ length: 60 }, (_, index) => ({
 }));
 
 export function ReviewsPage() {
+  const navigate = useNavigate();
+  const [selectedModule, setSelectedModule] = useState<ExcelModule>(EXCEL_MODULES[0]);
+
+  const handleStartRaid = () => {
+    // Navigate to combat with selected module boss
+    // For now we just go to combat, but we'll need to pass state or use context
+    // Ideally we pass the boss ID or module ID via URL state or query param
+    navigate("/combate", { state: { moduleId: selectedModule.id } });
+  };
+
   return (
     <div className="animate-in fade-in space-y-10 duration-700">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-8">
-          <div className="group relative overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b] p-10 shadow-2xl transition-all duration-700 hover:border-orange-500/40">
-            <div className="absolute right-0 top-0 h-full w-1/2 opacity-10 transition-opacity group-hover:opacity-40">
-              <img src={assetPaths.dungeonSqlCastle} alt="dungeon" className="h-full w-full object-cover grayscale" />
-            </div>
-            <div className="relative z-10 flex flex-col items-center justify-between gap-10 md:flex-row">
+
+          {/* Module Selector / Featured Raid */}
+          <div className="group relative overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b] p-10 shadow-2xl transition-all duration-700 hover:border-slate-700">
+            <div className={`absolute inset-0 bg-gradient-to-br from-black via-black to-${selectedModule.color.split('-')[1]}-900/20 opacity-50`} />
+
+            <div className="relative z-10 flex flex-col justify-between gap-10 md:flex-row">
               <div className="flex-1 space-y-6">
-                <Badge color="border-orange-500/20 bg-orange-500/10 text-orange-500" icon={Layers}>
-                  Portal de Classe D
-                </Badge>
-                <h2 className="text-5xl font-black uppercase italic leading-none tracking-tighter text-white">
-                  Castelo SQL
+                <div className="flex flex-wrap gap-2">
+                  <Badge color={`border-${selectedModule.color.split('-')[1]}-500/20 bg-${selectedModule.color.split('-')[1]}-500/10 ${selectedModule.color}`} icon={selectedModule.icon}>
+                    Módulo {selectedModule.difficulty}
+                  </Badge>
+                </div>
+
+                <h2 className="text-4xl font-black uppercase italic leading-none tracking-tighter text-white md:text-5xl">
+                  {selectedModule.title}
                 </h2>
+
                 <p className="max-w-md text-sm font-medium leading-relaxed text-slate-400">
-                  Domine os segredos das queries relacionais e otimização de índices. Limpe a masmorra para ganhar XP
-                  de inteligência pura.
+                  {selectedModule.description}
                 </p>
-                <div className="flex gap-10 border-t border-slate-800/50 pt-4">
+
+                <div className="flex gap-8 border-t border-slate-800/50 pt-6">
                   <div className="flex flex-col">
-                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Mulas/Cards</span>
-                    <span className="text-2xl font-black text-white">42</span>
+                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Boss</span>
+                    <span className="text-lg font-black text-white">{selectedModule.boss.name}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Dificuldade</span>
-                    <span className="text-2xl font-black uppercase italic text-orange-500">Baixa</span>
+                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Rank</span>
+                    <span className="text-lg font-black uppercase italic text-red-500">{selectedModule.boss.rank}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Loot</span>
-                    <span className="text-2xl font-black text-yellow-500">350 XP</span>
+                    <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">HP</span>
+                    <span className="text-lg font-black text-white">{selectedModule.boss.hp}</span>
                   </div>
                 </div>
               </div>
-              <button
-                className="flex w-full items-center gap-3 rounded-3xl bg-orange-600 px-12 py-6 text-xs font-black uppercase tracking-[0.3em] text-white shadow-2xl shadow-orange-900/40 transition-all hover:bg-orange-500 active:scale-95 md:w-auto"
-                type="button"
-              >
-                <Target size={18} /> Iniciar Incursão
-              </button>
+
+              <div className="flex flex-col justify-end gap-4">
+                <button
+                  onClick={handleStartRaid}
+                  className="flex w-full items-center justify-center gap-3 rounded-3xl bg-white px-10 py-5 text-xs font-black uppercase tracking-[0.3em] text-black shadow-2xl transition-all hover:bg-slate-200 active:scale-95 whitespace-nowrap"
+                  type="button"
+                >
+                  <Target size={18} /> Enfrentar Boss
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[40px] border border-slate-800 bg-[#0a0a0b]/60 p-10 shadow-xl">
-            <div className="mb-10 flex items-center justify-between">
-              <h3 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
-                <Clock size={16} className="text-orange-500" /> Histórico de Sincronia Neural
-              </h3>
-              <div className="flex items-center gap-4">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4].map((value) => (
-                    <div key={value} className="h-3 w-3 rounded-sm bg-orange-500" style={{ opacity: value * 0.25 }} />
-                  ))}
-                </div>
-                <span className="text-[9px] font-black uppercase text-slate-600">Intensidade</span>
-              </div>
-            </div>
-            <div className="grid grid-flow-col grid-rows-7 gap-2">
-              {RAID_HISTORY.map((day) => (
-                <div
-                  key={day.day}
-                  className={`h-4 w-4 cursor-help rounded-[4px] border border-transparent transition-all hover:scale-150 hover:border-orange-400 ${
-                    !day.active
-                      ? "bg-slate-900"
-                      : day.intensity === 1
-                        ? "bg-orange-900/40"
-                        : day.intensity === 2
-                          ? "bg-orange-700/70"
-                          : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"
+          {/* Modules List */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {EXCEL_MODULES.map((mod) => (
+              <button
+                key={mod.id}
+                onClick={() => setSelectedModule(mod)}
+                className={`flex items-center gap-4 rounded-3xl border p-6 text-left transition-all ${selectedModule.id === mod.id
+                    ? `border-${mod.color.split('-')[1]}-500/50 bg-${mod.color.split('-')[1]}-500/5 shadow-2xl`
+                    : "border-slate-800 bg-[#0a0a0b]/60 hover:border-slate-700 hover:bg-[#0a0a0b]"
                   }`}
-                  title={`Dia ${day.day}: Nível ${day.intensity}`}
-                />
-              ))}
-            </div>
+              >
+                <div className={`rounded-xl p-3 ${selectedModule.id === mod.id ? `bg-${mod.color.split('-')[1]}-500/20 ${mod.color}` : "bg-slate-900 text-slate-600"}`}>
+                  <mod.icon size={24} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500">{mod.difficulty}</div>
+                  <div className={`font-black uppercase italic ${selectedModule.id === mod.id ? "text-white" : "text-slate-400"}`}>{mod.title}</div>
+                </div>
+                {selectedModule.id === mod.id && <ChevronRight className="ml-auto text-white" />}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="space-y-8 lg:col-span-4">
+          {/* Missions for Selected Module */}
           <div className="relative flex h-full flex-col overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b] p-8 shadow-2xl">
             <div className="absolute right-0 top-0 p-8 opacity-5">
-              <Target size={120} />
+              <Trophy size={120} />
             </div>
             <h3 className="mb-8 border-b border-slate-800 pb-4 text-sm font-black uppercase tracking-[0.2em] text-white">
-              Quests do Dia
+              Missões: {selectedModule.title}
             </h3>
             <div className="relative z-10 flex-1 space-y-5">
-              <DetailedQuest title="Responder 10 Revisões" xp="25" type="Mental" progress={6} total={10} color="bg-orange-500" />
-              <DetailedQuest title="Limpar Fila Crítica" xp="100" type="Sincronia" progress={1} total={1} completed />
-              <DetailedQuest title="Estudo de Caso Oracle" xp="50" type="Tática" progress={0} total={1} color="bg-cyan-500" />
-              <DetailedQuest title="Combo 20 Acertos" xp="40" type="Combate" progress={12} total={20} color="bg-red-500" />
+              {selectedModule.missions.map((mission) => (
+                <DetailedQuest
+                  key={mission.id}
+                  title={mission.title}
+                  xp={String(mission.xp)}
+                  type={mission.type}
+                  progress={mission.completed ? 1 : 0}
+                  total={1}
+                  color={selectedModule.color.replace('text-', 'bg-')} // Approximation for bg color
+                  completed={mission.completed}
+                />
+              ))}
             </div>
             <button
               className="mt-10 w-full rounded-2xl border border-slate-800 bg-slate-900 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-slate-700 hover:text-white"
@@ -108,6 +128,30 @@ export function ReviewsPage() {
             >
               Ver Todas as Missões
             </button>
+          </div>
+
+          <div className="rounded-[40px] border border-slate-800 bg-[#0a0a0b]/60 p-10 shadow-xl">
+            <div className="mb-10 flex items-center justify-between">
+              <h3 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
+                <Clock size={16} className="text-orange-500" /> Histórico
+              </h3>
+            </div>
+            <div className="grid grid-flow-col grid-rows-7 gap-2">
+              {RAID_HISTORY.map((day) => (
+                <div
+                  key={day.day}
+                  className={`h-4 w-4 cursor-help rounded-[4px] border border-transparent transition-all ${!day.active
+                      ? "bg-slate-900"
+                      : day.intensity === 1
+                        ? "bg-green-900/40"
+                        : day.intensity === 2
+                          ? "bg-green-700/70"
+                          : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                    }`}
+                  title={`Dia ${day.day}: Nível ${day.intensity}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

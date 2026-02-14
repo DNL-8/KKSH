@@ -14,7 +14,7 @@ const INITIAL_STATS: GlobalStats = {
     xp: 0,
     maxXp: 1000,
     level: 1,
-    rank: "Iniciado",
+    rank: "F",
     gold: 0,
     streak: 0,
 };

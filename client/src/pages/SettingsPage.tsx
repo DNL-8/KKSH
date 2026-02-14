@@ -467,7 +467,7 @@ export function SettingsPage() {
               </div>
               <div className="flex items-center gap-3 text-red-400">
                 <XCircle size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-wide">Rank → Iniciado</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide">Rank → F</span>
               </div>
             </div>
 
