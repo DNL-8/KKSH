@@ -1,20 +1,20 @@
 ﻿import {
   AlertTriangle,
   EyeOff,
-  Globe,
-  Lock,
-  Monitor,
   Palette,
   RefreshCw,
-  ShieldCheck,
   Skull,
-  Target,
   Zap,
   Bot,
   Key,
   Save,
+  CheckCircle2,
+  XCircle,
+  Cpu,
+  Activity,
+  Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { DetailedToggle, ThemeOption } from "../components/common";
@@ -52,6 +52,77 @@ function usePersistedState<T>(key: string, fallback: T): [T, React.Dispatch<Reac
   return [value, setPersisted];
 }
 
+/* ------------------------------------------------------------------ */
+/*  Component: Hold-to-Confirm Button                                 */
+/* ------------------------------------------------------------------ */
+
+interface HoldButtonProps {
+  onComplete: () => void;
+  label: string;
+  loading?: boolean;
+  disabled?: boolean;
+  className?: string;
+}
+
+function HoldButton({ onComplete, label, loading, disabled, className }: HoldButtonProps) {
+  const [holding, setHolding] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | number | null>(null);
+
+  const HOLD_DURATION = 2000; // 2 seconds
+
+  const startHold = () => {
+    if (disabled || loading) return;
+    setHolding(true);
+    timeoutRef.current = setTimeout(() => {
+      onComplete();
+      setHolding(false);
+    }, HOLD_DURATION);
+  };
+
+  const endHold = () => {
+    setHolding(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current as NodeJS.Timeout);
+      timeoutRef.current = null;
+    }
+  };
+
+  return (
+    <button
+      onMouseDown={startHold}
+      onMouseUp={endHold}
+      onMouseLeave={endHold}
+      onTouchStart={startHold}
+      onTouchEnd={endHold}
+      disabled={disabled || loading}
+      type="button"
+      className={`relative overflow-hidden ${className} select-none`}
+    >
+      <div
+        className={`absolute inset-0 bg-red-600 transition-transform duration-[2000ms] ease-linear origin-left ${holding ? 'scale-x-100' : 'scale-x-0'}`}
+        style={{ transitionProperty: 'transform' }}
+      />
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        {loading ? (
+          <>
+            <RefreshCw size={16} className="animate-spin" />
+            <span>PROCESSANDO...</span>
+          </>
+        ) : (
+          <>
+            {holding ? "SEGURE PARA CONFIRMAR..." : label}
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
+
+/* ------------------------------------------------------------------ */
+/*  Page: Settings                                                    */
+/* ------------------------------------------------------------------ */
+
 export function SettingsPage() {
   const { authUser, openAuthPanel, syncProgressionFromApi, navigateTo } = useOutletContext<AppShellContextValue>();
   const { themeId, setTheme } = useTheme();
@@ -62,8 +133,9 @@ export function SettingsPage() {
   const [glitchEffects, setGlitchEffects] = usePersistedState("cmd8_glitch", true);
 
   const [dangerBusy, setDangerBusy] = useState<"reset" | "logout" | null>(null);
-  const [dangerFeedback, setDangerFeedback] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
 
+  // AI Settings State
   const [aiSettings, setAiSettings] = useState({
     apiKey: "",
     personality: "standard",
@@ -71,6 +143,7 @@ export function SettingsPage() {
     saving: false,
   });
 
+  // Load user settings on mount
   useEffect(() => {
     if (!authUser) return;
     getMeState()
@@ -97,63 +170,62 @@ export function SettingsPage() {
         geminiApiKey: aiSettings.apiKey,
         agentPersonality: aiSettings.personality,
       });
-      // success toast or feedback? reusing dangerFeedback for now or add new state?
-      // actually let's use a local simple feedback
-      showToast("Configurações de IA salvas com sucesso.", "success");
+      showToast("Protocolos de IA atualizados com sucesso.", "success");
     } catch {
-      showToast("Erro ao salvar configurações.", "error");
+      showToast("Falha na sincronizacao dos protocolos de IA.", "error");
     } finally {
       setAiSettings((prev) => ({ ...prev, saving: false }));
     }
   }
 
-  const [confirmingReset, setConfirmingReset] = useState(false);
-
-  useEffect(() => {
-    if (confirmingReset) {
-      const timer = setTimeout(() => setConfirmingReset(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [confirmingReset]);
-
-  async function handleHardReset() {
+  async function executeHardReset() {
     if (dangerBusy) return;
 
     if (!authUser) {
-      setDangerFeedback({ type: "info", text: "Faca login para executar o hard reset." });
+      showToast("Autenticacao requerida para operacoes de nivel critico.", "error");
       openAuthPanel();
       return;
     }
 
-    if (!confirmingReset) {
-      setConfirmingReset(true);
-      return;
-    }
-
     setDangerBusy("reset");
-    setDangerFeedback(null);
-    setConfirmingReset(false);
-
     try {
+      // Force all scopes for a 'Hard Reset'
       const output = await resetMeState(["all"]);
       await syncProgressionFromApi();
 
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith("cmd8_") || key === "theme-preference")) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+      } catch (e) {
+        console.warn("Failed to clear local storage", e);
+      }
+
       const totalOps = Object.values(output.summary ?? {}).reduce((acc, value) => acc + Number(value || 0), 0);
-      setDangerFeedback({
-        type: "success",
-        text: `Hard reset concluido. Escopos: ${output.applied.join(", ")}. Total de operacoes: ${totalOps}.`,
-      });
+      showToast(`HARD RESET CONCLUIDO. ${totalOps} registros purgados. Sistema reiniciado.`, "success");
+      setResetModalOpen(false);
     } catch (error) {
+      let msg = "FALHA CRITICA NO RESET: Erro desconhecido.";
+
       if (error instanceof ApiRequestError) {
         if (error.status === 401) {
-          setDangerFeedback({ type: "error", text: "Sessao expirada. Faca login novamente." });
+          msg = "Sessao expirada via terminal neural.";
           openAuthPanel();
+        } else if (error.status === 429) {
+          msg = "RATE LIMIT: Muitas tentativas. Aguarde 1 minuto.";
         } else {
-          setDangerFeedback({ type: "error", text: error.message || "Falha ao executar hard reset." });
+          msg = `ERRO DE SERVIDOR (${error.status}): ${error.message || error.code}`;
         }
-      } else {
-        setDangerFeedback({ type: "error", text: "Falha ao executar hard reset." });
+      } else if (error instanceof Error) {
+        msg = `ERRO INTERNO: ${error.message}`;
       }
+
+      showToast(msg, "error");
     } finally {
       setDangerBusy(null);
     }
@@ -163,25 +235,17 @@ export function SettingsPage() {
     if (dangerBusy) return;
 
     if (!authUser) {
-      setDangerFeedback({ type: "info", text: "Voce ja esta desconectado." });
+      showToast("Nenhuma conexao neural ativa.", "info");
       return;
     }
 
     setDangerBusy("logout");
-    setDangerFeedback(null);
-
     try {
       await logout();
       await syncProgressionFromApi();
-      setDangerFeedback({ type: "success", text: "Ligacao neural encerrada com sucesso." });
-    } catch (error) {
-      // Even if API fails, we want to clear local state and redirect
-      if (error instanceof ApiRequestError) {
-        setDangerFeedback({ type: "error", text: error.message || "Falha ao sair do sistema." });
-      } else {
-        setDangerFeedback({ type: "error", text: "Falha ao sair do sistema." });
-      }
-      // Force sync to clear authUser if possible (api client handles 401)
+      showToast("Desconexao neural completa. Ate logo, Cacador.", "success");
+    } catch {
+      showToast("Erro ao encerrar link neural. Forcando desconexao local...", "error");
       await syncProgressionFromApi();
     } finally {
       setDangerBusy(null);
@@ -190,262 +254,243 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl animate-in fade-in space-y-10 pb-20 duration-500">
-      <section className="relative space-y-10 overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl backdrop-blur-xl">
-        <div className="absolute right-0 top-0 p-10 opacity-5">
-          <Palette size={150} />
-        </div>
-        <div className="flex items-center gap-6 border-b border-slate-800 pb-8">
-          <div className="rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] p-4 shadow-xl">
-            <Monitor size={32} className="text-[hsl(var(--accent))]" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Interface Neural (HUD)</h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Configuracao estetica do sistema</p>
-          </div>
-        </div>
+    <div className="mx-auto max-w-6xl animate-in fade-in space-y-12 pb-32 pt-8 duration-700">
 
-        <div className="space-y-10">
-          <div>
-            <label className="mb-6 block text-[11px] font-black uppercase tracking-[0.3em] text-slate-500">
-              Espectro Cromatico do Sistema
-            </label>
-            <div className="flex flex-wrap gap-8">
-              <ThemeOption color="bg-cyan-500" active={themeId === "cyan"} onClick={() => setTheme("cyan" as ThemeId)} label="Ciano" />
-              <ThemeOption color="bg-red-600" active={themeId === "red"} onClick={() => setTheme("red" as ThemeId)} label="Carmesim" />
-              <ThemeOption color="bg-purple-600" active={themeId === "purple"} onClick={() => setTheme("purple" as ThemeId)} label="Violeta" />
-              <ThemeOption color="bg-emerald-500" active={themeId === "emerald"} onClick={() => setTheme("emerald" as ThemeId)} label="Esmeralda" />
-              <ThemeOption color="bg-orange-500" active={themeId === "orange"} onClick={() => setTheme("orange" as ThemeId)} label="Ambar" />
-              <ThemeOption color="bg-[#00af00]" active={themeId === "matrix"} onClick={() => setTheme("matrix" as ThemeId)} label="Matrix" />
-              <ThemeOption color="bg-[#0b1c35] border-blue-500" active={themeId === "sololeveling"} onClick={() => setTheme("sololeveling" as ThemeId)} label="Solo Leveling" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 pt-4 md:grid-cols-2">
-            <DetailedToggle
-              label="Efeitos de Glitch"
-              desc="Simula instabilidade neural ao sofrer dano critico ou falha em missoes."
-              active={glitchEffects}
-              onClick={() => setGlitchEffects((value) => !value)}
-            />
-            <DetailedToggle label="Scanlines Dinamicos" desc="Aplica textura retro-tecnologica CRT em tempo real na interface." active />
-            <DetailedToggle label="HUD Flutuante" desc="Maximiza imersao ocultando barras estaticas em modo de combate." active />
-            <DetailedToggle label="Sincronia de Audio" desc="Efeitos sonoros espaciais de alta fidelidade para acoes de interface." active />
-          </div>
+      {/* Header Visual */}
+      <div className="relative mb-12 overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-r from-[#0a0a0b] to-[#111] p-8 md:p-12">
+        <div className="absolute -right-20 -top-20 opacity-10 blur-3xl">
+          <div className="h-96 w-96 rounded-full bg-[hsl(var(--accent))]" />
         </div>
-      </section>
-
-      <section className="relative rounded-[40px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
-        <div className="mb-10 flex items-center gap-6 border-b border-slate-800 pb-8">
-          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl">
-            <Bot size={32} className="text-blue-500" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Inteligencia Artificial</h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Configuracao do Agente Sintetico</p>
-          </div>
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black uppercase tracking-[0.2em] text-white md:text-6xl italic">
+            Config<span className="text-[hsl(var(--accent))]">.Sys</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
+            Painel de Controle Neural v4.2 // Acesso Root
+          </p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="space-y-4">
-            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-              Chave de Acesso (API Key Gemini)
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-600">
-                <Key size={16} />
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+
+        {/* Left Column: Visual & System Settings */}
+        <div className="space-y-12 lg:col-span-8">
+
+          {/* Visual Interface */}
+          <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-8 backdrop-blur-xl transition-all hover:border-[hsl(var(--accent)/0.3)]">
+            <div className="mb-8 flex items-center gap-4 border-b border-slate-800/50 pb-6">
+              <div className="rounded-xl bg-[hsl(var(--accent)/0.1)] p-3 text-[hsl(var(--accent))]">
+                <Palette size={24} />
               </div>
-              <input
-                type="password"
-                value={aiSettings.apiKey}
-                onChange={(e) => setAiSettings((prev) => ({ ...prev, apiKey: e.target.value }))}
-                placeholder="Insira sua chave Gemini..."
-                className="w-full rounded-2xl border border-slate-800 bg-[#050506] py-4 pl-12 pr-4 text-xs font-bold text-white placeholder-slate-700 outline-none transition-all focus:border-blue-500/50 focus:bg-blue-500/5"
-              />
+              <h2 className="text-xl font-bold uppercase tracking-widest text-white">Interface Neural</h2>
             </div>
-            <p className="text-[9px] font-medium text-slate-600">
-              Sua chave e usada apenas para gerar missoes e nao e compartilhada.
-            </p>
-          </div>
 
-          <div className="space-y-4">
-            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-              Personalidade do Agente
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { id: "standard", label: "Padrao", desc: "Equilibrado" },
-                { id: "hardcore", label: "Militar", desc: "Rigido & Disciplinado" },
-                { id: "zen", label: "Zen", desc: "Calmo & Filosofico" },
-                { id: "gamer", label: "Gamer", desc: "RPG & Grind" },
-              ].map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setAiSettings((prev) => ({ ...prev, personality: p.id }))}
-                  className={`flex flex-col gap-1 rounded-2xl border px-4 py-3 transition-all ${aiSettings.personality === p.id
-                    ? "border-blue-500 bg-blue-500/10 text-blue-400"
-                    : "border-slate-800 bg-[#050506] text-slate-500 hover:bg-slate-800/50"
-                    }`}
-                >
-                  <span className="text-[10px] font-black uppercase">{p.label}</span>
-                  <span className="text-[8px] font-bold opacity-60">{p.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+            <div className="space-y-8">
+              <div>
+                <label className="mb-4 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                  Sincronia Cromatica
+                </label>
+                <div className="flex flex-wrap gap-4">
+                  {/* Theme options customized */}
+                  <ThemeOption color="bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.4)]" active={themeId === "cyan"} onClick={() => setTheme("cyan" as ThemeId)} label="Neon Cyan" />
+                  <ThemeOption color="bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.4)]" active={themeId === "red"} onClick={() => setTheme("red" as ThemeId)} label="Red Alert" />
+                  <ThemeOption color="bg-purple-600 shadow-[0_0_20px_rgba(147,51,234,0.4)]" active={themeId === "purple"} onClick={() => setTheme("purple" as ThemeId)} label="Synthwave" />
+                  <ThemeOption color="bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]" active={themeId === "emerald"} onClick={() => setTheme("emerald" as ThemeId)} label="Matrix" />
+                  <ThemeOption color="bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.4)]" active={themeId === "orange"} onClick={() => setTheme("orange" as ThemeId)} label="Amber" />
+                  <ThemeOption color="bg-[#00af00] border border-green-400 shadow-[0_0_20px_rgba(0,175,0,0.6)]" active={themeId === "matrix"} onClick={() => setTheme("matrix" as ThemeId)} label="Code" />
+                  <ThemeOption color="bg-[#0b1c35] border border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]" active={themeId === "sololeveling"} onClick={() => setTheme("sololeveling" as ThemeId)} label="Monarch" />
+                </div>
+              </div>
 
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={() => void saveAiSettings()}
-            disabled={aiSettings.saving || aiSettings.loading}
-            type="button"
-            className="flex items-center gap-3 rounded-2xl bg-blue-600 px-8 py-4 text-xs font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50"
-          >
-            <Save size={16} />
-            {aiSettings.saving ? "Salvando..." : "Salvar Configuracoes"}
-          </button>
-        </div>
-      </section>
-
-      <section className="relative rounded-[40px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
-        <div className="mb-10 flex items-center gap-6 border-b border-slate-800 pb-8">
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 shadow-xl">
-            <ShieldCheck size={32} className="text-emerald-500" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Seguranca & Sigilo</h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Protecao do Hospedeiro #9284-AX</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <DetailedToggle
-            icon={EyeOff}
-            label="Modo Furtivo (Stealth)"
-            desc="Oculta o seu status e localizacao global de outros cacadores da rede."
-            active={stealthMode}
-            onClick={() => setStealthMode((value) => !value)}
-          />
-          <DetailedToggle icon={Lock} label="Firewall de Foco" desc="Bloqueia notificacoes e pedidos externos durante raids e dungeons." active />
-
-          <div className="group col-span-1 flex flex-col items-center justify-between gap-6 rounded-[32px] border border-slate-800 bg-[#050506] p-8 transition-all hover:border-emerald-500/30 md:col-span-2 md:flex-row">
-            <div className="flex items-center gap-5">
-              <Globe size={28} className="text-[hsl(var(--accent))]" />
-              <div className="space-y-1">
-                <div className="text-lg font-black uppercase tracking-widest text-white">Protocolo de Comunicacao</div>
-                <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Saida Atual: Portugues (Portugal) - V4.2</div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <DetailedToggle
+                  label="Glitch FX"
+                  desc="Artefatos visuais de instabilidade do sistema."
+                  active={glitchEffects}
+                  onClick={() => setGlitchEffects((v) => !v)}
+                  icon={Activity}
+                />
+                <DetailedToggle label="Modo Furtivo" desc="Oculta status online de outros caçadores." active={stealthMode} onClick={() => setStealthMode(v => !v)} icon={EyeOff} />
               </div>
             </div>
-            <button
-              className="rounded-2xl border border-slate-700 px-8 py-3 text-[10px] font-black uppercase text-slate-500 transition-all hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--accent))] active:scale-95"
-              type="button"
-            >
-              Alterar Link Linguistico
-            </button>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section className="rounded-[40px] border border-slate-800 bg-[#0a0a0b]/80 p-10">
-        <div className="mb-10 flex items-center gap-6 border-b border-slate-800 pb-8">
-          <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4 shadow-xl">
-            <Zap size={32} className="text-orange-500" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Nivel de Sincronia</h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Intensidade da progressao de carreira</p>
-          </div>
-        </div>
+          {/* AI Settings */}
+          <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-8 backdrop-blur-xl transition-all hover:border-blue-500/30">
+            <div className="mb-8 flex items-center gap-4 border-b border-slate-800/50 pb-6">
+              <div className="rounded-xl bg-blue-500/10 p-3 text-blue-500">
+                <Bot size={24} />
+              </div>
+              <h2 className="text-xl font-bold uppercase tracking-widest text-white">I.A. Assistente</h2>
+            </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {["Iniciado", "Cacador", "Monarca"].map((level) => {
-            const id = level.toLowerCase();
-            const active = difficulty === id;
-            return (
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <Key size={12} /> Chave API (Gemini)
+                </label>
+                <input
+                  type="password"
+                  value={aiSettings.apiKey}
+                  onChange={(e) => setAiSettings((prev) => ({ ...prev, apiKey: e.target.value }))}
+                  placeholder="Cole sua chave aqui..."
+                  className="w-full rounded-xl border border-slate-800 bg-[#050506] px-4 py-3 text-xs font-mono text-white placeholder-slate-700 outline-none transition-all focus:border-blue-500/50 focus:bg-blue-500/5 focus:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <Cpu size={12} /> Personalidade
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {["standard", "hardcore", "zen", "gamer"].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setAiSettings((prev) => ({ ...prev, personality: p }))}
+                      className={`rounded-lg border px-3 py-2 text-[10px] font-bold uppercase transition-all ${aiSettings.personality === p
+                        ? "border-blue-500 bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                        : "border-slate-800 bg-[#050506] text-slate-600 hover:border-slate-600"
+                        }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end">
               <button
-                key={level}
-                onClick={() => setDifficulty(id)}
-                className={`relative flex flex-col items-center gap-4 overflow-hidden rounded-[32px] border-2 p-10 transition-all ${active
-                  ? "scale-105 border-orange-500 bg-orange-500/5 shadow-[0_20px_50px_rgba(249,115,22,0.2)]"
-                  : "border-slate-800 bg-[#050506] opacity-60 hover:opacity-100"
-                  }`}
+                onClick={() => void saveAiSettings()}
+                disabled={aiSettings.saving || aiSettings.loading}
+                className="flex items-center gap-2 rounded-xl bg-blue-600/10 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-blue-500 border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] active:scale-95 disabled:opacity-50"
                 type="button"
               >
-                {active && <div className="absolute right-0 top-0 h-20 w-20 rounded-full bg-orange-500 opacity-10 blur-3xl" />}
-                <div
-                  className={`rounded-full p-4 ${active
-                    ? "bg-orange-500 text-black shadow-[0_0_20px_#f97316]"
-                    : "bg-slate-800 text-slate-500 group-hover:text-slate-300"
-                    }`}
-                >
-                  {level === "Iniciado" ? <Zap size={20} /> : level === "Cacador" ? <Target size={20} /> : <Skull size={20} />}
-                </div>
-                <span className={`text-sm font-black uppercase tracking-[0.3em] ${active ? "text-orange-400" : "text-slate-500"}`}>
-                  {level}
-                </span>
-                <p className="mt-2 text-center text-[9px] font-black uppercase leading-tight tracking-tighter text-slate-600">
-                  {level === "Monarca" ? "Recompensas x2 | Erro = Penalidade HP" : "Progressao Equilibrada"}
-                </p>
+                {aiSettings.saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                {aiSettings.saving ? "Sincronizando..." : "Salvar Configuração"}
               </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="rounded-[40px] border border-red-900/20 bg-red-950/5 p-10">
-        <div className="mb-8 flex items-center gap-6">
-          <div className="animate-pulse rounded-2xl bg-red-600 p-3 text-black shadow-[0_0_30px_rgba(220,38,38,0.5)]">
-            <AlertTriangle size={32} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-red-500">ZONA DE PERIGO CRITICO</h2>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-red-500/60">Acesso Restrito ao Operador #9284-AX</p>
-          </div>
-        </div>
-
-        <p className="mb-10 max-w-2xl text-xs font-medium leading-relaxed tracking-wide text-red-400 opacity-80">
-          As acoes abaixo resultam na destruicao irreversivel de todos os logs de sincronia, progresso de atributos e
-          conquistas. Confirmacao neural de Rank S requerida antes de prosseguir.
-        </p>
-
-        <div className="space-y-4">
-          <button
-            className="group w-full rounded-[24px] border-2 border-red-900/40 py-6 text-[11px] font-black uppercase tracking-[0.4em] text-red-500 shadow-xl transition-all hover:bg-red-600 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => void handleHardReset()}
-            disabled={dangerBusy !== null}
-            type="button"
-          >
-            <span className="flex items-center justify-center gap-3">
-              <RefreshCw size={16} className={`transition-transform duration-1000 ${dangerBusy === "reset" ? "animate-spin" : "group-hover:rotate-180"}`} />
-              {dangerBusy === "reset" ? "Executando Hard Reset..." : confirmingReset ? "TEM CERTEZA? CLIQUE NOVAMENTE" : "Reinicializar Evolucao Completa (Hard Reset)"}
-            </span>
-          </button>
-
-          <button
-            className="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-700 transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => void handleSystemLogout()}
-            disabled={dangerBusy !== null}
-            type="button"
-          >
-            {dangerBusy === "logout" ? "Encerrando ligacao..." : "Terminar Ligacao Neural (Sair do Sistema)"}
-          </button>
-
-          {dangerFeedback && (
-            <div
-              className={`rounded-xl border p-3 text-xs font-semibold ${dangerFeedback.type === "success"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                : dangerFeedback.type === "info"
-                  ? "border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))]"
-                  : "border-red-500/30 bg-red-500/10 text-red-300"
-                }`}
-            >
-              {dangerFeedback.text}
             </div>
-          )}
+          </section>
+
         </div>
-      </section>
-    </div >
+
+        {/* Right Column: Difficulty & Danger Zone */}
+        <div className="space-y-12 lg:col-span-4">
+
+          {/* Difficulty Selection */}
+          <section className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-8">
+            <div className="mb-6 flex items-center gap-4">
+              <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Zap size={24} /></div>
+              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
+            </div>
+
+            <div className="space-y-4">
+              {["Iniciado", "Cacador", "Monarca"].map((level) => {
+                const id = level.toLowerCase();
+                const isActive = difficulty === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setDifficulty(id)}
+                    className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all ${isActive
+                      ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                      : "border-slate-800 bg-[#050506] hover:border-slate-700"
+                      }`}
+                    type="button"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-black uppercase tracking-widest ${isActive ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300"}`}>{level}</span>
+                      {isActive && <CheckCircle2 size={16} className="text-orange-500" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* DANGER ZONE */}
+          <section className="relative overflow-hidden rounded-[32px] border border-red-900/40 bg-[#0f0505] p-8 before:absolute before:inset-0 before:bg-[url('/noise.png')] before:opacity-5">
+            <div className="relative z-10">
+              <div className="mb-6 flex items-center gap-4 text-red-500">
+                <AlertTriangle size={24} className="animate-pulse" />
+                <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
+              </div>
+
+              <p className="mb-8 text-[10px] font-medium leading-relaxed text-red-500/60">
+                Ações nesta zona são irreversíveis. O protocolo de 'Hard Reset' resultará na perda total de XP, Itens e Conquistas.
+              </p>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => setResetModalOpen(true)}
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-500 transition-all hover:bg-red-500 hover:text-black hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+                  type="button"
+                >
+                  <Trash2 size={14} className="transition-transform group-hover:rotate-12" />
+                  Hard Reset
+                </button>
+
+                <button
+                  onClick={() => void handleSystemLogout()}
+                  disabled={dangerBusy !== null}
+                  className="w-full rounded-xl border border-slate-800 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-800 hover:text-white"
+                  type="button"
+                >
+                  {dangerBusy === "logout" ? "Desconectando..." : "Logout"}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* HARD RESET CONFIRMATION MODAL */}
+      {resetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-lg rounded-3xl border border-red-500 bg-[#0a0505] p-10 shadow-[0_0_100px_rgba(220,38,38,0.3)]">
+            <div className="mb-8 flex flex-col items-center text-center">
+              <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                <Skull size={48} />
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-[0.2em] text-white">Confirmação Final</h3>
+              <p className="mt-2 text-xs font-bold uppercase tracking-widest text-red-500">Exterminar todo o progresso?</p>
+            </div>
+
+            <div className="mb-8 space-y-4 rounded-xl border border-red-900/30 bg-red-950/10 p-6">
+              <div className="flex items-center gap-3 text-red-400">
+                <XCircle size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Nível do Jogador → 1</span>
+              </div>
+              <div className="flex items-center gap-3 text-red-400">
+                <XCircle size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Inventário → Vazio</span>
+              </div>
+              <div className="flex items-center gap-3 text-red-400">
+                <XCircle size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Rank → Iniciado</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <HoldButton
+                label="SEGURE PARA DELETAR TUDO"
+                onComplete={() => void executeHardReset()}
+                loading={dangerBusy === "reset"}
+                className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+              />
+
+              <button
+                onClick={() => setResetModalOpen(false)}
+                className="w-full rounded-xl border border-slate-800 py-4 text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-800 hover:text-white"
+                type="button"
+              >
+                Cancelar Operação
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 }

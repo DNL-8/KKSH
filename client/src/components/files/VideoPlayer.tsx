@@ -78,6 +78,15 @@ export function VideoPlayer({
         }
     }, [video]);
 
+    // Explicit autoplay trigger
+    useEffect(() => {
+        if (autoPlay && videoRef.current && !playing) {
+            videoRef.current.play().catch(() => {
+                // Autoplay blocked by browser - requires user interaction first
+            });
+        }
+    }, [videoUrl, autoPlay]);
+
     const togglePlay = useCallback(() => {
         if (!videoRef.current) return;
         if (playing) {

@@ -327,7 +327,7 @@ def reset_state(
         session.commit()
         summary["sessionsDeleted"] = len(session_rows)
 
-    if "sessions" in normalized:
+    if "missions" in normalized:
         daily_rows = session.exec(select(DailyQuest).where(DailyQuest.user_id == user.id)).all()
         weekly_rows = session.exec(select(WeeklyQuest).where(WeeklyQuest.user_id == user.id)).all()
 

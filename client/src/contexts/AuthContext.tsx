@@ -9,14 +9,14 @@ import type { AuthUser, GlobalStats } from "../layout/types";
 /* ------------------------------------------------------------------ */
 
 const INITIAL_STATS: GlobalStats = {
-    hp: 85,
-    mana: 92,
-    xp: 2450,
-    maxXp: 5000,
-    level: 42,
-    rank: "B",
-    gold: 854,
-    streak: 12,
+    hp: 100,
+    mana: 100,
+    xp: 0,
+    maxXp: 1000,
+    level: 1,
+    rank: "Iniciado",
+    gold: 0,
+    streak: 0,
 };
 
 /* ------------------------------------------------------------------ */
