@@ -22,7 +22,7 @@ interface NavItem {
     id: string;
     label: string;
     path: string;
-    icon: React.ComponentType<{ size?: number; className?: string }>;
+    icon: React.ComponentType<{ size?: string | number; className?: string }>;
 }
 
 const NAV_ITEMS: NavItem[] = [
