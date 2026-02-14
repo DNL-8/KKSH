@@ -2,14 +2,21 @@ import {
   AlertTriangle,
   ArrowUpDown,
   CheckCircle2,
+  ChevronRight,
+  Coins,
+  FileVideo,
   Film,
   FolderOpen,
   List,
   Loader2,
+  Shield,
+  Trophy,
   Trash2,
   Upload,
+  Zap,
 } from "lucide-react";
 import {
+  type ComponentType,
   useCallback,
   useEffect,
   useMemo,
@@ -51,6 +58,76 @@ import {
 import { useFileImporter } from "../hooks/useFileImporter";
 
 const MAX_SESSION_PAGES = 300;
+
+type HudTone = "red" | "blue" | "yellow" | "green" | "purple";
+
+interface HudProgressBarProps {
+  value: number;
+  max: number;
+  tone: HudTone;
+  label: string;
+  textValue: string;
+}
+
+interface FilesStatCardProps {
+  label: string;
+  value: string;
+  subtext: string;
+  icon: ComponentType<{ size?: string | number; className?: string }>;
+}
+
+const HUD_BAR_TONE_CLASS: Record<HudTone, string> = {
+  red: "bg-gradient-to-r from-red-600 to-rose-400 shadow-[0_0_10px_rgba(225,29,72,0.5)]",
+  blue: "bg-gradient-to-r from-blue-600 to-cyan-400 shadow-[0_0_10px_rgba(37,99,235,0.5)]",
+  yellow: "bg-gradient-to-r from-yellow-500 to-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]",
+  green: "bg-gradient-to-r from-emerald-600 to-green-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]",
+  purple: "bg-gradient-to-r from-violet-600 to-fuchsia-400 shadow-[0_0_10px_rgba(139,92,246,0.5)]",
+};
+
+const HUD_TEXT_TONE_CLASS: Record<HudTone, string> = {
+  red: "text-red-400",
+  blue: "text-blue-400",
+  yellow: "text-yellow-400",
+  green: "text-emerald-400",
+  purple: "text-violet-400",
+};
+
+function HudProgressBar({ value, max, tone, label, textValue }: HudProgressBarProps) {
+  const safeMax = Math.max(1, max);
+  const percentage = Math.min(100, Math.max(0, (value / safeMax) * 100));
+
+  return (
+    <div className="w-36">
+      <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
+        <span>{label}</span>
+        <span className={HUD_TEXT_TONE_CLASS[tone]}>{textValue}</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full border border-slate-700/40 bg-slate-800/50">
+        <div className={`h-full rounded-full transition-all duration-700 ${HUD_BAR_TONE_CLASS[tone]}`} style={{ width: `${percentage}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function FilesStatCard({ label, value, subtext, icon: Icon }: FilesStatCardProps) {
+  return (
+    <div className="group relative overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/60 p-4 backdrop-blur-md transition-all duration-300 hover:border-cyan-500/40">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="relative flex items-center gap-4">
+        <div className="rounded-lg border border-slate-700 bg-slate-800/80 p-3 shadow-inner transition-transform duration-300 group-hover:scale-105">
+          <Icon className="text-cyan-400" size={22} />
+        </div>
+        <div>
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</h4>
+          <div className="mt-0.5 flex items-baseline gap-2">
+            <span className="text-2xl font-black tracking-tight text-white transition-colors group-hover:text-cyan-300">{value}</span>
+            <span className="text-[10px] font-mono text-slate-500">{subtext}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 export function FilesPage() {
@@ -491,18 +568,49 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="rounded-[26px] border border-slate-800 bg-[#090b10]/90 p-4">
-        <div className="flex flex-col gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-              Biblioteca de <span className="text-[hsl(var(--accent))]">Aulas</span>
-            </h2>
-            <p className="mt-1 text-xs font-medium text-slate-500">
-              Layout de curso com player principal, trilha lateral por pasta e abas de detalhes.
-            </p>
+      <div className="relative overflow-hidden rounded-[30px] border border-slate-800 bg-[#090b10]/90 p-4">
+        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-cyan-900/10 blur-[120px]" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-violet-900/10 blur-[120px]" />
+
+        <div className="relative z-10 space-y-4">
+          <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 p-4 backdrop-blur-md">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="min-w-0">
+                <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                  <span>UPLINK_ON</span>
+                  <ChevronRight size={12} />
+                  <span>Arquivos de Sincronia</span>
+                </div>
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
+                  Biblioteca de <span className="text-[hsl(var(--accent))]">Aulas</span>
+                </h2>
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  Player local com progresso RPG, playlist por pasta e conclusao com XP.
+                </p>
+              </div>
+
+              <div className="ml-auto flex flex-wrap items-center gap-5 rounded-2xl border border-slate-800 bg-black/40 px-4 py-3 shadow-lg">
+                <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
+                <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
+                <HudProgressBar
+                  value={globalStats.xp}
+                  max={globalStats.maxXp}
+                  tone="yellow"
+                  label="EXP"
+                  textValue={`LVL ${globalStats.level}`}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <FilesStatCard label="Nivel Atual" value={String(globalStats.level)} subtext="Iniciado" icon={Shield} />
+            <FilesStatCard label="Rank" value={globalStats.rank} subtext="Sistema" icon={Trophy} />
+            <FilesStatCard label="Experiencia" value={`${globalStats.xp}/${globalStats.maxXp}`} subtext="XP total" icon={Zap} />
+            <FilesStatCard label="Gold" value={String(globalStats.gold)} subtext="Creditos" icon={Coins} />
+          </div>
+
+          <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
             <button
               className="flex items-center gap-2 rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-[rgba(var(--glow),0.2)] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={saving}
@@ -566,6 +674,18 @@ export function FilesPage() {
               Conteudo
             </button>
           </div>
+
+          <div className="rounded-xl border border-slate-800 bg-[#0b0d12] p-3 text-xs font-semibold text-slate-400">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>{completedVideoRefs.size} aula(s) concluidas nesta conta</span>
+              {loadingCompletions && (
+                <span className="flex items-center gap-1 text-[hsl(var(--accent-light))]">
+                  <Loader2 size={12} className="animate-spin" />
+                  sincronizando
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {storageUnavailable && (
@@ -598,42 +718,6 @@ export function FilesPage() {
             {error}
           </div>
         )}
-
-        <div className="mt-4">
-          <section className="rounded-2xl border border-slate-800 bg-[#0b0d12] p-4">
-            <h3 className="mb-3 text-[11px] font-black uppercase tracking-[0.25em] text-slate-300">Progressao RPG</h3>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Nivel</p>
-                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.level}</p>
-              </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Rank</p>
-                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.rank}</p>
-              </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">XP</p>
-                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">
-                  {globalStats.xp}/{globalStats.maxXp}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
-                <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Gold</p>
-                <p className="mt-1 text-lg font-black text-[hsl(var(--accent-light))]">{globalStats.gold}</p>
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-400">
-              <span>{completedVideoRefs.size} aula(s) concluidas nesta conta</span>
-              {loadingCompletions && (
-                <span className="flex items-center gap-1 text-[hsl(var(--accent-light))]">
-                  <Loader2 size={12} className="animate-spin" />
-                  sincronizando
-                </span>
-              )}
-            </div>
-          </section>
-        </div>
       </div>
 
       {loading ? (
@@ -683,9 +767,12 @@ export function FilesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-5" data-testid="course-player">
-            <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-black/80">
+            <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+              <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
+              <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
+              <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
+              <div className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-2 border-r-2 border-cyan-500/70" />
               <VideoPlayer
-                autoPlay
                 onDurationChange={setSelectedDurationSec}
                 onEnded={handleVideoEnded}
                 video={selectedVideo}
@@ -748,17 +835,30 @@ export function FilesPage() {
           </div>
 
           <aside className="hidden lg:block">
-            <LessonSidebar
-              folderSections={folderSections}
-              selectedLessonId={selectedLessonId}
-              completedVideoRefs={completedVideoRefs}
-              collapsedFolders={collapsedFolders}
-              visibleCountByFolder={visibleCountByFolder}
-              onToggleFolder={handleToggleFolder}
-              onSelectLesson={handleSelectLesson}
-              onShowMore={handleShowMoreLessons}
-              onClose={() => setIsSidebarMobileOpen(false)}
-            />
+            <div className="space-y-4">
+              <LessonSidebar
+                folderSections={folderSections}
+                selectedLessonId={selectedLessonId}
+                completedVideoRefs={completedVideoRefs}
+                collapsedFolders={collapsedFolders}
+                visibleCountByFolder={visibleCountByFolder}
+                onToggleFolder={handleToggleFolder}
+                onSelectLesson={handleSelectLesson}
+                onShowMore={handleShowMoreLessons}
+                onClose={() => setIsSidebarMobileOpen(false)}
+              />
+              <div className="cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 transition-all hover:border-cyan-500/30 hover:bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
+                    <FileVideo size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>
+                    <p className="text-xs text-slate-500">Use arquivos locais para reforcar a aula atual.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </aside>
         </div>
       )}
