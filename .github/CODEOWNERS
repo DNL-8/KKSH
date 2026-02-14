@@ -1,0 +1,13 @@
+# Default owner for all files
+* @DNL-8
+
+# Backend critical areas
+/backend/app/core/ @DNL-8
+/backend/app/api/ @DNL-8
+/backend/alembic/ @DNL-8
+
+# CI/CD and deploy config
+/.github/workflows/ @DNL-8
+/Dockerfile @DNL-8
+/docker-compose.yml @DNL-8
+/render.yaml @DNL-8
