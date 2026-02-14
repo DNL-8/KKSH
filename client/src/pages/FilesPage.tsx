@@ -453,6 +453,23 @@ export function FilesPage() {
     }
   };
 
+  const handleVideoEnded = useCallback(() => {
+    if (!selectedLessonId) return;
+
+    // Find current video in sections to determine next
+    for (const section of folderSections) {
+      const idx = section.lessons.findIndex((l) => l.id === selectedLessonId);
+      if (idx !== -1) {
+        // Check if there is a next video in this section
+        if (idx < section.lessons.length - 1) {
+          const nextLesson = section.lessons[idx + 1];
+          handleSelectLesson(nextLesson.id);
+        }
+        break;
+      }
+    }
+  }, [selectedLessonId, folderSections]);
+
   return (
     <div className="animate-in slide-in-from-right-10 space-y-6 duration-700">
       <input
@@ -668,10 +685,11 @@ export function FilesPage() {
           <div className="space-y-5" data-testid="course-player">
             <div className="overflow-hidden rounded-[30px] border border-slate-800 bg-black/80">
               <VideoPlayer
+                autoPlay
+                onDurationChange={setSelectedDurationSec}
+                onEnded={handleVideoEnded}
                 video={selectedVideo}
                 videoUrl={selectedVideoUrl}
-                onDurationChange={setSelectedDurationSec}
-                onEnded={undefined} // Optional: auto-complete
               />
             </div>
 

@@ -107,10 +107,17 @@ export function SettingsPage() {
     }
   }
 
-  async function handleHardReset() {
-    if (dangerBusy) {
-      return;
+  const [confirmingReset, setConfirmingReset] = useState(false);
+
+  useEffect(() => {
+    if (confirmingReset) {
+      const timer = setTimeout(() => setConfirmingReset(false), 3000);
+      return () => clearTimeout(timer);
     }
+  }, [confirmingReset]);
+
+  async function handleHardReset() {
+    if (dangerBusy) return;
 
     if (!authUser) {
       setDangerFeedback({ type: "info", text: "Faca login para executar o hard reset." });
@@ -118,15 +125,14 @@ export function SettingsPage() {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Tem certeza? Isso vai resetar progresso, missoes, sessoes, inventario e revisoes da sua conta.",
-    );
-    if (!confirmed) {
+    if (!confirmingReset) {
+      setConfirmingReset(true);
       return;
     }
 
     setDangerBusy("reset");
     setDangerFeedback(null);
+    setConfirmingReset(false);
 
     try {
       const output = await resetMeState(["all"]);
@@ -154,9 +160,7 @@ export function SettingsPage() {
   }
 
   async function handleSystemLogout() {
-    if (dangerBusy) {
-      return;
-    }
+    if (dangerBusy) return;
 
     if (!authUser) {
       setDangerFeedback({ type: "info", text: "Voce ja esta desconectado." });
@@ -170,15 +174,18 @@ export function SettingsPage() {
       await logout();
       await syncProgressionFromApi();
       setDangerFeedback({ type: "success", text: "Ligacao neural encerrada com sucesso." });
-      navigateTo("/hub");
     } catch (error) {
+      // Even if API fails, we want to clear local state and redirect
       if (error instanceof ApiRequestError) {
         setDangerFeedback({ type: "error", text: error.message || "Falha ao sair do sistema." });
       } else {
         setDangerFeedback({ type: "error", text: "Falha ao sair do sistema." });
       }
+      // Force sync to clear authUser if possible (api client handles 401)
+      await syncProgressionFromApi();
     } finally {
       setDangerBusy(null);
+      navigateTo("/hub");
     }
   }
 
@@ -412,7 +419,7 @@ export function SettingsPage() {
           >
             <span className="flex items-center justify-center gap-3">
               <RefreshCw size={16} className={`transition-transform duration-1000 ${dangerBusy === "reset" ? "animate-spin" : "group-hover:rotate-180"}`} />
-              {dangerBusy === "reset" ? "Executando Hard Reset..." : "Reinicializar Evolucao Completa (Hard Reset)"}
+              {dangerBusy === "reset" ? "Executando Hard Reset..." : confirmingReset ? "TEM CERTEZA? CLIQUE NOVAMENTE" : "Reinicializar Evolucao Completa (Hard Reset)"}
             </span>
           </button>
 

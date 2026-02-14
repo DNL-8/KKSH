@@ -134,7 +134,34 @@ export function LessonSidebar({
                                     <p className="truncate text-[11px] font-black uppercase tracking-wider text-slate-200" title={section.path}>
                                         {section.path}
                                     </p>
-                                    <p className="text-[10px] font-bold text-slate-500">{section.lessons.length} aula(s)</p>
+                                    <div className="mt-1">
+                                        <div className="flex items-center justify-between text-[9px] font-bold text-slate-500">
+                                            <span>
+                                                {section.lessons.filter((l) => completedVideoRefs.has(buildVideoRef(l))).length}/
+                                                {section.lessons.length}
+                                            </span>
+                                            <span>
+                                                {Math.round(
+                                                    (section.lessons.filter((l) => completedVideoRefs.has(buildVideoRef(l))).length /
+                                                        Math.max(1, section.lessons.length)) *
+                                                    100
+                                                )}
+                                                %
+                                            </span>
+                                        </div>
+                                        <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-800">
+                                            <div
+                                                className="h-full bg-emerald-500 transition-all duration-500"
+                                                style={{
+                                                    width: `${(section.lessons.filter((l) => completedVideoRefs.has(buildVideoRef(l)))
+                                                        .length /
+                                                        Math.max(1, section.lessons.length)) *
+                                                        100
+                                                        }%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <button
                                     aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}

@@ -43,6 +43,9 @@ export interface AuthContextValue {
     /** Actions */
     handleGlobalAction: (type: "attack") => void;
     setGlobalStats: React.Dispatch<React.SetStateAction<GlobalStats>>;
+    authMode: "login" | "signup";
+    setAuthMode: React.Dispatch<React.SetStateAction<"login" | "signup">>;
+    setAuthFeedback: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authPassword, setAuthPassword] = useState("");
     const [authSubmitting, setAuthSubmitting] = useState(false);
     const [authFeedback, setAuthFeedback] = useState<string | null>(null);
+    const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
     const syncProgressionFromApi = useCallback(async () => {
         try {
@@ -121,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const email = authEmail.trim();
             const password = authPassword.trim();
             if (!email || !password) {
-                setAuthFeedback("Informe email e senha para entrar.");
+                setAuthFeedback("Informe email e senha.");
                 return;
             }
 
@@ -129,23 +133,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuthFeedback(null);
             void (async () => {
                 try {
-                    await login(email, password);
+                    if (authMode === "signup") {
+                        const { signup } = await import("../lib/api");
+                        await signup(email, password);
+                        setAuthFeedback("Conta criada com sucesso!");
+                    } else {
+                        await login(email, password);
+                        setAuthFeedback("Login realizado com sucesso.");
+                    }
+
                     setAuthPassword("");
                     await syncProgressionFromApi();
-                    setAuthFeedback("Login realizado com sucesso.");
+
+                    // Close panel slightly delayed to show success message?
+                    // Or just close immediately if login.
+                    // If signup, maybe show success and switch to login? 
+                    // Actually signup usually logs you in directly in this backend.
+                    // Yes, backend sets cookies on signup.
                     setIsAuthPanelOpen(false);
                 } catch (authError) {
-                    if (authError instanceof ApiRequestError && authError.status === 401) {
-                        setAuthFeedback("Credenciais invalidas.");
+                    if (authError instanceof ApiRequestError) {
+                        if (authError.status === 409) {
+                            setAuthFeedback("Email ja registrado.");
+                        } else if (authError.status === 401) {
+                            setAuthFeedback("Credenciais invalidas.");
+                        } else {
+                            setAuthFeedback(authError.message || "Erro na autenticação.");
+                        }
                     } else {
-                        setAuthFeedback("Nao foi possivel realizar login.");
+                        setAuthFeedback("Nao foi possivel conectar.");
                     }
                 } finally {
                     setAuthSubmitting(false);
                 }
             })();
         },
-        [authEmail, authPassword, authSubmitting, syncProgressionFromApi],
+        [authEmail, authPassword, authSubmitting, authMode, syncProgressionFromApi],
     );
 
     const handleLogout = useCallback(() => {
@@ -197,6 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         handleLogout,
         handleGlobalAction,
         setGlobalStats,
+        authMode,
+        setAuthMode,
+        setAuthFeedback,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

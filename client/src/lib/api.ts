@@ -267,6 +267,13 @@ export async function login(email: string, password: string): Promise<AuthOut> {
   });
 }
 
+export async function signup(email: string, password: string): Promise<AuthOut> {
+  return requestJson<AuthOut>("/api/v1/auth/signup", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
 export async function logout(): Promise<{ ok: boolean }> {
   const output = await requestJson<{ ok: boolean } | undefined>("/api/v1/auth/logout", {
     method: "POST",
