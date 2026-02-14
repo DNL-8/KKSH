@@ -10,13 +10,16 @@
   Skull,
   Target,
   Zap,
+  Bot,
+  Key,
+  Save,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { DetailedToggle, ThemeOption } from "../components/common";
 import { useTheme, type ThemeId } from "../contexts/ThemeContext";
-import { ApiRequestError, logout, resetMeState } from "../lib/api";
+import { ApiRequestError, getMeState, logout, resetMeState, updateSettings } from "../lib/api";
 import type { AppShellContextValue } from "../layout/types";
 
 /* ------------------------------------------------------------------ */
@@ -58,6 +61,49 @@ export function SettingsPage() {
 
   const [dangerBusy, setDangerBusy] = useState<"reset" | "logout" | null>(null);
   const [dangerFeedback, setDangerFeedback] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  const [aiSettings, setAiSettings] = useState({
+    apiKey: "",
+    personality: "standard",
+    loading: true,
+    saving: false,
+  });
+
+  useEffect(() => {
+    if (!authUser) return;
+    getMeState()
+      .then((state) => {
+        if (state.settings) {
+          setAiSettings((prev) => ({
+            ...prev,
+            apiKey: state.settings?.geminiApiKey || "",
+            personality: state.settings?.agentPersonality || "standard",
+            loading: false,
+          }));
+        }
+      })
+      .catch(() => {
+        setAiSettings((prev) => ({ ...prev, loading: false }));
+      });
+  }, [authUser]);
+
+  async function saveAiSettings() {
+    if (aiSettings.saving) return;
+    setAiSettings((prev) => ({ ...prev, saving: true }));
+    try {
+      await updateSettings({
+        geminiApiKey: aiSettings.apiKey,
+        agentPersonality: aiSettings.personality,
+      });
+      // success toast or feedback? reusing dangerFeedback for now or add new state?
+      // actually let's use a local simple feedback
+      alert("Configuracoes de IA salvas com sucesso.");
+    } catch {
+      alert("Erro ao salvar configuracoes.");
+    } finally {
+      setAiSettings((prev) => ({ ...prev, saving: false }));
+    }
+  }
 
   async function handleHardReset() {
     if (dangerBusy) {
@@ -177,6 +223,80 @@ export function SettingsPage() {
             <DetailedToggle label="HUD Flutuante" desc="Maximiza imersao ocultando barras estaticas em modo de combate." active />
             <DetailedToggle label="Sincronia de Audio" desc="Efeitos sonoros espaciais de alta fidelidade para acoes de interface." active />
           </div>
+        </div>
+      </section>
+
+      <section className="relative rounded-[40px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
+        <div className="mb-10 flex items-center gap-6 border-b border-slate-800 pb-8">
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 shadow-xl">
+            <Bot size={32} className="text-blue-500" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black uppercase italic tracking-[0.2em] text-white">Inteligencia Artificial</h2>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Configuracao do Agente Sintetico</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="space-y-4">
+            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Chave de Acesso (API Key Gemini)
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-600">
+                <Key size={16} />
+              </div>
+              <input
+                type="password"
+                value={aiSettings.apiKey}
+                onChange={(e) => setAiSettings((prev) => ({ ...prev, apiKey: e.target.value }))}
+                placeholder="Insira sua chave Gemini..."
+                className="w-full rounded-2xl border border-slate-800 bg-[#050506] py-4 pl-12 pr-4 text-xs font-bold text-white placeholder-slate-700 outline-none transition-all focus:border-blue-500/50 focus:bg-blue-500/5"
+              />
+            </div>
+            <p className="text-[9px] font-medium text-slate-600">
+              Sua chave e usada apenas para gerar missoes e nao e compartilhada.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Personalidade do Agente
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { id: "standard", label: "Padrao", desc: "Equilibrado" },
+                { id: "hardcore", label: "Militar", desc: "Rigido & Disciplinado" },
+                { id: "zen", label: "Zen", desc: "Calmo & Filosofico" },
+                { id: "gamer", label: "Gamer", desc: "RPG & Grind" },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setAiSettings((prev) => ({ ...prev, personality: p.id }))}
+                  className={`flex flex-col gap-1 rounded-2xl border px-4 py-3 transition-all ${aiSettings.personality === p.id
+                      ? "border-blue-500 bg-blue-500/10 text-blue-400"
+                      : "border-slate-800 bg-[#050506] text-slate-500 hover:bg-slate-800/50"
+                    }`}
+                >
+                  <span className="text-[10px] font-black uppercase">{p.label}</span>
+                  <span className="text-[8px] font-bold opacity-60">{p.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={() => void saveAiSettings()}
+            disabled={aiSettings.saving || aiSettings.loading}
+            type="button"
+            className="flex items-center gap-3 rounded-2xl bg-blue-600 px-8 py-4 text-xs font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50"
+          >
+            <Save size={16} />
+            {aiSettings.saving ? "Salvando..." : "Salvar Configuracoes"}
+          </button>
         </div>
       </section>
 
@@ -317,6 +437,6 @@ export function SettingsPage() {
           )}
         </div>
       </section>
-    </div>
+    </div >
   );
 }

@@ -13,7 +13,7 @@ from sqlmodel import Session, select
 from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
-from app.models import DailyQuest, User, WeeklyQuest
+from app.models import DailyQuest, User, UserSettings, WeeklyQuest
 
 Cycle = Literal["daily", "weekly"]
 GenerationSource = Literal["gemini", "fallback", "mixed"]
@@ -256,7 +256,14 @@ def _extract_json_block(raw: str) -> str:
     return cleaned
 
 
-def _get_api_key() -> str:
+def _get_api_key(user_settings: UserSettings | None = None) -> str:
+    # 1. Try user settings
+    if user_settings and user_settings.gemini_api_key:
+        raw = user_settings.gemini_api_key.strip()
+        if raw and raw.upper() not in _API_KEY_PLACEHOLDERS:
+            return raw
+
+    # 2. Fallback to system env
     raw = settings.gemini_api_key.strip()
     if raw.upper() in _API_KEY_PLACEHOLDERS:
         return ""
@@ -296,9 +303,12 @@ def _extract_sdk_text(response: Any) -> str | None:
 
 
 async def _try_generate_with_gemini(
-    *, goals: dict[str, int], cycle: Literal["daily", "weekly", "both"]
+    *,
+    goals: dict[str, int],
+    cycle: Literal["daily", "weekly", "both"],
+    user_settings: UserSettings | None = None,
 ) -> _GeneratedPayloadIn | None:
-    api_key = _get_api_key()
+    api_key = _get_api_key(user_settings)
     if not api_key:
         return None
 
@@ -307,9 +317,22 @@ async def _try_generate_with_gemini(
     except Exception:
         return None
 
+    # Personality injection
+    personality = (user_settings.agent_personality if user_settings else "standard") or "standard"
+    personality_prompt = ""
+    if personality == "hardcore":
+        personality_prompt = "Atue como um Sargento Instrutor militar. Seja rigido, use girias militares e exija disciplina maxima."
+    elif personality == "zen":
+        personality_prompt = "Atue como um Mentor Zen. Seja calmo, filosofico e foque no equilibrio e consistencia."
+    elif personality == "gamer":
+        personality_prompt = "Atue como um Gamemaster RPG. Use termos de jogos (buff, nerf, grind), seja empolgado e trate o estudo como XP."
+    else:
+        # standard
+        personality_prompt = "Voce e um gerador de missoes oficiais para um app RPG de estudos."
+
     goals_payload = {k: int(v or 0) for k, v in goals.items()}
     prompt = (
-        "Voce e um gerador de missoes oficiais para um app RPG de estudos. "
+        f"{personality_prompt} "
         "Responda APENAS JSON valido no formato: "
         '{"daily":[{subject,title,description,targetMinutes,rank,difficulty,objective,tags}],'
         '"weekly":[{subject,title,description,targetMinutes,rank,difficulty,objective,tags}]}. '
@@ -545,13 +568,18 @@ def _migrate_progress(
 
 
 async def generate_official_mission_specs(
-    *, goals: dict[str, int], cycle: Literal["daily", "weekly", "both"]
+    *,
+    goals: dict[str, int],
+    cycle: Literal["daily", "weekly", "both"],
+    user_settings: UserSettings | None = None,
 ) -> MissionGenerationOutput:
     fallback_daily = build_fallback_missions(goals=goals, cycle="daily", count=5)
     fallback_weekly = build_fallback_missions(goals=goals, cycle="weekly", count=5)
 
     warnings: list[str] = []
-    model_payload = await _try_generate_with_gemini(goals=goals, cycle=cycle)
+    model_payload = await _try_generate_with_gemini(
+        goals=goals, cycle=cycle, user_settings=user_settings
+    )
     has_model = model_payload is not None
 
     model_daily: list[MissionSpec] = []

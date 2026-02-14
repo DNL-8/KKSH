@@ -11,7 +11,7 @@ from app.core.audit import log_event
 from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_or_create_study_plan
 from app.core.rate_limit import Rule, rate_limit
-from app.models import AuditEvent, DailyQuest, User, WeeklyQuest
+from app.models import AuditEvent, DailyQuest, User, UserSettings, WeeklyQuest
 from app.schemas import DailyQuestOut, RegenerateMissionsIn, RegenerateMissionsOut, WeeklyQuestOut
 from app.services.mission_generator import (
     generate_official_mission_specs,
@@ -138,7 +138,15 @@ async def regenerate_missions(
     goals = parse_goals(plan.goals_json)
 
     start_ts = time.perf_counter()
-    generated = await generate_official_mission_specs(goals=goals, cycle=payload.cycle)
+
+    # Fetch user settings for API Key / Personality
+    user_settings_obj = session.exec(
+        select(UserSettings).where(UserSettings.user_id == user.id)
+    ).first()
+
+    generated = await generate_official_mission_specs(
+        goals=goals, cycle=payload.cycle, user_settings=user_settings_obj
+    )
 
     if payload.cycle in {"daily", "both"}:
         daily_rows = overwrite_daily_quests(

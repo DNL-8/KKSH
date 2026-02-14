@@ -37,6 +37,7 @@ from app.schemas import (
     StudyBlockOut,
     UserOut,
     UserSettingsOut,
+    UpdateSettingsIn,
     VitalsOut,
     WeeklyQuestOut,
 )
@@ -254,6 +255,8 @@ def state(
             reminderEveryMin=int(settings_row.reminder_every_min),
             xpPerMinute=int(settings_row.xp_per_minute),
             goldPerMinute=int(settings_row.gold_per_minute),
+            geminiApiKey=settings_row.gemini_api_key,
+            agentPersonality=settings_row.agent_personality,
         ),
         progression=ProgressionOut(
             level=int(stats_row.level),
@@ -402,3 +405,61 @@ def reset_state(
         summary["systemWindowMessagesDeleted"] = len(history_rows)
 
     return ResetStateOut(applied=applied, summary=summary)
+
+
+@router.patch("/me/settings", response_model=UserSettingsOut)
+def update_settings(
+    payload: UpdateSettingsIn,
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    settings_row = get_or_create_user_settings(user, session)
+
+    if payload.dailyTargetMinutes is not None:
+        settings_row.daily_target_minutes = payload.dailyTargetMinutes
+    if payload.pomodoroWorkMin is not None:
+        settings_row.pomodoro_work_min = payload.pomodoroWorkMin
+    if payload.pomodoroBreakMin is not None:
+        settings_row.pomodoro_break_min = payload.pomodoroBreakMin
+    if payload.timezone is not None:
+        settings_row.timezone = payload.timezone
+    if payload.language is not None:
+        settings_row.language = payload.language
+    if payload.reminderEnabled is not None:
+        settings_row.reminder_enabled = payload.reminderEnabled
+    if payload.reminderTime is not None:
+        settings_row.reminder_time = payload.reminderTime
+    if payload.reminderEveryMin is not None:
+        settings_row.reminder_every_min = payload.reminderEveryMin
+    if payload.xpPerMinute is not None:
+        settings_row.xp_per_minute = payload.xpPerMinute
+    if payload.goldPerMinute is not None:
+        settings_row.gold_per_minute = payload.goldPerMinute
+    
+    # New fields
+    if payload.geminiApiKey is not None:
+        # Allow clearing if empty string passed? Or just update if provided.
+        # Currently assuming strict string.
+        settings_row.gemini_api_key = payload.geminiApiKey
+    if payload.agentPersonality is not None:
+        settings_row.agent_personality = payload.agentPersonality
+
+    settings_row.updated_at = datetime.now(timezone.utc)
+    session.add(settings_row)
+    session.commit()
+    session.refresh(settings_row)
+
+    return UserSettingsOut(
+        dailyTargetMinutes=int(settings_row.daily_target_minutes),
+        pomodoroWorkMin=int(settings_row.pomodoro_work_min),
+        pomodoroBreakMin=int(settings_row.pomodoro_break_min),
+        timezone=settings_row.timezone,
+        language=settings_row.language,
+        reminderEnabled=bool(settings_row.reminder_enabled),
+        reminderTime=settings_row.reminder_time,
+        reminderEveryMin=int(settings_row.reminder_every_min),
+        xpPerMinute=int(settings_row.xp_per_minute),
+        goldPerMinute=int(settings_row.gold_per_minute),
+        geminiApiKey=settings_row.gemini_api_key,
+        agentPersonality=settings_row.agent_personality,
+    )

@@ -46,6 +46,7 @@ export interface AppStateOut {
   streakDays: number;
   progression?: ProgressionOut | null;
   vitals?: VitalsOut | null;
+  settings?: UserSettingsOut | null;
 }
 
 export interface CreateSessionIn {
@@ -213,6 +214,43 @@ async function requestJson<T>(input: RequestInfo | URL, init: RequestInit = {}):
   }
 
   return parseJsonResponse<T>(response);
+}
+
+export interface UserSettingsOut {
+  dailyTargetMinutes: number;
+  pomodoroWorkMin: number;
+  pomodoroBreakMin: number;
+  timezone: string;
+  language: string;
+  reminderEnabled: boolean;
+  reminderTime: string;
+  reminderEveryMin: number;
+  xpPerMinute: number;
+  goldPerMinute: number;
+  geminiApiKey?: string | null;
+  agentPersonality: string;
+}
+
+export interface UpdateSettingsIn {
+  dailyTargetMinutes?: number;
+  pomodoroWorkMin?: number;
+  pomodoroBreakMin?: number;
+  timezone?: string;
+  language?: string;
+  reminderEnabled?: boolean;
+  reminderTime?: string;
+  reminderEveryMin?: number;
+  xpPerMinute?: number;
+  goldPerMinute?: number;
+  geminiApiKey?: string;
+  agentPersonality?: string;
+}
+
+export async function updateSettings(payload: UpdateSettingsIn): Promise<UserSettingsOut> {
+  return requestJson<UserSettingsOut>("/api/v1/me/settings", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function postHunterMessage(mensagem: string): Promise<HunterSystemResponse> {
