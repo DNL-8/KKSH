@@ -104,11 +104,13 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `WEBHOOK_OUTBOX_ENABLED` habilita persistencia de eventos de webhook em outbox
 - `WEBHOOK_OUTBOX_SEND_ENABLED` ativa processamento por worker (desativa envio legacy in-process)
 - `WEBHOOK_WORKER_*` controla batch/poll/locks/retries/backoff do worker
+- `WEBHOOK_WORKER_HEARTBEAT_FILE` e `WEBHOOK_WORKER_HEARTBEAT_MAX_AGE_SEC` controlam healthcheck do worker
 - `WEBHOOK_DELIVERY_TIMEOUT_SEC` timeout de entrega HTTP por webhook
 - `GEMINI_API_KEY` chave de API do Gemini (fallback do sistema)
 - `AI_GUEST_DAILY_MAX` e `AI_GUEST_DAILY_WINDOW_SEC` quota diaria para guests
 - `AI_USER_DAILY_MAX` e `AI_USER_DAILY_WINDOW_SEC` quota diaria para usuarios autenticados
 - `AI_RATE_LIMIT_MAX` e `AI_RATE_LIMIT_WINDOW_SEC` burst de IA (IP compartilhado + usuario)
+- `WEBHOOK_SECRET_ENC_KEY_PREV` lista (csv) de chaves antigas aceitas temporariamente durante rotacao
 
 ## Hardening de producao
 
@@ -118,6 +120,14 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `JWT_SECRET` forte (>=32)
 - `WEBHOOK_SECRET_ENC_KEY` definido
 - `CORS_ORIGINS` vazio para same-origin (ou lista explicita para cross-origin)
+
+### Sessao, CSRF e CSP
+
+- Auth por cookie com `HttpOnly`, `Secure` (prod/staging), `SameSite` configuravel (`lax|strict|none`) e `Path` controlado por config.
+- Protecao CSRF ativa para metodos mutaveis via double-submit cookie (`/api/v1/auth/csrf` + header `X-CSRF-Token`).
+- CSRF validado no middleware para fluxos cookie-auth (`POST|PUT|PATCH|DELETE`).
+- Headers de seguranca aplicados por padrao: `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `HSTS` (HTTPS em prod).
+- Em same-origin, a CSP padrao restringe `default-src/script-src/connect-src` para `'self'`.
 
 ## SEO & PWA
 
@@ -134,6 +144,12 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - Focus-visible ring global
 - Font-size minimo 11px
 
+## Observabilidade
+
+- Logs JSON com `request_id` e campos `extra` estruturados (inclui `worker_id`, `outbox_id`, `correlation_id` quando presentes).
+- Metricas Prometheus para IA (`ai_request_duration_seconds`, `ai_request_errors_total`, `ai_rate_limited_total`).
+- Metricas Prometheus para webhook outbox (`webhook_outbox_sent_total`, `webhook_outbox_retry_total`, `webhook_outbox_dead_total`, `webhook_outbox_queue_depth`).
+
 ## Scripts uteis
 
 - `pnpm dev:client`
@@ -144,15 +160,24 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `pnpm check`
 - `$env:ANALYZE="true"; pnpm build:client` (gera `stats.html` com mapa de bundle)
 - `PYTHONPATH=. python backend/scripts/run_webhook_worker.py --once`
+- `PYTHONPATH=. python backend/scripts/webhook_worker_healthcheck.py`
 - `PYTHONPATH=. python backend/scripts/requeue_webhook_outbox.py --all-dead --limit 100`
 - `PYTHONPATH=. python backend/scripts/cleanup_webhook_outbox.py --sent-days 14 --shadow-days 7 --dead-days 30`
+- `PYTHONPATH=. python backend/scripts/reencrypt_secrets.py` (dry-run)
+- `PYTHONPATH=. python backend/scripts/reencrypt_secrets.py --apply`
 
 ## Runbooks webhook outbox
 
 - Rollout gradual: `docs/webhook_outbox_rollout.md`
 - Sunset do caminho legado (release futura): `docs/webhook_outbox_legacy_sunset.md`
 - Dashboard SQL (Postgres): `backend/scripts/sql/webhook_outbox_dashboard.sql`
+- Healthcheck dedicado do worker: `python backend/scripts/webhook_worker_healthcheck.py`
 - Plano de execucao QA + Arquitetura (2 sprints): `docs/sprint-plan-qa-architecture.md`
+
+## Rotacao de chaves (Fernet)
+
+- Guia operacional: `docs/key_rotation.md`
+- Re-encriptacao assistida: `python backend/scripts/reencrypt_secrets.py --apply`
 
 Executar dashboard SQL no compose local:
 

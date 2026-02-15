@@ -89,6 +89,17 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-preview-09-2025}
       WEBHOOK_OUTBOX_ENABLED: "true"
       WEBHOOK_OUTBOX_SEND_ENABLED: "true"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "scripts/webhook_worker_healthcheck.py",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy

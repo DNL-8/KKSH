@@ -61,6 +61,12 @@ AI_REQUEST_ERRORS_TOTAL = Counter(
     labelnames=["endpoint", "error_type"],
 )
 
+AI_RATE_LIMITED_TOTAL = Counter(
+    "ai_rate_limited_total",
+    "Total AI requests rejected by local quota/rate-limits",
+    labelnames=["scope"],
+)
+
 
 def route_label(scope: dict[str, Any]) -> str:
     """Return a stable route label (template path) when possible."""
@@ -124,6 +130,11 @@ def record_ai_request(endpoint: str, duration_s: float) -> None:
 def record_ai_error(endpoint: str, error_type: str = "unknown") -> None:
     """Record an AI request error (quota, timeout, invalid, etc)."""
     AI_REQUEST_ERRORS_TOTAL.labels(endpoint=endpoint, error_type=error_type).inc()
+
+
+def record_ai_rate_limited(scope: str) -> None:
+    """Record a local AI rate-limit/quota rejection."""
+    AI_RATE_LIMITED_TOTAL.labels(scope=scope).inc()
 
 
 def render_metrics() -> tuple[bytes, str]:

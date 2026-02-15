@@ -46,12 +46,22 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
    | `AI_USER_DAILY_WINDOW_SEC` | `86400` | Janela diaria da quota por usuario |
    | `AI_GUEST_DAILY_MAX` | `10` | Quota diaria para guest (sem login) |
    | `AI_GUEST_DAILY_WINDOW_SEC` | `86400` | Janela diaria da quota guest |
+   | `WEBHOOK_SECRET_ENC_KEY_PREV` | `(opcional)` | Chaves antigas (csv) para fase de rotacao |
+   | `WEBHOOK_WORKER_HEARTBEAT_FILE` | `/tmp/webhook_worker_heartbeat.json` | Arquivo de heartbeat do worker |
+   | `WEBHOOK_WORKER_HEARTBEAT_MAX_AGE_SEC` | `120` | Maximo de atraso aceito no heartbeat |
    | `WEBHOOK_OUTBOX_ENABLED` | `true` | Ativa processamento de webhooks |
    | `DB_POOL_SIZE` | `5` | Tamanho do pool de conexões (opcional para Turso) |
 
 6. Clique em **Create Web Service**.
 
 > **Nota**: O Render pode demorar alguns minutos no primeiro deploy.
+
+### Hardening recomendado (sessao/cookies)
+
+- Defina `COOKIE_SAMESITE=lax` (ou `strict` quando possivel).
+- Defina `COOKIE_SECURE=true` em producao.
+- Mantenha `CSRF_ENABLED=true` para fluxos com cookie-auth.
+- Configure `CONTENT_SECURITY_POLICY` estrita para seu dominio same-origin.
 
 ---
 

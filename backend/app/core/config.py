@@ -116,6 +116,8 @@ class Settings(BaseSettings):
 
     # Webhook secret encryption (Fernet-compatible key, urlsafe base64-encoded 32-byte key)
     webhook_secret_enc_key: str = ""
+    # Optional comma-separated previous keys kept temporarily during key rotation.
+    webhook_secret_enc_key_prev: str = ""
     webhook_secret_key_id: str = "v1"
     webhook_outbox_enabled: bool = False
     webhook_outbox_send_enabled: bool = False
@@ -127,6 +129,8 @@ class Settings(BaseSettings):
     webhook_worker_backoff_max_sec: int = 900
     webhook_worker_backoff_jitter_sec: int = 2
     webhook_delivery_timeout_sec: float = 3.0
+    webhook_worker_heartbeat_file: str = "/tmp/webhook_worker_heartbeat.json"
+    webhook_worker_heartbeat_max_age_sec: int = 120
 
     # Rate limiting (in-memory, single-instance)
     rate_limit_default_max: int = 120
@@ -225,6 +229,10 @@ class Settings(BaseSettings):
     @property
     def metrics_allowed_ips_list(self) -> list[str]:
         return [ip.strip() for ip in self.metrics_allowed_ips.split(",") if ip.strip()]
+
+    @property
+    def webhook_secret_enc_key_prev_list(self) -> list[str]:
+        return [k.strip() for k in self.webhook_secret_enc_key_prev.split(",") if k.strip()]
 
     @property
     def frontend_dist_dir(self) -> Path:

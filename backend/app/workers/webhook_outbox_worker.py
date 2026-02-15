@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import logging
 import random
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import sqlalchemy as sa
 from sqlmodel import Session, select
@@ -32,6 +34,23 @@ logger = logging.getLogger("app")
 
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _write_heartbeat(*, worker_id: str, stats: dict[str, int] | None = None) -> None:
+    path = Path(settings.webhook_worker_heartbeat_file)
+    payload = {
+        "worker_id": worker_id,
+        "ts": _now_utc().isoformat(),
+        "stats": stats or {},
+    }
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        logger.exception(
+            "webhook_outbox_heartbeat_write_failed",
+            extra={"worker_id": worker_id, "heartbeat_file": str(path)},
+        )
 
 
 def _backoff_seconds(attempt_count: int) -> int:
@@ -315,6 +334,7 @@ def process_once(worker_id: str) -> dict[str, int]:
         "dead": 0,
     }
     if not settings.webhook_outbox_enabled:
+        _write_heartbeat(worker_id=worker_id, stats=stats)
         return stats
 
     with Session(engine) as session:
@@ -324,7 +344,11 @@ def process_once(worker_id: str) -> dict[str, int]:
         if claimed:
             logger.info(
                 "webhook_outbox_claimed",
-                extra={"worker_id": worker_id, "count": len(claimed)},
+                extra={
+                    "worker_id": worker_id,
+                    "count": len(claimed),
+                    "correlation_id": f"worker:{worker_id}:{int(_now_utc().timestamp())}",
+                },
             )
 
         for row in claimed:
@@ -335,7 +359,12 @@ def process_once(worker_id: str) -> dict[str, int]:
                 record_webhook_outbox_sent()
                 logger.info(
                     "webhook_outbox_sent",
-                    extra={"worker_id": worker_id, "outbox_id": row.id, "webhook_id": row.webhook_id},
+                    extra={
+                        "worker_id": worker_id,
+                        "outbox_id": row.id,
+                        "webhook_id": row.webhook_id,
+                        "correlation_id": str(row.id),
+                    },
                 )
             elif outcome == OUTBOX_STATUS_RETRY:
                 stats["retried"] += 1
@@ -346,9 +375,10 @@ def process_once(worker_id: str) -> dict[str, int]:
                         "worker_id": worker_id,
                         "outbox_id": row.id,
                         "attempt_count": int(row.attempt_count or 0),
-                        "next_attempt_at": row.next_attempt_at.isoformat()
-                        if row.next_attempt_at
-                        else None,
+                        "next_attempt_at": (
+                            row.next_attempt_at.isoformat() if row.next_attempt_at else None
+                        ),
+                        "correlation_id": str(row.id),
                     },
                 )
             elif outcome == OUTBOX_STATUS_DEAD:
@@ -361,17 +391,20 @@ def process_once(worker_id: str) -> dict[str, int]:
                         "outbox_id": row.id,
                         "attempt_count": int(row.attempt_count or 0),
                         "last_error": row.last_error,
+                        "correlation_id": str(row.id),
                     },
                 )
 
         _set_outbox_depth(session)
 
+    _write_heartbeat(worker_id=worker_id, stats=stats)
     return stats
 
 
 def run_forever(worker_id: str) -> None:
     poll_interval_sec = max(0.1, float(settings.webhook_worker_poll_interval_ms) / 1000.0)
     error_backoff_sec = max(1.0, poll_interval_sec)
+    _write_heartbeat(worker_id=worker_id, stats={"started": 1})
     while True:
         try:
             process_once(worker_id=worker_id)

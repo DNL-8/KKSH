@@ -31,6 +31,23 @@ def _fernet() -> Fernet:
     return Fernet(key)
 
 
+def _fernet_candidates() -> list[Fernet]:
+    candidates: list[Fernet] = []
+    seen: set[bytes] = set()
+
+    def _push(raw: str) -> None:
+        material = _normalize_key_material(raw)
+        if material in seen:
+            return
+        seen.add(material)
+        candidates.append(Fernet(material))
+
+    _push(settings.webhook_secret_enc_key)
+    for previous in settings.webhook_secret_enc_key_prev_list:
+        _push(previous)
+    return candidates
+
+
 def encrypt_webhook_secret(secret: str) -> tuple[str, str]:
     if not secret:
         return "", settings.webhook_secret_key_id or "v1"
@@ -41,17 +58,17 @@ def encrypt_webhook_secret(secret: str) -> tuple[str, str]:
 def decrypt_webhook_secret(secret_encrypted: str | None) -> str | None:
     if not secret_encrypted:
         return None
-    try:
-        value = _fernet().decrypt(secret_encrypted.encode("utf-8"))
-        return value.decode("utf-8")
-    except InvalidToken:
-        return None
+    for fernet in _fernet_candidates():
+        try:
+            value = fernet.decrypt(secret_encrypted.encode("utf-8"))
+            return value.decode("utf-8")
+        except InvalidToken:
+            continue
+    return None
 
-
-# ── Generic helpers (used for gemini_api_key and other sensitive fields) ──
 
 def encrypt_secret(plaintext: str) -> str:
-    """Encrypt an arbitrary secret using the same Fernet key."""
+    """Encrypt an arbitrary secret using the current Fernet key."""
     if not plaintext:
         return ""
     return _fernet().encrypt(plaintext.encode("utf-8")).decode("utf-8")
@@ -61,9 +78,10 @@ def decrypt_secret(ciphertext: str | None) -> str | None:
     """Decrypt an arbitrary secret. Returns original plaintext on failure (migration)."""
     if not ciphertext:
         return None
-    try:
-        return _fernet().decrypt(ciphertext.encode("utf-8")).decode("utf-8")
-    except InvalidToken:
-        # Not encrypted yet (pre-migration plaintext) — return as-is.
-        return ciphertext
-
+    for fernet in _fernet_candidates():
+        try:
+            return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")
+        except InvalidToken:
+            continue
+    # Not encrypted yet (pre-migration plaintext) - return as-is.
+    return ciphertext

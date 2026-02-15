@@ -14,7 +14,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_optional_user
-from app.core.metrics import record_ai_error, record_ai_request
+from app.core.metrics import record_ai_error, record_ai_rate_limited, record_ai_request
 from app.core.rate_limit import Rule, client_ip, get_redis_client, rate_limit
 from app.models import SystemWindowMessage, User
 
@@ -544,6 +544,7 @@ async def _enforce_fixed_window_limit(
             count = int(await redis_client.incr(key))
             await redis_client.expire(key, int(window_seconds) + 5)
             if count > max_requests:
+                record_ai_rate_limited(scope)
                 _error(
                     status.HTTP_429_TOO_MANY_REQUESTS,
                     code="rate_limited",
@@ -565,6 +566,7 @@ async def _enforce_fixed_window_limit(
         bucket.popleft()
 
     if len(bucket) >= max_requests:
+        record_ai_rate_limited(scope)
         _error(
             status.HTTP_429_TOO_MANY_REQUESTS,
             code="rate_limited",
