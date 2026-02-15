@@ -90,15 +90,18 @@ def ensure_user_inventory(session: Session, user: User) -> list[UserInventory]:
     return rows
 
 
-def list_inventory(session: Session, user: User) -> list[dict]:
-    rows = ensure_user_inventory(session, user)
+def list_inventory(session: Session, user: User, *, ensure_defaults: bool = True) -> list[dict]:
+    rows = (
+        ensure_user_inventory(session, user)
+        if ensure_defaults
+        else session.exec(select(UserInventory).where(UserInventory.user_id == user.id)).all()
+    )
     by_id = {r.item_id: r for r in rows}
     out: list[dict] = []
 
     for item_id, meta in INVENTORY_CATALOG.items():
         row = by_id.get(item_id)
         if not row:
-            # should not happen after ensure_user_inventory, but keep defensive fallback
             out.append(
                 {
                     "id": item_id,

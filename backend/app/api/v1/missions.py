@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlmodel import Session, select
 
-from app.core.audit import log_event
+from app.core.audit import command_audit_metadata, log_event
 from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_or_create_study_plan
 from app.core.rate_limit import Rule, rate_limit
@@ -151,8 +151,8 @@ def start_mission_instance(
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    key = require_idempotency_key(idempotency_key)
     try:
+        key = require_idempotency_key(idempotency_key)
         result = start_mission(
             session,
             user=user,
@@ -164,7 +164,11 @@ def start_mission_instance(
             request,
             "mission.start",
             user=user,
-            metadata={"missionInstanceId": mission_instance_id},
+            metadata=command_audit_metadata(
+                command_type="mission.start",
+                idempotency_key=key,
+                extra={"missionInstanceId": mission_instance_id},
+            ),
             commit=False,
         )
         session.commit()
@@ -190,8 +194,8 @@ def claim_mission_instance(
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    key = require_idempotency_key(idempotency_key)
     try:
+        key = require_idempotency_key(idempotency_key)
         result = claim_mission_reward(
             session,
             user=user,
@@ -203,7 +207,11 @@ def claim_mission_instance(
             request,
             "mission.claim",
             user=user,
-            metadata={"missionInstanceId": mission_instance_id},
+            metadata=command_audit_metadata(
+                command_type="mission.claim",
+                idempotency_key=key,
+                extra={"missionInstanceId": mission_instance_id},
+            ),
             commit=False,
         )
         session.commit()

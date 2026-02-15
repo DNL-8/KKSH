@@ -248,7 +248,8 @@ class ProgressionOut(BaseModel):
 
 class ApplyXpEventIn(BaseModel):
     eventType: Literal["video.lesson.completed", "review.completed", "combat.victory"]
-    occurredAt: str
+    occurredAt: datetime
+    sourceRef: Optional[str] = Field(default=None, min_length=3, max_length=180)
     payload: dict[str, object] = Field(default_factory=dict)
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
@@ -10,6 +11,26 @@ from app.core.config import settings
 from app.core.rate_limit import client_ip
 from app.core.request_context import get_request_id
 from app.models import AuditEvent, User
+
+
+def idempotency_key_hash(idempotency_key: str | None) -> str:
+    key = (idempotency_key or "").strip()
+    if not key:
+        return ""
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return f"sha256:{digest[:16]}"
+
+
+def command_audit_metadata(
+    *,
+    command_type: str,
+    idempotency_key: str | None,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    metadata: dict[str, Any] = dict(extra or {})
+    metadata["commandType"] = command_type
+    metadata["idempotencyKeyHash"] = idempotency_key_hash(idempotency_key)
+    return metadata
 
 
 def log_event(

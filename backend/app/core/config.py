@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     ai_mission_regen_cooldown_sec: int = 60 * 60
     xp_ruleset_version: int = 1
     ff_ledger_write: bool = True
-    ff_enforce_idempotency: bool = False
+    ff_enforce_idempotency: bool = True
 
     # Webhook secret encryption (Fernet-compatible key, urlsafe base64-encoded 32-byte key)
     webhook_secret_enc_key: str = ""
@@ -175,6 +175,8 @@ class Settings(BaseSettings):
                 raise ValueError("SEED_DEV_DATA must be false in production/staging.")
             if not self.persist_refresh_tokens:
                 raise ValueError("PERSIST_REFRESH_TOKENS must be true in production/staging.")
+            if not self.ff_enforce_idempotency:
+                raise ValueError("FF_ENFORCE_IDEMPOTENCY must be true in production/staging.")
             # SameSite=None requires Secure cookies in browsers
             if self.cookie_samesite.lower() == "none" and not self.cookie_secure_effective:
                 raise ValueError(

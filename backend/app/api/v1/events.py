@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlmodel import Session
 
-from app.core.audit import log_event
+from app.core.audit import command_audit_metadata, log_event
 from app.core.deps import db_session, get_current_user
 from app.core.rate_limit import Rule, rate_limit
 from app.models import User
@@ -30,14 +30,15 @@ def create_event(
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    key = require_idempotency_key(idempotency_key)
     try:
+        key = require_idempotency_key(idempotency_key)
         result = apply_xp_event(
             session,
             user=user,
             event_type=payload.eventType,
             occurred_at=payload.occurredAt,
             payload=dict(payload.payload),
+            source_ref=payload.sourceRef,
             idempotency_key=key,
         )
         log_event(
@@ -45,7 +46,11 @@ def create_event(
             request,
             "event.applied",
             user=user,
-            metadata={"eventType": payload.eventType},
+            metadata=command_audit_metadata(
+                command_type="event.apply_xp",
+                idempotency_key=key,
+                extra={"eventType": payload.eventType},
+            ),
             commit=False,
         )
         session.commit()
@@ -56,4 +61,3 @@ def create_event(
     except Exception:
         session.rollback()
         raise
-

@@ -3,24 +3,36 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
+from uuid import uuid4
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
+from app.core.config import settings
 from app.models import (
+    CombatBattle,
     CommandIdempotency,
     DailyQuest,
+    DrillReview,
     RewardClaim,
     StudySession,
     User,
+    UserStats,
     WeeklyQuest,
     XpLedgerEvent,
 )
-from app.services.progression import apply_xp_gold, get_or_create_user_stats, progress_to_dict
+from app.services.progression import apply_xp_gold, progress_to_dict, rank_from_level
 from app.services.utils import now_local, week_key
 
 MissionCycle = Literal["daily", "weekly"]
+EVENT_MAX_AGE_DAYS = 7
+EVENT_MAX_FUTURE_SECONDS = 300
+EVENT_DAILY_CAPS: dict[str, dict[str, int]] = {
+    "video.lesson.completed": {"xp": 1800, "gold": 360},
+    "review.completed": {"xp": 2400, "gold": 800},
+    "combat.victory": {"xp": 1200, "gold": 480},
+}
 
 
 @dataclass
@@ -41,11 +53,13 @@ class CommandError(Exception):
 def require_idempotency_key(value: str | None) -> str:
     key = (value or "").strip()
     if not key:
-        raise CommandError(
-            status_code=422,
-            code="idempotency_key_required",
-            message="Idempotency-Key header is required",
-        )
+        if settings.ff_enforce_idempotency:
+            raise CommandError(
+                status_code=422,
+                code="idempotency_key_required",
+                message="Idempotency-Key header is required",
+            )
+        return f"legacy-{uuid4()}"
     if len(key) > 128:
         raise CommandError(
             status_code=422,
@@ -315,13 +329,210 @@ def _compute_event_deltas(event_type: str, payload: dict[str, Any]) -> tuple[int
     )
 
 
+def _normalize_event_occurred_at(occurred_at: datetime) -> datetime:
+    if occurred_at.tzinfo is None:
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="occurredAt must include timezone information",
+            details={"field": "occurredAt"},
+        )
+
+    normalized = occurred_at.astimezone(timezone.utc)
+    now_utc = datetime.now(timezone.utc)
+    if normalized > now_utc + timedelta(seconds=EVENT_MAX_FUTURE_SECONDS):
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="occurredAt is too far in the future",
+            details={"field": "occurredAt", "maxFutureSec": EVENT_MAX_FUTURE_SECONDS},
+        )
+    if normalized < now_utc - timedelta(days=EVENT_MAX_AGE_DAYS):
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="occurredAt is too old",
+            details={"field": "occurredAt", "maxAgeDays": EVENT_MAX_AGE_DAYS},
+        )
+    return normalized
+
+
+def _normalize_source_ref(source_ref: str | None, payload: dict[str, Any]) -> str:
+    top_level = (source_ref or "").strip()
+    payload_source = str(payload.get("sourceRef", "")).strip()
+
+    if top_level and payload_source and payload_source != top_level:
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="sourceRef mismatch between top-level and payload",
+            details={"field": "sourceRef"},
+        )
+
+    resolved = top_level or payload_source
+    if not resolved:
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="sourceRef is required",
+            details={"field": "sourceRef"},
+        )
+    if len(resolved) > 180:
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="sourceRef is too long",
+            details={"field": "sourceRef", "maxLength": 180},
+        )
+    if any(ch.isspace() for ch in resolved):
+        raise CommandError(
+            status_code=422,
+            code="invalid_event_payload",
+            message="sourceRef cannot contain whitespace",
+            details={"field": "sourceRef"},
+        )
+    return resolved
+
+
+def _require_ref_target(source_ref: str, expected_prefix: str) -> str:
+    prefix = f"{expected_prefix}:"
+    if not source_ref.startswith(prefix):
+        raise CommandError(
+            status_code=422,
+            code="invalid_source_ref",
+            message=f"sourceRef must use '{prefix}<id>' format",
+            details={"sourceRef": source_ref},
+        )
+    target_id = source_ref[len(prefix) :].strip()
+    if not target_id:
+        raise CommandError(
+            status_code=422,
+            code="invalid_source_ref",
+            message="sourceRef target is empty",
+            details={"sourceRef": source_ref},
+        )
+    return target_id
+
+
+def _verify_source_ref(
+    session: Session,
+    *,
+    user_id: str,
+    event_type: str,
+    source_ref: str,
+) -> None:
+    if event_type == "video.lesson.completed":
+        session_id = _require_ref_target(source_ref, "session")
+        exists = session.exec(
+            select(StudySession.id).where(
+                StudySession.id == session_id,
+                StudySession.user_id == user_id,
+                StudySession.deleted_at.is_(None),
+            )
+        ).first()
+        if not exists:
+            raise CommandError(
+                status_code=422,
+                code="invalid_source_ref",
+                message="Referenced session does not exist",
+                details={"sourceRef": source_ref},
+            )
+        return
+
+    if event_type == "review.completed":
+        review_id = _require_ref_target(source_ref, "review")
+        exists = session.exec(
+            select(DrillReview.id).where(
+                DrillReview.id == review_id,
+                DrillReview.user_id == user_id,
+            )
+        ).first()
+        if not exists:
+            raise CommandError(
+                status_code=422,
+                code="invalid_source_ref",
+                message="Referenced review does not exist",
+                details={"sourceRef": source_ref},
+            )
+        return
+
+    if event_type == "combat.victory":
+        battle_id = _require_ref_target(source_ref, "battle")
+        battle = session.exec(
+            select(CombatBattle).where(
+                CombatBattle.id == battle_id,
+                CombatBattle.user_id == user_id,
+            )
+        ).first()
+        if not battle or battle.status != "victory":
+            raise CommandError(
+                status_code=422,
+                code="invalid_source_ref",
+                message="Referenced battle is not a valid victory",
+                details={"sourceRef": source_ref},
+            )
+        return
+
+    raise CommandError(
+        status_code=422,
+        code="invalid_event_type",
+        message="Unsupported eventType",
+        details={"eventType": event_type},
+    )
+
+
+def _enforce_daily_event_cap(
+    session: Session,
+    *,
+    user_id: str,
+    event_type: str,
+    xp_delta: int,
+    gold_delta: int,
+) -> None:
+    caps = EVENT_DAILY_CAPS.get(event_type)
+    if not caps:
+        return
+
+    now_utc = datetime.now(timezone.utc)
+    day_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_end = day_start + timedelta(days=1)
+
+    totals = session.exec(
+        select(
+            func.coalesce(func.sum(XpLedgerEvent.xp_delta), 0),
+            func.coalesce(func.sum(XpLedgerEvent.gold_delta), 0),
+        ).where(
+            XpLedgerEvent.user_id == user_id,
+            XpLedgerEvent.source_type == "event",
+            XpLedgerEvent.event_type == event_type,
+            XpLedgerEvent.created_at >= day_start,
+            XpLedgerEvent.created_at < day_end,
+        )
+    ).one()
+    xp_today = int(totals[0] or 0)
+    gold_today = int(totals[1] or 0)
+
+    if xp_today + int(xp_delta) > int(caps["xp"]) or gold_today + int(gold_delta) > int(caps["gold"]):
+        raise CommandError(
+            status_code=429,
+            code="event_daily_cap_exceeded",
+            message="Daily event reward cap exceeded",
+            details={
+                "eventType": event_type,
+                "dailyCap": {"xp": int(caps["xp"]), "gold": int(caps["gold"])},
+                "current": {"xp": xp_today, "gold": gold_today},
+            },
+        )
+
+
 def apply_xp_event(
     session: Session,
     *,
     user: User,
     event_type: str,
-    occurred_at: str,
+    occurred_at: datetime,
     payload: dict[str, Any],
+    source_ref: str | None,
     idempotency_key: str,
 ) -> dict[str, Any]:
     command_type = "event.apply_xp"
@@ -334,8 +545,25 @@ def apply_xp_event(
     if replay:
         return replay
 
+    normalized_occurred_at = _normalize_event_occurred_at(occurred_at)
+    normalized_source_ref = _normalize_source_ref(source_ref, payload)
+    _verify_source_ref(
+        session,
+        user_id=user.id,
+        event_type=event_type,
+        source_ref=normalized_source_ref,
+    )
+
     xp_delta, gold_delta = _compute_event_deltas(event_type, payload)
-    source_ref = str(payload.get("sourceRef", "")).strip() or f"{event_type}:{occurred_at}"
+    _enforce_daily_event_cap(
+        session,
+        user_id=user.id,
+        event_type=event_type,
+        xp_delta=xp_delta,
+        gold_delta=gold_delta,
+    )
+    payload_with_source = dict(payload)
+    payload_with_source["sourceRef"] = normalized_source_ref
 
     try:
         stats, _level_ups = apply_xp_gold(
@@ -347,22 +575,25 @@ def apply_xp_event(
             persist_ledger=True,
             event_type=event_type,
             source_type="event",
-            source_ref=source_ref,
-            payload_json=payload,
+            source_ref=normalized_source_ref,
+            payload_json={
+                **payload_with_source,
+                "occurredAt": normalized_occurred_at.isoformat(),
+            },
         )
     except IntegrityError as exc:
         raise CommandError(
             status_code=409,
             code="duplicate_event",
             message="Event already processed",
-            details={"sourceRef": source_ref},
+            details={"sourceRef": normalized_source_ref},
         ) from exc
 
     ledger_row = session.exec(
         select(XpLedgerEvent).where(
             XpLedgerEvent.user_id == user.id,
             XpLedgerEvent.source_type == "event",
-            XpLedgerEvent.source_ref == source_ref,
+            XpLedgerEvent.source_ref == normalized_source_ref,
         )
     ).first()
 
@@ -416,18 +647,27 @@ def _streak_days(session: Session, *, user_id: str) -> int:
 
 
 def get_progress_payload(session: Session, *, user: User) -> dict[str, Any]:
-    stats = get_or_create_user_stats(session, user)
+    stats = session.exec(select(UserStats).where(UserStats.user_id == user.id)).first()
+    level = int(stats.level) if stats else 1
+    rank = str(getattr(stats, "rank", "") or rank_from_level(level))
+    xp = int(stats.xp) if stats else 0
+    max_xp = int(stats.max_xp) if stats else 1000
+    gold = int(stats.gold) if stats else 0
+    hp = int(stats.hp) if stats else 100
+    mana = int(stats.mana) if stats else 100
+    fatigue = int(stats.fatigue) if stats else 20
+
     return {
-        "level": int(stats.level),
-        "rank": str(stats.rank or "F"),
-        "xp": int(stats.xp),
-        "maxXp": int(stats.max_xp),
-        "gold": int(stats.gold),
+        "level": level,
+        "rank": rank,
+        "xp": xp,
+        "maxXp": max_xp,
+        "gold": gold,
         "streakDays": _streak_days(session, user_id=user.id),
         "vitals": {
-            "hp": int(stats.hp),
-            "mana": int(stats.mana),
-            "fatigue": int(stats.fatigue),
+            "hp": hp,
+            "mana": mana,
+            "fatigue": fatigue,
         },
     }
 

@@ -55,7 +55,7 @@ async def unhandled_error_handler(request: Request, exc: Exception):
         extra={"path": request.url.path, "method": request.method},
     )
     details: dict[str, Any] = {"type": exc.__class__.__name__}
-    if settings.env != "prod":
+    if settings.env in ("dev", "test"):
         details["error"] = repr(exc)
     return JSONResponse(
         status_code=500,

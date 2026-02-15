@@ -41,20 +41,25 @@ export function CombatPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const moduleId = (location.state as CombatLocationState | null)?.moduleId;
-  const currentModule = EXCEL_MODULES.find((moduleItem) => moduleItem.id === moduleId) ?? EXCEL_MODULES[0];
-  const boss = currentModule.boss;
+  const fallbackModule = EXCEL_MODULES[0];
+  const requestedModuleId = (location.state as CombatLocationState | null)?.moduleId;
+  const [activeModuleId, setActiveModuleId] = useState<string>(requestedModuleId ?? fallbackModule.id);
+  const currentModule = EXCEL_MODULES.find((moduleItem) => moduleItem.id === activeModuleId) ?? fallbackModule;
+  const activeModuleIdRef = useRef<string>(activeModuleId);
+
+  const [bossName, setBossName] = useState(currentModule.boss.name);
+  const [bossRank, setBossRank] = useState(currentModule.boss.rank);
 
   const [battleId, setBattleId] = useState<string | null>(null);
   const [loginRequired, setLoginRequired] = useState(false);
-  const [enemyHp, setEnemyHp] = useState(boss.hp);
-  const [enemyMaxHp, setEnemyMaxHp] = useState(boss.hp);
+  const [enemyHp, setEnemyHp] = useState(currentModule.boss.hp);
+  const [enemyMaxHp, setEnemyMaxHp] = useState(currentModule.boss.hp);
   const [playerHp, setPlayerHp] = useState(PLAYER_MAX_HP);
   const [playerMaxHp, setPlayerMaxHp] = useState(PLAYER_MAX_HP);
   const [damagePopup, setDamagePopup] = useState<DamagePopup | null>(null);
   const [shake, setShake] = useState(false);
   const [combatLogs, setCombatLogs] = useState<string[]>([
-    `Batalha iniciada: ${boss.name} [Rank ${boss.rank}]`,
+    "Sincronizando batalha com o servidor...",
   ]);
   const [turnState, setTurnState] = useState<TurnState>("PLAYER_IDLE");
   const [currentQuestion, setCurrentQuestion] = useState<ActiveQuestion | null>(null);
@@ -66,6 +71,14 @@ export function CombatPage() {
   useEffect(() => {
     battleIdRef.current = battleId;
   }, [battleId]);
+
+  useEffect(() => {
+    setActiveModuleId(requestedModuleId ?? fallbackModule.id);
+  }, [fallbackModule.id, requestedModuleId]);
+
+  useEffect(() => {
+    activeModuleIdRef.current = activeModuleId;
+  }, [activeModuleId]);
 
   const pushCombatLog = useCallback((entry: string, maxEntries = 6) => {
     setCombatLogs((previous) => [entry, ...previous].slice(0, maxEntries));
@@ -106,9 +119,15 @@ export function CombatPage() {
       setDamagePopup(null);
       setShake(false);
       try {
-        const result = await startCombatBattle({ moduleId: currentModule.id, reset });
+        const result = await startCombatBattle({
+          moduleId: requestedModuleId ?? activeModuleIdRef.current,
+          reset,
+        });
         setLoginRequired(false);
         applyBattleState(result.battleState);
+        setActiveModuleId(result.moduleId);
+        setBossName(result.boss.name);
+        setBossRank(result.boss.rank);
         setEnemyMaxHp(result.boss.hp);
         setCombatLogs([`Batalha iniciada: ${result.boss.name} [Rank ${result.boss.rank}]`]);
       } catch (error) {
@@ -127,7 +146,7 @@ export function CombatPage() {
         setLoadingBattle(false);
       }
     },
-    [applyBattleState, currentModule.id, pushCombatLog, showToast],
+    [applyBattleState, pushCombatLog, requestedModuleId, showToast],
   );
 
   useEffect(() => {
@@ -187,7 +206,7 @@ export function CombatPage() {
         }
 
         if (result.enemyDamage > 0) {
-          pushCombatLog(`${boss.name} atacou: -${result.enemyDamage} HP`);
+          pushCombatLog(`${bossName} atacou: -${result.enemyDamage} HP`);
         }
 
         if (result.playerDamage > 0 || result.enemyDamage > 0) {
@@ -203,7 +222,7 @@ export function CombatPage() {
 
         if (result.battleState.status === "victory") {
           pushCombatLog(">>> BOSS DERROTADO! VITORIA! <<<");
-          showToast(`${boss.name} derrotado!`, "success");
+          showToast(`${bossName} derrotado!`, "success");
           void syncProgressionFromApi();
         } else if (result.battleState.status === "defeat") {
           pushCombatLog(">>> VOCE FOI DERROTADO <<<");
@@ -222,7 +241,7 @@ export function CombatPage() {
     [
       answering,
       applyBattleState,
-      boss.name,
+      bossName,
       currentQuestion,
       pushCombatLog,
       showToast,
@@ -236,7 +255,7 @@ export function CombatPage() {
   }, [initBattle]);
 
   const handleNextChallenge = useCallback(() => {
-    const currentIndex = EXCEL_MODULES.findIndex((moduleItem) => moduleItem.id === currentModule.id);
+    const currentIndex = EXCEL_MODULES.findIndex((moduleItem) => moduleItem.id === activeModuleId);
     const nextModule = EXCEL_MODULES[currentIndex + 1];
     if (!nextModule) {
       showToast("Voce derrotou todos os modulos. Parabens!", "success");
@@ -244,7 +263,7 @@ export function CombatPage() {
       return;
     }
     navigate("/combate", { state: { moduleId: nextModule.id } });
-  }, [currentModule.id, navigate, showToast]);
+  }, [activeModuleId, navigate, showToast]);
 
   const hpPercent = useMemo(() => clamp((enemyHp / Math.max(1, enemyMaxHp)) * 100, 0, 100), [enemyHp, enemyMaxHp]);
   const playerHpPercent = useMemo(
@@ -306,7 +325,7 @@ export function CombatPage() {
         <div className="relative z-20 mb-10 flex w-full items-start justify-between">
           <div className="flex gap-2">
             <Badge color="bg-red-600 text-white" icon={Skull}>
-              Rank {boss.rank}
+              Rank {bossRank}
             </Badge>
             <Badge color={`${currentModule.color} border-white/10 bg-white/5`} icon={Zap}>
               {currentModule.difficulty}
@@ -352,7 +371,7 @@ export function CombatPage() {
                 <Trophy size={48} className="text-emerald-400" />
               </div>
               <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl">Vitoria!</h2>
-              <p className="text-sm font-black uppercase tracking-[0.3em] text-emerald-400">{boss.name} derrotado</p>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-emerald-400">{bossName} derrotado</p>
               <div className="flex gap-3">
                 <StatPill label="XP ganho" value="Backend" color="text-yellow-400" />
                 <StatPill label="Loot" value="Sincronizado" color="text-purple-400" />
@@ -421,14 +440,14 @@ export function CombatPage() {
           <div className="space-y-4">
             <h2
               className="glitch-text text-4xl font-black uppercase italic leading-none tracking-tighter text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] md:text-8xl"
-              data-text={boss.name.toUpperCase()}
+              data-text={bossName.toUpperCase()}
             >
-              {boss.name.toUpperCase()}
+              {bossName.toUpperCase()}
             </h2>
             <div className="flex justify-center gap-2">
-              <StatPill label="ATK" value={boss.stats.atk} color="text-red-400" />
-              <StatPill label="DEF" value={boss.stats.def} color="text-blue-400" />
-              <StatPill label="SPD" value={boss.stats.spd} color="text-yellow-400" />
+              <StatPill label="ATK" value={currentModule.boss.stats.atk} color="text-red-400" />
+              <StatPill label="DEF" value={currentModule.boss.stats.def} color="text-blue-400" />
+              <StatPill label="SPD" value={currentModule.boss.stats.spd} color="text-yellow-400" />
             </div>
           </div>
 

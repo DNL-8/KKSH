@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from sqlmodel import Session, select
 
 from app.core.audit import log_event
-from app.core.deps import db_session, get_current_user, get_owned_daily_quest
-from app.models import DailyQuest, RewardClaim, User
-from app.services.progression import apply_xp_gold
+from app.core.deps import db_session, get_current_user
+from app.models import DailyQuest, User
+from app.services.backend_first import CommandError, claim_mission_reward
 
 router = APIRouter()
 
@@ -15,57 +16,44 @@ router = APIRouter()
 @router.post("/{quest_id}/claim", status_code=204)
 def claim_quest(
     request: Request,
-    quest: DailyQuest = Depends(get_owned_daily_quest),
+    quest_id: str,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
-    if quest.claimed:
-        return None
-    if int(quest.progress_minutes) < int(quest.target_minutes):
-        raise HTTPException(status_code=400, detail="Quest not completed")
+    quest = session.exec(
+        select(DailyQuest).where(DailyQuest.id == quest_id, DailyQuest.user_id == user.id)
+    ).first()
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
 
-    xp_delta = int(quest.reward_xp) if quest.reward_xp is not None else 50
-    gold_delta = int(quest.reward_gold) if quest.reward_gold is not None else 25
+    key = (idempotency_key or "").strip() or f"legacy-daily-{quest_id}-{uuid4()}"
     try:
-        claim = RewardClaim(
-            user_id=user.id,
-            mission_cycle="daily",
-            mission_id=quest.id,
-            reward_xp=xp_delta,
-            reward_gold=gold_delta,
-        )
-        session.add(claim)
-        session.flush()
-
-        quest.claimed = True
-        session.add(quest)
-        apply_xp_gold(
+        claim_mission_reward(
             session,
-            user,
-            xp_delta=xp_delta,
-            gold_delta=gold_delta,
-            autocommit=False,
-            persist_ledger=True,
-            event_type="daily.quest.claim",
-            source_type="daily_quest",
-            source_ref=quest.id,
-            payload_json={"questId": quest.id, "date": quest.date_key},
+            user=user,
+            mission_instance_id=quest_id,
+            idempotency_key=key,
         )
-
         log_event(
             session,
             request,
             "quest.claim",
             user=user,
-            metadata={"questId": quest.id, "date": quest.date_key},
+            metadata={"questId": quest_id, "date": quest.date_key},
             commit=False,
         )
         session.commit()
-    except IntegrityError:
+    except CommandError as exc:
         session.rollback()
-        # Unique reward claim hit by race/retry; keep legacy idempotent behavior.
-        return None
+        if exc.code == "mission_already_claimed":
+            return None
+        if exc.code == "mission_not_completed":
+            raise HTTPException(status_code=400, detail="Quest not completed") from exc
+        raise HTTPException(status_code=exc.status_code, detail=exc.to_http_detail()) from exc
     except Exception:
         session.rollback()
         raise
+    if bool(quest.claimed):
+        return None
     return None

@@ -81,6 +81,8 @@ export function HubPage() {
   const hubState = authUser ? (hubQuery.data ?? null) : null;
   const loading = authUser ? hubQuery.isFetching : false;
   const error = authUser && hubQuery.error ? toHubErrorMessage(hubQuery.error) : null;
+  const progression = hubState?.progression ?? null;
+  const vitals = hubState?.vitals ?? null;
 
   const refreshHub = async () => {
     if (!authUser) {
@@ -102,6 +104,12 @@ export function HubPage() {
 
   const dueReviews = Math.max(0, Number(hubState?.dueReviews ?? 0));
   const streakDays = Math.max(0, Number(hubState?.streakDays ?? globalStats.streak));
+  const currentRank = String(progression?.rank ?? globalStats.rank ?? "F");
+  const currentLevel = Math.max(1, Number(progression?.level ?? globalStats.level ?? 1));
+  const currentXp = Math.max(0, Number(progression?.xp ?? globalStats.xp ?? 0));
+  const currentMaxXp = Math.max(1, Number(progression?.maxXp ?? globalStats.maxXp ?? 1));
+  const currentHp = Math.max(0, Number(vitals?.hp ?? globalStats.hp ?? 0));
+  const currentMana = Math.max(0, Number(vitals?.mana ?? globalStats.mana ?? 0));
   const openDailyQuests = dailyQuests.filter((quest) => !quest.claimed).length;
 
   const bossEnergyPercent = activeQuest
@@ -190,7 +198,7 @@ export function HubPage() {
                 </div>
               </div>
               <div className="absolute -bottom-2 -right-2 rounded-xl border-2 border-[#0a0a0b] bg-[hsl(var(--accent))] px-3 py-1 text-[11px] font-black text-black shadow-lg">
-                RANK {globalStats.rank}
+                RANK {currentRank}
               </div>
             </div>
             <div className="space-y-2">
@@ -199,7 +207,7 @@ export function HubPage() {
               </div>
               <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest text-[hsl(var(--accent))]">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-[hsl(var(--accent))] shadow-[0_0_8px_rgba(var(--glow),1)]" />
-                Nivel {globalStats.level} Operacional
+                Nivel {currentLevel} Operacional
               </div>
               <div className="flex gap-1.5 pt-1">
                 <Tooltip content={`Buff: Disciplina (${todayPercent}% da meta diaria)`}>
@@ -219,24 +227,24 @@ export function HubPage() {
           <div className="space-y-4">
             <ProgressBar
               label="Integridade (HP)"
-              value={globalStats.hp}
+              value={currentHp}
               color="bg-red-600"
               glow="shadow-[0_0_20px_rgba(220,38,38,0.4)]"
               subLabel={`Meta diaria: ${todayMinutes}/${dailyTarget} min`}
             />
             <ProgressBar
               label="Foco Mental (MP)"
-              value={globalStats.mana}
+              value={currentMana}
               color="bg-blue-600"
               glow="shadow-[0_0_20px_rgba(37,99,235,0.4)]"
               subLabel={`Revisoes pendentes: ${dueReviews}`}
             />
             <ProgressBar
               label="Sincronia (XP)"
-              value={Math.floor((globalStats.xp / globalStats.maxXp) * 100)}
+              value={Math.floor((currentXp / currentMaxXp) * 100)}
               color="bg-yellow-500"
               glow="shadow-[0_0_20px_rgba(234,179,8,0.4)]"
-              subLabel={`${globalStats.xp}/${globalStats.maxXp}`}
+              subLabel={`${currentXp}/${currentMaxXp}`}
             />
           </div>
 
@@ -396,7 +404,7 @@ export function HubPage() {
             icon={TrendingUp}
             title="Status Evolucao"
             val={`Streak: ${streakDays} dias`}
-            sub={`Nivel ${globalStats.level} • ${weekPercent}% semana`}
+            sub={`Nivel ${currentLevel} • ${weekPercent}% semana`}
             color="text-purple-500"
             onClick={() => navigateTo("/evolucao")}
           >

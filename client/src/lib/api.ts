@@ -642,16 +642,25 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardOut> {
 export async function startCombatBattle(payload: {
   moduleId?: string;
   reset?: boolean;
-}): Promise<CombatStartOut> {
+}, idempotencyKey?: string): Promise<CombatStartOut> {
   return requestJson<CombatStartOut>("/api/v1/combat/start", {
     method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
     body: JSON.stringify(payload),
   });
 }
 
-export async function drawCombatQuestion(battleId: string): Promise<CombatQuestionEnvelopeOut> {
+export async function drawCombatQuestion(
+  battleId: string,
+  idempotencyKey?: string,
+): Promise<CombatQuestionEnvelopeOut> {
   return requestJson<CombatQuestionEnvelopeOut>("/api/v1/combat/question", {
     method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
     body: JSON.stringify({ battleId }),
   });
 }

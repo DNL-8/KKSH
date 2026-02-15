@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.deps import db_session, get_current_user, get_or_create_user_settings, is_admin
-from app.models import User
+from app.models import User, UserSettings
 from app.schemas import UpdateSettingsIn, UserSettingsOut
 
 router = APIRouter()
@@ -29,7 +29,20 @@ def _row_to_out(row) -> UserSettingsOut:
 
 @router.get("", response_model=UserSettingsOut)
 def get_settings(session: Session = Depends(db_session), user: User = Depends(get_current_user)):
-    row = get_or_create_user_settings(user, session)
+    row = session.exec(select(UserSettings).where(UserSettings.user_id == user.id)).first()
+    if row is None:
+        return UserSettingsOut(
+            dailyTargetMinutes=60,
+            pomodoroWorkMin=25,
+            pomodoroBreakMin=5,
+            timezone="America/Sao_Paulo",
+            language="pt-BR",
+            reminderEnabled=True,
+            reminderTime="20:00",
+            reminderEveryMin=5,
+            xpPerMinute=5,
+            goldPerMinute=1,
+        )
     return _row_to_out(row)
 
 

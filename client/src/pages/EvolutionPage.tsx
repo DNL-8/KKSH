@@ -29,6 +29,7 @@ import {
   listSessions,
   type AchievementOut,
   type MonthlyReportOut,
+  type ProgressionOut,
   type SessionOut,
   type WeeklyReportOut,
 } from "../lib/api";
@@ -54,6 +55,7 @@ interface EvolutionData {
   achievements: AchievementOut[];
   sessions: SessionOut[];
   dailyTargetMinutes: number;
+  progression: ProgressionOut | null;
 }
 
 interface AttributeCard {
@@ -169,6 +171,7 @@ export function EvolutionPage() {
         achievements,
         sessions,
         dailyTargetMinutes: Math.max(10, Number(appState.settings?.dailyTargetMinutes ?? 60)),
+        progression: appState.progression ?? null,
       };
     },
   });
@@ -184,6 +187,13 @@ export function EvolutionPage() {
     await evolutionQuery.refetch();
   };
 
+  const currentProgression = data?.progression;
+  const currentLevel = Math.max(1, Number(currentProgression?.level ?? globalStats.level ?? 1));
+  const currentRank = String(currentProgression?.rank ?? globalStats.rank ?? "F");
+  const currentXp = Math.max(0, Number(currentProgression?.xp ?? globalStats.xp ?? 0));
+  const currentMaxXp = Math.max(1, Number(currentProgression?.maxXp ?? globalStats.maxXp ?? 1));
+  const currentGold = Math.max(0, Number(currentProgression?.gold ?? globalStats.gold ?? 0));
+
   const weeklyTargetMinutes = useMemo(() => {
     return Math.max(1, (data?.dailyTargetMinutes ?? 60) * 7);
   }, [data?.dailyTargetMinutes]);
@@ -191,14 +201,14 @@ export function EvolutionPage() {
   const attributes = useMemo<AttributeCard[]>(() => {
     const weekMinutes = data?.weekly.totalMinutes ?? 0;
     const streakDays = data?.weekly.streakDays ?? globalStats.streak;
-    const xpPercent = (globalStats.xp / Math.max(1, globalStats.maxXp)) * 100;
+    const xpPercent = (currentXp / Math.max(1, currentMaxXp)) * 100;
     const unlockedCount = data?.achievements.filter((achievement) => achievement.unlocked).length ?? 0;
 
     return [
       {
         label: "INT",
-        value: clampPercent(globalStats.level * 8 + xpPercent * 0.4),
-        desc: `Nivel ${globalStats.level} e XP ${globalStats.xp}/${globalStats.maxXp}`,
+        value: clampPercent(currentLevel * 8 + xpPercent * 0.4),
+        desc: `Nivel ${currentLevel} e XP ${currentXp}/${currentMaxXp}`,
         color: "text-blue-400",
       },
       {
@@ -220,7 +230,7 @@ export function EvolutionPage() {
         color: "text-green-400",
       },
     ];
-  }, [data, globalStats.level, globalStats.maxXp, globalStats.streak, globalStats.xp, weeklyTargetMinutes]);
+  }, [currentLevel, currentMaxXp, currentXp, data, globalStats.streak, weeklyTargetMinutes]);
 
   const heatmap = useMemo<HeatmapCell[]>(() => {
     const byDay = new Map<string, number>();
@@ -304,17 +314,17 @@ export function EvolutionPage() {
 
         <div className="relative z-10 mb-8 rounded-3xl border border-slate-800/80 bg-slate-950/70 p-6">
           <div className="mb-4 flex items-center gap-2">
-            <Badge color="border-cyan-500/20 bg-cyan-500/10 text-cyan-500">Rank {globalStats.rank}</Badge>
-            <Badge color="border-yellow-500/20 bg-yellow-500/10 text-yellow-500">Nivel {globalStats.level}</Badge>
+            <Badge color="border-cyan-500/20 bg-cyan-500/10 text-cyan-500">Rank {currentRank}</Badge>
+            <Badge color="border-yellow-500/20 bg-yellow-500/10 text-yellow-500">Nivel {currentLevel}</Badge>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">XP</div>
-              <div className="text-xl font-black text-white">{globalStats.xp}</div>
+              <div className="text-xl font-black text-white">{currentXp}</div>
             </div>
             <div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Gold</div>
-              <div className="text-xl font-black text-white">{globalStats.gold}</div>
+              <div className="text-xl font-black text-white">{currentGold}</div>
             </div>
             <div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Streak</div>

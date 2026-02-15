@@ -60,6 +60,17 @@ _AUTH_RULE = Rule(
 )
 
 
+def _auth_error(status_code: int = status.HTTP_401_UNAUTHORIZED) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={
+            "code": "auth_failed",
+            "message": "Authentication failed",
+            "details": {},
+        },
+    )
+
+
 @router.post(
     "/signup",
     response_model=AuthOut,
@@ -71,7 +82,7 @@ def signup(
     normalized_email = str(payload.email).strip().lower()
     existing = session.exec(select(User).where(func.lower(User.email) == normalized_email)).first()
     if existing:
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise _auth_error(status_code=status.HTTP_409_CONFLICT)
 
     user = User(email=normalized_email, password_hash=hash_password(payload.password))
     session.add(user)
@@ -110,7 +121,7 @@ def login(
     candidates = session.exec(select(User).where(func.lower(User.email) == normalized_email)).all()
     user = next((u for u in candidates if verify_password(payload.password, u.password_hash)), None)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise _auth_error()
 
     # Backfill canonical state for legacy users created before backend-first rollout.
     now = now_local()
@@ -155,27 +166,27 @@ def refresh_token(request: Request, response: Response, session: Session = Depen
     # Refresh uses the refresh_token cookie to mint a new access token.
     token = request.cookies.get("refresh_token")
     if not token:
-        raise HTTPException(status_code=401, detail="Missing refresh token")
+        raise _auth_error()
 
     try:
         payload = decode_token(token)
         if payload.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise _auth_error()
         user_id = payload.get("sub")
         # Backward compatible: legacy refresh tokens may not have jti.
         token_jti = payload.get("jti")
         if token_jti is not None and (not isinstance(token_jti, str) or not token_jti.strip()):
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise _auth_error()
     except (InvalidTokenError, HTTPException) as err:
-        raise HTTPException(status_code=401, detail="Invalid token") from err
+        raise _auth_error() from err
 
     user = session.exec(select(User).where(User.id == user_id)).first()
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise _auth_error()
 
     # Optional DB-backed refresh token check/rotation
     if not is_refresh_token_active(session, refresh_token=token):
-        raise HTTPException(status_code=401, detail="Refresh token revoked/expired")
+        raise _auth_error()
 
     access = create_access_token(user.id)
     refresh = create_refresh_token(user.id)

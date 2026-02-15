@@ -151,7 +151,18 @@ def start_battle(
     user: User,
     module_id: str | None,
     reset: bool = False,
+    idempotency_key: str,
 ) -> dict[str, Any]:
+    command_type = "combat.start"
+    replay = idempotency_replay(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+    )
+    if replay:
+        return replay
+
     module = get_combat_module(module_id)
     battle = None if reset else _active_battle(session, user_id=user.id, module_id=module["id"])
     if battle is None:
@@ -174,7 +185,7 @@ def start_battle(
         session.add(battle)
         session.flush()
 
-    return {
+    result_payload = {
         "moduleId": module["id"],
         "boss": {
             "name": module["boss"]["name"],
@@ -185,6 +196,14 @@ def start_battle(
         "question": None,
         "progress": _progress_payload(session, user),
     }
+    return save_idempotency_result(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+        response_json=result_payload,
+        status_code=200,
+    )
 
 
 def draw_question(
@@ -192,7 +211,18 @@ def draw_question(
     *,
     user: User,
     battle_id: str,
+    idempotency_key: str,
 ) -> dict[str, Any]:
+    command_type = "combat.question"
+    replay = idempotency_replay(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+    )
+    if replay:
+        return replay
+
     battle = session.exec(
         select(CombatBattle).where(CombatBattle.id == battle_id, CombatBattle.user_id == user.id)
     ).first()
@@ -235,7 +265,7 @@ def draw_question(
     battle.updated_at = datetime.now(timezone.utc)
     session.add(battle)
 
-    return {
+    result_payload = {
         "battleState": _battle_state_payload(battle),
         "question": {
             "id": question["id"],
@@ -243,6 +273,14 @@ def draw_question(
             "options": list(question["options"]),
         },
     }
+    return save_idempotency_result(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+        response_json=result_payload,
+        status_code=200,
+    )
 
 
 def answer_question(
@@ -354,4 +392,3 @@ def answer_question(
         response_json=result_payload,
         status_code=200,
     )
-
