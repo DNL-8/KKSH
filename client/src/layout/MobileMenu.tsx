@@ -1,9 +1,10 @@
-import { Hexagon, Settings, X } from "lucide-react";
+
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { NAV_ITEMS } from "./Sidebar";
+import { Icon } from "../components/common/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  All nav items including config for mobile                         */
@@ -11,7 +12,7 @@ import { NAV_ITEMS } from "./Sidebar";
 
 const ALL_NAV_ITEMS = [
     ...NAV_ITEMS,
-    { id: "config", label: "Ajustes de Nucleo", path: "/config", icon: Settings },
+    { id: "config", label: "Ajustes de Nucleo", path: "/config", icon: "settings" },
 ];
 
 interface MobileMenuProps {
@@ -42,7 +43,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             >
                 <div className="mb-14 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Hexagon size={32} className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),1)]" />
+                        <Icon name="hexagon" className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),1)] text-3xl" />
                         <span className="text-xl font-black uppercase italic tracking-tighter text-white">
                             {themeId === "sololeveling" ? (
                                 <>System <span className="text-[hsl(var(--accent))]">Leveling</span></>
@@ -58,7 +59,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                         aria-label="Fechar menu de navegacao"
                         type="button"
                     >
-                        <X size={24} />
+                        <Icon name="cross" className="text-2xl" />
                     </button>
                 </div>
                 <nav className="flex-1 space-y-3" aria-label="Navegacao principal">
@@ -79,7 +80,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                     {isActive && (
                                         <div className="absolute left-0 top-1/4 h-1/2 w-1.5 rounded-r-full bg-white shadow-[0_0_12px_#fff]" />
                                     )}
-                                    <item.icon size={20} /> {item.label}
+                                    <Icon name={item.icon} className="text-xl" /> {item.label}
                                 </>
                             )}
                         </NavLink>

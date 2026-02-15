@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Clock3, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -10,6 +9,7 @@ import {
 } from "../../lib/api";
 import { CHANGELOG_RELEASES } from "../../lib/changelog";
 import type { AuthUser } from "../../layout/types";
+import { Icon } from "../common/Icon";
 
 interface HistoryPopoverProps {
   open: boolean;
@@ -152,11 +152,10 @@ export function HistoryPopover({
         <div className="flex items-center gap-2">
           <button
             aria-selected={activeTab === "changes"}
-            className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
-              activeTab === "changes"
-                ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "changes"
+              ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
+              : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
+              }`}
             data-testid="history-tab-changes"
             onClick={() => setActiveTab("changes")}
             role="tab"
@@ -166,11 +165,10 @@ export function HistoryPopover({
           </button>
           <button
             aria-selected={activeTab === "activity"}
-            className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${
-              activeTab === "activity"
-                ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
-            }`}
+            className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "activity"
+              ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
+              : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
+              }`}
             data-testid="history-tab-activity"
             onClick={() => setActiveTab("activity")}
             role="tab"
@@ -227,7 +225,7 @@ export function HistoryPopover({
             </div>
           ) : activityQuery.isLoading ? (
             <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Loader2 className="animate-spin" size={14} />
+              <Icon name="spinner" className="animate-spin text-sm" />
               Carregando atividade...
             </div>
           ) : activityQuery.isError ? (
@@ -256,9 +254,9 @@ export function HistoryPopover({
                     </div>
                     <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-500">
                       {item.kind === "session" ? (
-                        <Clock3 size={12} />
+                        <Icon name="clock" className="text-[12px]" />
                       ) : (
-                        <Sparkles size={12} />
+                        <Icon name="sparkles" className="text-[12px]" />
                       )}
                       {formatDateTime(item.createdAt)}
                     </span>
@@ -272,7 +270,7 @@ export function HistoryPopover({
 
       <div className="border-t border-slate-800/70 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-500">
         <span className="inline-flex items-center gap-1">
-          <Bell size={12} />
+          <Icon name="bell" className="text-[12px]" />
           Painel de historico ativo
         </span>
       </div>

@@ -1,13 +1,3 @@
-import {
-    Bell,
-    ChevronRight,
-    Droplets,
-    Heart,
-    LayoutDashboard,
-    Menu,
-    Star,
-    User,
-} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -16,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
 import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
 import { NAV_ITEMS } from "./Sidebar";
+import { Icon } from "../components/common/Icon";
 
 const HISTORY_SEEN_STORAGE_KEY = "cmd8_history_seen_fingerprint_v1";
 
@@ -121,13 +112,13 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                 <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
                     <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] shadow-[0_0_20px_rgba(var(--glow),0.15)]">
-                            <LayoutDashboard size={20} className="text-[hsl(var(--accent))]" />
+                            <Icon name="apps" className="text-[hsl(var(--accent))] text-xl" />
                         </div>
 
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)]">
                                 <span>Sistema</span>
-                                <ChevronRight size={11} className="text-[hsl(var(--accent)/0.3)]" />
+                                <Icon name="angle-right" className="text-[hsl(var(--accent)/0.3)] text-[11px]" />
                                 <span>Uplink_on</span>
                             </div>
                             <h1
@@ -152,7 +143,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <div className="min-w-0 flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                                <Heart size={12} className="shrink-0 text-red-500" />
+                                <Icon name="heart" className="shrink-0 text-red-500 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
                                     <div className="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400" style={{ width: `${hpPercent}%` }} />
                                 </div>
@@ -160,7 +151,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <Droplets size={12} className="shrink-0 text-blue-400" />
+                                <Icon name="raindrops" className="shrink-0 text-blue-400 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
                                     <div className="h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" style={{ width: `${manaPercent}%` }} />
                                 </div>
@@ -168,7 +159,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <Star size={12} className="shrink-0 text-yellow-400" />
+                                <Icon name="star" className="shrink-0 text-yellow-400 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
                                     <div className="h-full rounded-full bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300" style={{ width: `${xpPercent}%` }} />
                                 </div>
@@ -187,7 +178,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             onClick={onMobileMenuOpen}
                             type="button"
                         >
-                            <Menu size={18} className="text-[hsl(var(--accent-light))]" />
+                            <Icon name="menu-burger" className="text-[hsl(var(--accent-light))] text-lg" />
                         </button>
 
                         <div
@@ -215,7 +206,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 title="Abrir historico"
                                 type="button"
                             >
-                                <Bell size={20} />
+                                <Icon name="bell" className="text-xl" />
                                 {hasUnreadChanges && (
                                     <span
                                         className="absolute right-2 top-2 h-2 w-2 rounded-full border-[2px] border-[#020203] bg-red-600 shadow-[0_0_12px_#dc2626]"
@@ -240,7 +231,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             onClick={openAuthPanel}
                             type="button"
                         >
-                            <User size={18} className="text-slate-400 transition-colors group-hover:text-[hsl(var(--accent))]" />
+                            <Icon name="user" className="text-slate-400 transition-colors group-hover:text-[hsl(var(--accent))] text-lg" />
                             {authUser && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />}
                         </button>
                     </div>

@@ -1,9 +1,9 @@
-import { ArrowRight, Brain, Shield, Skull, Swords, Trophy, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 
 import { Badge, StatPill } from "../components/common";
+import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import type { AppShellContextValue } from "../layout/types";
 import {
@@ -54,7 +54,7 @@ export function CombatPage() {
 
   const fallbackModule = EXCEL_MODULES[0];
   const requestedModuleId = (location.state as CombatLocationState | null)?.moduleId;
-  const [activeModuleId, setActiveModuleId] = useState<string>(requestedModuleId ?? fallbackModule.id);
+  const activeModuleId = requestedModuleId ?? fallbackModule.id;
   const currentModule = EXCEL_MODULES.find((moduleItem) => moduleItem.id === activeModuleId) ?? fallbackModule;
   const activeModuleIdRef = useRef<string>(activeModuleId);
 
@@ -82,10 +82,6 @@ export function CombatPage() {
   useEffect(() => {
     battleIdRef.current = battleId;
   }, [battleId]);
-
-  useEffect(() => {
-    setActiveModuleId(requestedModuleId ?? fallbackModule.id);
-  }, [fallbackModule.id, requestedModuleId]);
 
   useEffect(() => {
     activeModuleIdRef.current = activeModuleId;
@@ -136,7 +132,6 @@ export function CombatPage() {
         });
         setLoginRequired(false);
         applyBattleState(result.battleState);
-        setActiveModuleId(result.moduleId);
         setBossName(result.boss.name);
         setBossRank(result.boss.rank);
         setEnemyMaxHp(result.boss.hp);
@@ -298,10 +293,10 @@ export function CombatPage() {
           <div className="w-full max-w-2xl rounded-[32px] border border-[hsl(var(--accent)/0.3)] bg-[#0a0a0b] p-8 shadow-2xl">
             <div className="mb-6 flex items-center justify-between border-b border-slate-800 pb-4">
               <h3 className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-white">
-                <Brain className="text-[hsl(var(--accent))]" />
+                <Icon name="brain" className="text-[hsl(var(--accent))]" />
                 Desafio de conhecimento
               </h3>
-              <Badge color="border-red-500/20 bg-red-500/10 text-red-500" icon={Swords}>
+              <Badge color="border-red-500/20 bg-red-500/10 text-red-500" icon="crossed-swords">
                 Dano relativo
               </Badge>
             </div>
@@ -321,7 +316,7 @@ export function CombatPage() {
                   data-testid={`quiz-option-${index}`}
                 >
                   <span className="text-sm font-bold text-slate-300 group-hover:text-white">{option}</span>
-                  <ArrowRight size={16} className="text-[hsl(var(--accent))] opacity-0 transition-opacity group-hover:opacity-100" />
+                  <Icon name="arrow-right" className="text-[hsl(var(--accent))] opacity-0 transition-opacity group-hover:opacity-100 text-[16px]" />
                 </button>
               ))}
             </div>
@@ -335,16 +330,16 @@ export function CombatPage() {
 
         <div className="relative z-20 mb-10 flex w-full items-start justify-between">
           <div className="flex gap-2">
-            <Badge color="bg-red-600 text-white" icon={Skull}>
+            <Badge color="bg-red-600 text-white" icon="skull">
               Rank {bossRank}
             </Badge>
-            <Badge color={`${currentModule.color} border-white/10 bg-white/5`} icon={Zap}>
+            <Badge color={`${currentModule.color} border-white/10 bg-white/5`} icon="bolt">
               {currentModule.difficulty}
             </Badge>
           </div>
           <div className="flex flex-col items-end">
             <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <Shield size={12} />
+              <Icon name="shield" className="text-[12px]" />
               HP jogador
             </div>
             <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-800">
@@ -356,9 +351,8 @@ export function CombatPage() {
         <div className="group relative z-10 my-auto cursor-crosshair">
           {damagePopup && (
             <div
-              className={`animate-float-up absolute -top-24 left-1/2 z-30 -translate-x-1/2 text-5xl font-black italic drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] ${
-                damagePopup.type === "miss" ? "text-slate-400" : "text-red-500"
-              }`}
+              className={`animate-float-up absolute -top-24 left-1/2 z-30 -translate-x-1/2 text-5xl font-black italic drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] ${damagePopup.type === "miss" ? "text-slate-400" : "text-red-500"
+                }`}
               data-testid="damage-popup"
             >
               {damagePopup.type === "miss" ? "MISS" : `-${damagePopup.val}`}
@@ -367,7 +361,7 @@ export function CombatPage() {
           <div className="absolute inset-0 animate-pulse-slow rounded-full bg-red-600/20 opacity-40 blur-[100px] transition-all duration-700 group-hover:bg-red-600/40" />
 
           <div className="relative z-10 flex h-48 w-48 items-center justify-center rounded-full bg-slate-900/50 text-6xl transition-transform duration-300 hover:scale-105 md:h-96 md:w-96">
-            <Skull size={120} className={`${currentModule.color} ${enemyHp <= 0 ? "opacity-20" : "animate-pulse"}`} />
+            <Icon name="skull" className={`${currentModule.color} ${enemyHp <= 0 ? "opacity-20" : "animate-pulse"} text-[120px]`} />
           </div>
         </div>
 
@@ -379,7 +373,7 @@ export function CombatPage() {
             <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-black/90 to-black/95" />
             <div className="relative z-10 flex flex-col items-center gap-6 text-center">
               <div className="rounded-full bg-emerald-500/20 p-6 shadow-[0_0_80px_rgba(16,185,129,0.4)]">
-                <Trophy size={48} className="text-emerald-400" />
+                <Icon name="trophy" className="text-emerald-400 text-[48px]" />
               </div>
               <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl">Vitoria!</h2>
               <p className="text-sm font-black uppercase tracking-[0.3em] text-emerald-400">{bossName} derrotado</p>
@@ -394,7 +388,7 @@ export function CombatPage() {
                   type="button"
                   data-testid="combat-victory-retry"
                 >
-                  <Swords size={16} />
+                  <Icon name="crossed-swords" className="text-[16px]" />
                   Batalhar novamente
                 </button>
                 <button
@@ -403,7 +397,7 @@ export function CombatPage() {
                   type="button"
                   data-testid="combat-victory-next-module"
                 >
-                  <Zap size={20} />
+                  <Icon name="bolt" className="text-[20px]" />
                   Proximo modulo
                 </button>
               </div>
@@ -419,7 +413,7 @@ export function CombatPage() {
             <div className="absolute inset-0 bg-gradient-to-b from-red-950/80 via-black/90 to-black/95" />
             <div className="relative z-10 flex flex-col items-center gap-6 text-center">
               <div className="rounded-full bg-red-500/20 p-6 shadow-[0_0_80px_rgba(239,68,68,0.35)]">
-                <Skull size={48} className="text-red-400" />
+                <Icon name="skull" className="text-red-400 text-[48px]" />
               </div>
               <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl">Derrota</h2>
               <p className="text-sm font-black uppercase tracking-[0.3em] text-red-300">Voce foi derrubado pelo boss</p>
@@ -430,7 +424,7 @@ export function CombatPage() {
                   type="button"
                   data-testid="combat-defeat-retry"
                 >
-                  <Swords size={16} />
+                  <Icon name="crossed-swords" className="text-[16px]" />
                   Tentar novamente
                 </button>
                 <button
@@ -439,7 +433,7 @@ export function CombatPage() {
                   type="button"
                   data-testid="combat-defeat-back"
                 >
-                  <Zap size={18} />
+                  <Icon name="bolt" className="text-[18px]" />
                   Voltar revisoes
                 </button>
               </div>
@@ -466,7 +460,7 @@ export function CombatPage() {
             <div className="space-y-4">
               <div className="flex items-end justify-between px-4">
                 <span className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-red-500">
-                  <Skull size={18} />
+                  <Icon name="skull" className="text-[18px]" />
                   HP boss
                 </span>
                 <span className="font-mono text-2xl font-black tracking-tighter text-white">
@@ -487,7 +481,7 @@ export function CombatPage() {
             <div className="space-y-4">
               <div className="flex items-end justify-between px-4">
                 <span className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-blue-500">
-                  <Shield size={18} />
+                  <Icon name="shield" className="text-[18px]" />
                   HP jogador
                 </span>
                 <span className="font-mono text-2xl font-black tracking-tighter text-white">
@@ -518,13 +512,12 @@ export function CombatPage() {
             <button
               onClick={() => void startPlayerAttack()}
               disabled={!canAttack}
-              className={`flex items-center gap-4 rounded-[32px] px-10 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-[0_20px_50px_rgba(220,38,38,0.4)] ring-2 ring-red-400/20 transition-all active:scale-95 md:gap-5 md:px-16 md:py-7 md:text-sm ${
-                canAttack ? "bg-red-600 hover:scale-105 hover:bg-red-500" : "cursor-not-allowed bg-slate-800 opacity-50"
-              }`}
+              className={`flex items-center gap-4 rounded-[32px] px-10 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-[0_20px_50px_rgba(220,38,38,0.4)] ring-2 ring-red-400/20 transition-all active:scale-95 md:gap-5 md:px-16 md:py-7 md:text-sm ${canAttack ? "bg-red-600 hover:scale-105 hover:bg-red-500" : "cursor-not-allowed bg-slate-800 opacity-50"
+                }`}
               type="button"
               data-testid="combat-attack-button"
             >
-              <Swords size={20} />
+              <Icon name="crossed-swords" className="text-[20px]" />
               {loadingBattle
                 ? "Iniciando..."
                 : turnState === "PLAYER_IDLE"
@@ -538,7 +531,7 @@ export function CombatPage() {
               type="button"
               disabled
             >
-              <Zap size={24} className="transition-colors group-hover:text-yellow-500" />
+              <Icon name="bolt" className="transition-colors group-hover:text-yellow-500 text-[24px]" />
               Skill ultimate
             </button>
           </div>

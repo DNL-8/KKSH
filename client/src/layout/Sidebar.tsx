@@ -1,18 +1,7 @@
-import {
-    ChevronLeft,
-    ChevronRight,
-    Cpu,
-    Hexagon,
-    LayoutDashboard,
-    MonitorPlay,
-    Settings,
-    Swords,
-    Target,
-    TrendingUp,
-} from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 
 import { useTheme } from "../contexts/ThemeContext";
+import { Icon } from "../components/common/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Nav data                                                          */
@@ -22,16 +11,16 @@ interface NavItem {
     id: string;
     label: string;
     path: string;
-    icon: React.ComponentType<{ size?: string | number; className?: string }>;
+    icon: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-    { id: "hub", label: "Centro de Comando", path: "/hub", icon: LayoutDashboard },
-    { id: "combate", label: "Arena de Exterminio", path: "/combate", icon: Swords },
-    { id: "revisoes", label: "Masmorra de Memoria", path: "/revisoes", icon: Target },
-    { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: MonitorPlay },
-    { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: TrendingUp },
-    { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: Cpu },
+    { id: "hub", label: "Centro de Comando", path: "/hub", icon: "apps" },
+    { id: "combate", label: "Arena de Exterminio", path: "/combate", icon: "crossed-swords" },
+    { id: "revisoes", label: "Masmorra de Memoria", path: "/revisoes", icon: "target" },
+    { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: "play-alt" },
+    { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: "chart-histogram" },
+    { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: "cpu" },
 ];
 
 export { NAV_ITEMS };
@@ -78,7 +67,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                         className="group relative flex h-12 w-12 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)]"
                     >
                         <div className="absolute inset-0 rounded-2xl bg-[hsl(var(--accent)/0.2)] opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
-                        <Hexagon className="relative z-10 text-[hsl(var(--accent))]" size={26} />
+                        <Icon name="hexagon" className="relative z-10 text-[hsl(var(--accent))] text-2xl" />
                     </Link>
                     {isSidebarOpen && (
                         <div className="animate-in fade-in slide-in-from-left-6 min-w-0 overflow-hidden">
@@ -104,9 +93,9 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     type="button"
                 >
                     {isSidebarOpen ? (
-                        <ChevronLeft size={16} className="transition-transform" />
+                        <Icon name="angle-left" className="transition-transform" />
                     ) : (
-                        <ChevronRight size={16} className="transition-transform" />
+                        <Icon name="angle-right" className="transition-transform" />
                     )}
                 </button>
             </div>
@@ -137,9 +126,9 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                                     {isActive && !isSidebarOpen && (
                                         <div className="absolute -left-2 h-7 w-0.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_14px_rgba(var(--glow),1)]" />
                                     )}
-                                    <item.icon
-                                        size={isSidebarOpen ? 22 : 20}
-                                        className={`shrink-0 transition-transform duration-300 ${isActive ? "scale-105" : "group-hover:scale-105"}`}
+                                    <Icon
+                                        name={item.icon}
+                                        className={`shrink-0 transition-transform duration-300 ${isSidebarOpen ? "text-[22px]" : "text-[20px]"} ${isActive ? "scale-105" : "group-hover:scale-105"}`}
                                     />
                                     {isSidebarOpen && <span className="whitespace-nowrap text-sm font-bold uppercase tracking-wider">{item.label}</span>}
                                     {isActive && isSidebarOpen && (
@@ -183,7 +172,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                                     : ""
                                     }`}
                             >
-                                <Settings size={isSidebarOpen ? 20 : 18} />
+                                <Icon name="settings" className={isSidebarOpen ? "text-[20px]" : "text-[18px]"} />
                             </div>
                             {isSidebarOpen && (
                                 <div className="animate-in fade-in overflow-hidden text-left" data-testid="sidebar-config-card">

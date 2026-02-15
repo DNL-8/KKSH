@@ -1,4 +1,4 @@
-import { Cpu } from "lucide-react";
+import { Icon } from "../components/common/Icon";
 
 export function BootSplash() {
     return (
@@ -7,7 +7,7 @@ export function BootSplash() {
                 <div className="h-32 w-32 animate-ping rounded-full border-[8px] border-cyan-500/5" />
                 <div className="absolute inset-0 flex items-center justify-center">
                     <div className="flex h-20 w-20 animate-spin items-center justify-center rounded-[40px] border-2 border-cyan-500/30 bg-cyan-500/10">
-                        <Cpu size={40} className="text-cyan-500" />
+                        <Icon name="cpu" className="text-cyan-500 text-[40px]" />
                     </div>
                 </div>
             </div>

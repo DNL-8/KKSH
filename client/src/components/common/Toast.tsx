@@ -7,7 +7,8 @@ import {
     useRef,
     useState,
 } from "react";
-import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
+
+import { Icon } from "../common/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */
@@ -87,10 +88,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 /*  Single toast notification                                         */
 /* ------------------------------------------------------------------ */
 
-const ICON_MAP: Record<ToastType, typeof Info> = {
-    success: CheckCircle2,
-    error: AlertTriangle,
-    info: Info,
+const ICON_MAP: Record<ToastType, string> = {
+    success: "check-circle",
+    error: "exclamation",
+    info: "info",
 };
 
 const COLOR_MAP: Record<ToastType, string> = {
@@ -100,7 +101,7 @@ const COLOR_MAP: Record<ToastType, string> = {
 };
 
 function ToastNotification({ toast, onClose }: { toast: ToastItem; onClose: () => void }) {
-    const Icon = ICON_MAP[toast.type];
+    const iconName = ICON_MAP[toast.type];
 
     return (
         <div
@@ -108,7 +109,7 @@ function ToastNotification({ toast, onClose }: { toast: ToastItem; onClose: () =
             aria-live="polite"
             className={`pointer-events-auto flex max-w-sm items-center gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl animate-in slide-in-from-right-10 duration-300 ${COLOR_MAP[toast.type]}`}
         >
-            <Icon size={18} className="shrink-0" />
+            <Icon name={iconName} className="shrink-0 text-[18px]" />
             <p className="flex-1 text-sm font-semibold">{toast.message}</p>
             <button
                 onClick={onClose}
@@ -116,7 +117,7 @@ function ToastNotification({ toast, onClose }: { toast: ToastItem; onClose: () =
                 type="button"
                 aria-label="Fechar notificacao"
             >
-                <X size={14} />
+                <Icon name="cross" className="text-[14px]" />
             </button>
         </div>
     );

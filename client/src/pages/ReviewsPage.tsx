@@ -1,8 +1,8 @@
-import { ChevronRight, Clock, Target, Trophy } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge, DetailedQuest } from "../components/common";
+import { Icon } from "../components/common/Icon";
 import { EXCEL_MODULES, type ExcelModule } from "../lib/excel_modules";
 
 const RAID_HISTORY = Array.from({ length: 60 }, (_, index) => ({
@@ -69,7 +69,7 @@ export function ReviewsPage() {
                   className="flex w-full items-center justify-center gap-3 rounded-3xl bg-white px-10 py-5 text-xs font-black uppercase tracking-[0.3em] text-black shadow-2xl transition-all hover:bg-slate-200 active:scale-95 whitespace-nowrap"
                   type="button"
                 >
-                  <Target size={18} /> Enfrentar Boss
+                  <Icon name="target" className="text-[18px]" /> Enfrentar Boss
                 </button>
               </div>
             </div>
@@ -82,18 +82,18 @@ export function ReviewsPage() {
                 key={mod.id}
                 onClick={() => setSelectedModule(mod)}
                 className={`flex items-center gap-4 rounded-3xl border p-6 text-left transition-all ${selectedModule.id === mod.id
-                    ? `border-${mod.color.split('-')[1]}-500/50 bg-${mod.color.split('-')[1]}-500/5 shadow-2xl`
-                    : "border-slate-800 bg-[#0a0a0b]/60 hover:border-slate-700 hover:bg-[#0a0a0b]"
+                  ? `border-${mod.color.split('-')[1]}-500/50 bg-${mod.color.split('-')[1]}-500/5 shadow-2xl`
+                  : "border-slate-800 bg-[#0a0a0b]/60 hover:border-slate-700 hover:bg-[#0a0a0b]"
                   }`}
               >
                 <div className={`rounded-xl p-3 ${selectedModule.id === mod.id ? `bg-${mod.color.split('-')[1]}-500/20 ${mod.color}` : "bg-slate-900 text-slate-600"}`}>
-                  <mod.icon size={24} />
+                  <Icon name={mod.icon} className="text-[24px]" />
                 </div>
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-500">{mod.difficulty}</div>
                   <div className={`font-black uppercase italic ${selectedModule.id === mod.id ? "text-white" : "text-slate-400"}`}>{mod.title}</div>
                 </div>
-                {selectedModule.id === mod.id && <ChevronRight className="ml-auto text-white" />}
+                {selectedModule.id === mod.id && <Icon name="angle-right" className="ml-auto text-white" />}
               </button>
             ))}
           </div>
@@ -103,7 +103,7 @@ export function ReviewsPage() {
           {/* Missions for Selected Module */}
           <div className="relative flex h-full flex-col overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b] p-8 shadow-2xl">
             <div className="absolute right-0 top-0 p-8 opacity-5">
-              <Trophy size={120} />
+              <Icon name="trophy" className="text-[120px]" />
             </div>
             <h3 className="mb-8 border-b border-slate-800 pb-4 text-sm font-black uppercase tracking-[0.2em] text-white">
               Missões: {selectedModule.title}
@@ -133,7 +133,7 @@ export function ReviewsPage() {
           <div className="rounded-[40px] border border-slate-800 bg-[#0a0a0b]/60 p-10 shadow-xl">
             <div className="mb-10 flex items-center justify-between">
               <h3 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
-                <Clock size={16} className="text-orange-500" /> Histórico
+                <Icon name="clock" className="text-orange-500 text-[16px]" /> Histórico
               </h3>
             </div>
             <div className="grid grid-flow-col grid-rows-7 gap-2">
@@ -141,12 +141,12 @@ export function ReviewsPage() {
                 <div
                   key={day.day}
                   className={`h-4 w-4 cursor-help rounded-[4px] border border-transparent transition-all ${!day.active
-                      ? "bg-slate-900"
-                      : day.intensity === 1
-                        ? "bg-green-900/40"
-                        : day.intensity === 2
-                          ? "bg-green-700/70"
-                          : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                    ? "bg-slate-900"
+                    : day.intensity === 1
+                      ? "bg-green-900/40"
+                      : day.intensity === 2
+                        ? "bg-green-700/70"
+                        : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
                     }`}
                   title={`Dia ${day.day}: Nível ${day.intensity}`}
                 />

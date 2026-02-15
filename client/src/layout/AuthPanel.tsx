@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { KeyRound, Mail, Lock, LogOut, Settings, UserCircle, X } from "lucide-react";
 
 import { useAuth } from "../contexts/AuthContext";
+import { Icon } from "../components/common/Icon";
 
 export function AuthPanel() {
     const {
@@ -55,7 +55,7 @@ export function AuthPanel() {
                             onClick={closeAuthPanel}
                             type="button"
                         >
-                            <X size={18} />
+                            <Icon name="cross" className="text-[18px]" />
                         </button>
                     </div>
 
@@ -63,7 +63,7 @@ export function AuthPanel() {
                         <div className="space-y-6" data-testid="shell-auth-panel">
                             <div className="flex flex-col items-center gap-3 py-4">
                                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] shadow-[0_0_30px_hsl(var(--accent)/0.2)]">
-                                    <UserCircle size={48} />
+                                    <Icon name="user" className="text-[48px]" />
                                 </div>
                                 <div className="text-center">
                                     <p className="text-sm font-bold text-white">{authUser.email}</p>
@@ -78,7 +78,7 @@ export function AuthPanel() {
                                 onClick={handleLogout}
                                 type="button"
                             >
-                                <LogOut size={16} className="transition-transform group-hover:-translate-x-1" />
+                                <Icon name="sign-out-alt" className="transition-transform group-hover:-translate-x-1 text-base" />
                                 {authSubmitting ? "Desconectando..." : "Desconectar"}
                             </button>
                         </div>
@@ -89,7 +89,9 @@ export function AuthPanel() {
                                     Email
                                 </label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[hsl(var(--accent))]" size={16} />
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[hsl(var(--accent))]">
+                                        <Icon name="envelope" className="text-base" />
+                                    </div>
                                     <input
                                         id="auth-email"
                                         autoComplete="email"
@@ -108,7 +110,9 @@ export function AuthPanel() {
                                     Password
                                 </label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[hsl(var(--accent))]" size={16} />
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[hsl(var(--accent))]">
+                                        <Icon name="lock" className="text-base" />
+                                    </div>
                                     <input
                                         id="auth-password"
                                         autoComplete="current-password"
@@ -132,7 +136,7 @@ export function AuthPanel() {
                                     authMode === "login" ? "Autenticando..." : "Registrando..."
                                 ) : (
                                     <>
-                                        <KeyRound size={16} className="transition-transform group-hover:rotate-12" />
+                                        <Icon name="key" className="transition-transform group-hover:rotate-12 text-base" />
                                         {authMode === "login" ? "Acessar Sistema" : "Criar Credencial"}
                                     </>
                                 )}
@@ -169,7 +173,7 @@ export function AuthPanel() {
                         }}
                         type="button"
                     >
-                        <Settings size={14} />
+                        <Icon name="settings" className="text-[14px]" />
                         Configurações do App
                     </button>
 

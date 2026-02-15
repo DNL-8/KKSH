@@ -1,5 +1,3 @@
-import { BarChart3, Binary, Calculator, Database, FileSpreadsheet, Sigma } from "lucide-react";
-
 export interface ExcelMission {
     id: string;
     title: string;
@@ -33,7 +31,7 @@ export interface ExcelModule {
     id: string;
     title: string;
     description: string;
-    icon: any;
+    icon: string;
     difficulty: "Iniciante" | "Intermediário" | "Avançado" | "Lendário";
     missions: ExcelMission[];
     boss: ExcelBoss;
@@ -46,7 +44,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "basic",
         title: "Excel Essencial",
         description: "Domine a interface, atalhos e as fórmulas fundamentais. A base de tudo.",
-        icon: FileSpreadsheet,
+        icon: "table",
         difficulty: "Iniciante",
         color: "text-green-500",
         missions: [
@@ -90,7 +88,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "intermediate",
         title: "Dominando Lógica",
         description: "Funções lógicas (SE, E, OU) e de busca (PROCV, INDICE+CORRESP).",
-        icon: Calculator,
+        icon: "calculator",
         difficulty: "Intermediário",
         color: "text-blue-500",
         missions: [
@@ -134,7 +132,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "advanced",
         title: "Mestrado em Dados",
         description: "Tabelas Dinâmicas, Power Pivot e análise de grandes volumes de dados.",
-        icon: Database,
+        icon: "database",
         difficulty: "Avançado",
         color: "text-purple-500",
         missions: [
@@ -178,7 +176,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "dashboards",
         title: "Dashboards Impressionadores",
         description: "Crie visuais estonteantes que contam histórias com dados.",
-        icon: BarChart3,
+        icon: "chart-histogram",
         difficulty: "Avançado",
         color: "text-orange-500",
         missions: [
@@ -222,7 +220,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "vba",
         title: "O Código Proibido (VBA)",
         description: "Automação total. Crie macros e ferramentas que trabalham por você.",
-        icon: Binary,
+        icon: "brackets-curly",
         difficulty: "Lendário",
         color: "text-red-500",
         missions: [
@@ -266,7 +264,7 @@ export const EXCEL_MODULES: ExcelModule[] = [
         id: "powerquery",
         title: "Power Query & BI",
         description: "ETL avançado. Trate dados de múltiplas fontes sem esforço.",
-        icon: Sigma,
+        icon: "chart-network",
         difficulty: "Lendário",
         color: "text-yellow-500",
         missions: [
