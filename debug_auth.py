@@ -33,7 +33,8 @@ def debug():
 
     # 2. Login
     print("Attempting Login...")
-    r = s.post(f"{BASE_URL}/auth/login", data={"username": email, "password": password})
+    # AuthIn model expects email and password in JSON body
+    r = s.post(f"{BASE_URL}/auth/login", json={"email": email, "password": password})
     if r.status_code != 200:
         print(f"Login failed: {r.status_code} {r.text}")
         return
