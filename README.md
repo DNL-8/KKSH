@@ -63,6 +63,9 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - SDK: `google-genai` (Client-based API)
 - Chave do usuario encriptada com Fernet no DB (mesma infra dos webhook secrets)
 - Response mascara a chave (ex: `AIza****abcd`)
+- Rate limit de burst aplicado por IP (camada compartilhada) e por usuario autenticado
+- Quota diaria configuravel separada para guest e usuario autenticado
+- Logs/metricas de IA evitam persistir prompt bruto por padrao
 
 ## Arquivos locais (/arquivos)
 
@@ -85,6 +88,8 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - Para contabilizar RPG (XP/nivel/rank), ha mini login na propria pagina usando API cookie-auth.
 - O ganho de XP por aula concluida e calculado pela API por duracao (`minutes = ceil(duracao/60)`).
 - A conclusao e manual (botao `Concluir aula (+XP)`), com dedupe por video (`notes=video_completion::<videoRef>`).
+- O `videoRef` de dedupe agora usa identificador estavel `v2` (hash parcial SHA-256 quando possivel, com fallback por metadados).
+- O backend aplica dedupe server-side para `video_lesson`, retornando `200` com `xpEarned=0`/`goldEarned=0` em repeticao.
 - Sem login, a biblioteca local funciona normalmente, mas sem contabilizar progressao RPG.
 - O progresso RPG sincroniza com `/api/v1/me/state` e atualiza HUD global.
 - O dedupe de aula concluida persiste por conta (via sessoes `mode=video_lesson`).
@@ -101,6 +106,9 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - `WEBHOOK_WORKER_*` controla batch/poll/locks/retries/backoff do worker
 - `WEBHOOK_DELIVERY_TIMEOUT_SEC` timeout de entrega HTTP por webhook
 - `GEMINI_API_KEY` chave de API do Gemini (fallback do sistema)
+- `AI_GUEST_DAILY_MAX` e `AI_GUEST_DAILY_WINDOW_SEC` quota diaria para guests
+- `AI_USER_DAILY_MAX` e `AI_USER_DAILY_WINDOW_SEC` quota diaria para usuarios autenticados
+- `AI_RATE_LIMIT_MAX` e `AI_RATE_LIMIT_WINDOW_SEC` burst de IA (IP compartilhado + usuario)
 
 ## Hardening de producao
 

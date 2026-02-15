@@ -59,6 +59,8 @@ _AI_BURST_RULE = Rule(
     window_seconds=max(1, int(settings.ai_rate_limit_window_sec)),
 )
 _guest_daily_hits: dict[str, deque[float]] = defaultdict(deque)
+_user_daily_hits: dict[str, deque[float]] = defaultdict(deque)
+_user_burst_hits: dict[str, deque[float]] = defaultdict(deque)
 _RETRY_AFTER_PATTERN = re.compile(
     r"(?:retry(?:-|\s)?after|retry(?:_|\s)?in)\D*(\d+)", re.IGNORECASE
 )
@@ -478,7 +480,9 @@ async def _generate_content_text(
                 stage="request",
                 model_name=model_name,
             )
-            error_type = last_provider_error.get("code", "unknown") if last_provider_error else "unknown"
+            error_type = (
+                last_provider_error.get("code", "unknown") if last_provider_error else "unknown"
+            )
             record_ai_error("generate", error_type=error_type)
             continue
 
@@ -509,15 +513,33 @@ async def _generate_content_text(
 
 
 async def _enforce_guest_daily_limit(request: Request) -> None:
-    max_requests = max(1, int(settings.ai_guest_daily_max))
-    window_seconds = max(1, int(settings.ai_guest_daily_window_sec))
+    await _enforce_fixed_window_limit(
+        scope="ai_guest_daily",
+        actor_key=f"guest:{client_ip(request)}",
+        max_requests=max(1, int(settings.ai_guest_daily_max)),
+        window_seconds=max(1, int(settings.ai_guest_daily_window_sec)),
+        in_memory_buckets=_guest_daily_hits,
+        message="Guest daily AI limit reached",
+    )
+
+
+async def _enforce_fixed_window_limit(
+    *,
+    scope: str,
+    actor_key: str,
+    max_requests: int,
+    window_seconds: int,
+    in_memory_buckets: dict[str, deque[float]],
+    message: str,
+) -> None:
+    max_requests = max(1, int(max_requests))
+    window_seconds = max(1, int(window_seconds))
     now = time.time()
-    guest_key = f"guest:{client_ip(request)}"
 
     redis_client = get_redis_client()
     if redis_client is not None:
         bucket = int(now // window_seconds)
-        key = f"rl:ai_guest_daily:{guest_key}:{bucket}"
+        key = f"rl:{scope}:{actor_key}:{bucket}"
         try:
             count = int(await redis_client.incr(key))
             await redis_client.expire(key, int(window_seconds) + 5)
@@ -525,9 +547,9 @@ async def _enforce_guest_daily_limit(request: Request) -> None:
                 _error(
                     status.HTTP_429_TOO_MANY_REQUESTS,
                     code="rate_limited",
-                    message="Guest daily AI limit reached",
+                    message=message,
                     details={
-                        "scope": "ai_guest_daily",
+                        "scope": scope,
                         "limit": max_requests,
                         "windowSec": window_seconds,
                     },
@@ -537,7 +559,7 @@ async def _enforce_guest_daily_limit(request: Request) -> None:
             # Redis hiccups should not take down the endpoint.
             pass
 
-    bucket = _guest_daily_hits[guest_key]
+    bucket = in_memory_buckets[actor_key]
     cutoff = now - window_seconds
     while bucket and bucket[0] < cutoff:
         bucket.popleft()
@@ -546,15 +568,37 @@ async def _enforce_guest_daily_limit(request: Request) -> None:
         _error(
             status.HTTP_429_TOO_MANY_REQUESTS,
             code="rate_limited",
-            message="Guest daily AI limit reached",
+            message=message,
             details={
-                "scope": "ai_guest_daily",
+                "scope": scope,
                 "limit": max_requests,
                 "windowSec": window_seconds,
             },
         )
 
     bucket.append(now)
+
+
+async def _enforce_user_daily_limit(user: User) -> None:
+    await _enforce_fixed_window_limit(
+        scope="ai_user_daily",
+        actor_key=f"user:{user.id}",
+        max_requests=max(1, int(settings.ai_user_daily_max)),
+        window_seconds=max(1, int(settings.ai_user_daily_window_sec)),
+        in_memory_buckets=_user_daily_hits,
+        message="User daily AI limit reached",
+    )
+
+
+async def _enforce_user_burst_limit(user: User) -> None:
+    await _enforce_fixed_window_limit(
+        scope="ai_user_burst",
+        actor_key=f"user:{user.id}",
+        max_requests=max(1, int(settings.ai_rate_limit_max)),
+        window_seconds=max(1, int(settings.ai_rate_limit_window_sec)),
+        in_memory_buckets=_user_burst_hits,
+        message="User AI burst limit reached",
+    )
 
 
 def _to_history_out(row: SystemWindowMessage) -> SystemWindowMessageOut:
@@ -608,8 +652,11 @@ def _prune_history(session: Session, user_id: str) -> None:
 )
 async def generate_text(
     payload: AiTextIn,
-    _: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ):
+    await _enforce_user_burst_limit(user)
+    await _enforce_user_daily_limit(user)
+
     system_instruction = payload.systemInstruction.strip() or None
     text = await _generate_content_text(
         prompt=payload.prompt,
@@ -709,6 +756,9 @@ async def monitor_hunter(
 ):
     if user is None:
         await _enforce_guest_daily_limit(request)
+    else:
+        await _enforce_user_burst_limit(user)
+        await _enforce_user_daily_limit(user)
     return await _monitor_hunter_message(payload.mensagem)
 
 
@@ -724,6 +774,9 @@ async def chat_sistema_api(
 ):
     if user is None:
         await _enforce_guest_daily_limit(request)
+    else:
+        await _enforce_user_burst_limit(user)
+        await _enforce_user_daily_limit(user)
     return await _monitor_hunter_message(payload.mensagem)
 
 
@@ -750,6 +803,9 @@ async def chat_sistema(
 
     if user is None:
         await _enforce_guest_daily_limit(request)
+    else:
+        await _enforce_user_burst_limit(user)
+        await _enforce_user_daily_limit(user)
     try:
         return await _monitor_hunter_message(payload.mensagem)
     except HTTPException as exc:

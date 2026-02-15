@@ -40,6 +40,12 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
    | `ENV` | `prod` | Ativa configurações de produção |
    | `CORS_ORIGINS` | `https://seusite.netlify.app` | Domínio do Frontend (adicione após o deploy do Netlify) |
    | `GEMINI_API_KEY` | `...` | Sua chave da Google AI |
+   | `AI_RATE_LIMIT_MAX` | `30` | Burst de requests de IA por janela |
+   | `AI_RATE_LIMIT_WINDOW_SEC` | `60` | Janela (segundos) do burst de IA |
+   | `AI_USER_DAILY_MAX` | `120` | Quota diaria por usuario autenticado |
+   | `AI_USER_DAILY_WINDOW_SEC` | `86400` | Janela diaria da quota por usuario |
+   | `AI_GUEST_DAILY_MAX` | `10` | Quota diaria para guest (sem login) |
+   | `AI_GUEST_DAILY_WINDOW_SEC` | `86400` | Janela diaria da quota guest |
    | `WEBHOOK_OUTBOX_ENABLED` | `true` | Ativa processamento de webhooks |
    | `DB_POOL_SIZE` | `5` | Tamanho do pool de conexões (opcional para Turso) |
 

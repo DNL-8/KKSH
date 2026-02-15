@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite:///./study_leveling.db"
-    db_pool_size: int = 5       # SQLAlchemy pool_size for Postgres (ignored for SQLite)
-    db_max_overflow: int = 10   # SQLAlchemy max_overflow for Postgres
+    db_pool_size: int = 5  # SQLAlchemy pool_size for Postgres (ignored for SQLite)
+    db_max_overflow: int = 10  # SQLAlchemy max_overflow for Postgres
     auto_create_db: bool = True  # recommended only for dev/tests (use Alembic in prod)
     seed_dev_data: bool = False  # optional demo data in dev/tests
 
@@ -99,6 +99,8 @@ class Settings(BaseSettings):
     gemini_model_chain: str = ""
     ai_guest_daily_max: int = 10
     ai_guest_daily_window_sec: int = 60 * 60 * 24
+    ai_user_daily_max: int = 120
+    ai_user_daily_window_sec: int = 60 * 60 * 24
     ai_history_max_messages: int = 200
     ai_rate_limit_max: int = 30
     ai_rate_limit_window_sec: int = 60
