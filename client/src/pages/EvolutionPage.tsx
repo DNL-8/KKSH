@@ -15,7 +15,8 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 
 import { Badge } from "../components/common";
@@ -144,21 +145,10 @@ function achievementIcon(iconName?: string | null): LucideIcon {
 
 export function EvolutionPage() {
   const { authUser, globalStats, openAuthPanel } = useOutletContext<AppShellContextValue>();
-
-  const [data, setData] = useState<EvolutionData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadEvolution = useCallback(async () => {
-    if (!authUser) {
-      setData(null);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
+  const evolutionQuery = useQuery<EvolutionData>({
+    queryKey: ["evolution-state", authUser?.id ?? "guest"],
+    enabled: Boolean(authUser),
+    queryFn: async () => {
       const today = new Date();
       const from = new Date(today);
       from.setDate(today.getDate() - HEATMAP_DAYS + 1);
@@ -173,23 +163,26 @@ export function EvolutionPage() {
         loadRecentSessions(dateFrom, dateTo),
       ]);
 
-      setData({
+      return {
         weekly,
         monthly,
         achievements,
         sessions,
         dailyTargetMinutes: Math.max(10, Number(appState.settings?.dailyTargetMinutes ?? 60)),
-      });
-    } catch (loadError) {
-      setError(toErrorMessage(loadError));
-    } finally {
-      setLoading(false);
-    }
-  }, [authUser]);
+      };
+    },
+  });
 
-  useEffect(() => {
-    void loadEvolution();
-  }, [loadEvolution]);
+  const data = authUser ? (evolutionQuery.data ?? null) : null;
+  const loading = authUser ? evolutionQuery.isFetching : false;
+  const error = authUser && evolutionQuery.error ? toErrorMessage(evolutionQuery.error) : null;
+
+  const loadEvolution = async () => {
+    if (!authUser) {
+      return;
+    }
+    await evolutionQuery.refetch();
+  };
 
   const weeklyTargetMinutes = useMemo(() => {
     return Math.max(1, (data?.dailyTargetMinutes ?? 60) * 7);

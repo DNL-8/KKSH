@@ -27,6 +27,7 @@ export interface MeOut {
 
 export interface ProgressionOut {
   level: number;
+  rank: string;
   xp: number;
   maxXp: number;
   gold: number;
@@ -125,6 +126,138 @@ export interface CreateSessionOut {
   ok: boolean;
   xpEarned: number;
   goldEarned: number;
+}
+
+export interface ProgressOut {
+  level: number;
+  rank: string;
+  xp: number;
+  maxXp: number;
+  gold: number;
+  streakDays: number;
+  vitals: {
+    hp: number;
+    mana: number;
+    fatigue: number;
+  };
+}
+
+export interface ApplyXpEventIn {
+  eventType: "video.lesson.completed" | "review.completed" | "combat.victory";
+  occurredAt: string;
+  payload: Record<string, unknown>;
+}
+
+export interface ApplyXpEventOut {
+  eventId?: string | null;
+  applied: boolean;
+  xpDelta: number;
+  goldDelta: number;
+  progress: ProgressionOut;
+}
+
+export interface MissionListItemOut {
+  missionInstanceId: string;
+  cycle: "daily" | "weekly";
+  subject: string;
+  targetMinutes: number;
+  progressMinutes: number;
+  claimed: boolean;
+  reward: {
+    xp: number;
+    gold: number;
+    items: Array<Record<string, unknown>>;
+  };
+}
+
+export interface MissionListOut {
+  daily: MissionListItemOut[];
+  weekly: MissionListItemOut[];
+}
+
+export interface MissionStartOut {
+  missionInstanceId: string;
+  status: "in_progress";
+  startedAt: string;
+}
+
+export interface ClaimMissionOut {
+  claimId: string;
+  reward: {
+    xp: number;
+    gold: number;
+    items: Array<Record<string, unknown>>;
+  };
+  progress: ProgressionOut;
+}
+
+export interface XpHistoryEventOut {
+  id: string;
+  eventType: string;
+  sourceType: string;
+  sourceRef: string;
+  xpDelta: number;
+  goldDelta: number;
+  rulesetVersion: number;
+  createdAt: string;
+}
+
+export interface XpHistoryOut {
+  events: XpHistoryEventOut[];
+}
+
+export interface LeaderboardEntryOut {
+  position: number;
+  userId: string;
+  label: string;
+  xpTotal: number;
+  goldTotal: number;
+}
+
+export interface LeaderboardOut {
+  scope: "weekly";
+  entries: LeaderboardEntryOut[];
+}
+
+export interface CombatQuestionOut {
+  id: string;
+  text: string;
+  options: string[];
+}
+
+export interface CombatBattleStateOut {
+  battleId: string;
+  playerHp: number;
+  playerMaxHp: number;
+  enemyHp: number;
+  enemyMaxHp: number;
+  turn: "PLAYER_IDLE" | "PLAYER_QUIZ" | "VICTORY" | "DEFEAT" | "ENEMY_TURN" | "PLAYER_ATTACKING";
+  status: "ongoing" | "victory" | "defeat";
+}
+
+export interface CombatStartOut {
+  moduleId: string;
+  boss: {
+    name: string;
+    rank: string;
+    hp: number;
+  };
+  battleState: CombatBattleStateOut;
+  question?: CombatQuestionOut | null;
+  progress: ProgressionOut;
+}
+
+export interface CombatQuestionEnvelopeOut {
+  battleState: CombatBattleStateOut;
+  question: CombatQuestionOut;
+}
+
+export interface CombatAnswerOut {
+  result: "correct" | "incorrect";
+  playerDamage: number;
+  enemyDamage: number;
+  battleState: CombatBattleStateOut;
+  progress: ProgressionOut;
 }
 
 export interface SessionOut {
@@ -330,6 +463,13 @@ async function requestJson<T>(input: RequestInfo | URL, init: RequestInit = {}):
   return parseJsonResponse<T>(response);
 }
 
+function makeIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export interface UserSettingsOut {
   dailyTargetMinutes: number;
   pomodoroWorkMin: number;
@@ -408,6 +548,10 @@ export async function getMeState(): Promise<AppStateOut> {
   });
 }
 
+export async function getProgress(): Promise<ProgressOut> {
+  return requestJson<ProgressOut>("/api/v1/progress", { method: "GET" });
+}
+
 export async function resetMeState(scopes: ResetScope[]): Promise<ResetStateOut> {
   return requestJson<ResetStateOut>("/api/v1/me/reset", {
     method: "POST",
@@ -418,6 +562,113 @@ export async function resetMeState(scopes: ResetScope[]): Promise<ResetStateOut>
 export async function createSession(payload: CreateSessionIn): Promise<CreateSessionOut> {
   return requestJson<CreateSessionOut>("/api/v1/sessions", {
     method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function applyXpEvent(payload: ApplyXpEventIn, idempotencyKey?: string): Promise<ApplyXpEventOut> {
+  return requestJson<ApplyXpEventOut>("/api/v1/events", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listMissionInstances(
+  cycle: "daily" | "weekly" | "both" = "both",
+  date?: string,
+): Promise<MissionListOut> {
+  const params = new URLSearchParams();
+  params.set("cycle", cycle);
+  if (date) {
+    params.set("date", date);
+  }
+  return requestJson<MissionListOut>(`/api/v1/missions?${params.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function startMissionInstance(
+  missionInstanceId: string,
+  context: Record<string, unknown> = {},
+  idempotencyKey?: string,
+): Promise<MissionStartOut> {
+  return requestJson<MissionStartOut>(`/api/v1/missions/${missionInstanceId}/start`, {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify({ context }),
+  });
+}
+
+export async function claimMissionInstance(
+  missionInstanceId: string,
+  reason: "completed" | "manual" = "completed",
+  idempotencyKey?: string,
+): Promise<ClaimMissionOut> {
+  return requestJson<ClaimMissionOut>(`/api/v1/missions/${missionInstanceId}/claim`, {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getXpHistory(params: { from?: string; to?: string; limit?: number } = {}): Promise<XpHistoryOut> {
+  const query = new URLSearchParams();
+  if (params.from) {
+    query.set("from", params.from);
+  }
+  if (params.to) {
+    query.set("to", params.to);
+  }
+  query.set("limit", String(params.limit ?? 100));
+  return requestJson<XpHistoryOut>(`/api/v1/history/xp?${query.toString()}`, { method: "GET" });
+}
+
+export async function getLeaderboard(limit = 50): Promise<LeaderboardOut> {
+  const query = new URLSearchParams();
+  query.set("scope", "weekly");
+  query.set("limit", String(limit));
+  return requestJson<LeaderboardOut>(`/api/v1/leaderboard?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function startCombatBattle(payload: {
+  moduleId?: string;
+  reset?: boolean;
+}): Promise<CombatStartOut> {
+  return requestJson<CombatStartOut>("/api/v1/combat/start", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function drawCombatQuestion(battleId: string): Promise<CombatQuestionEnvelopeOut> {
+  return requestJson<CombatQuestionEnvelopeOut>("/api/v1/combat/question", {
+    method: "POST",
+    body: JSON.stringify({ battleId }),
+  });
+}
+
+export async function answerCombatQuestion(
+  payload: {
+    battleId: string;
+    questionId: string;
+    optionIndex: number;
+  },
+  idempotencyKey?: string,
+): Promise<CombatAnswerOut> {
+  return requestJson<CombatAnswerOut>("/api/v1/combat/answer", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
     body: JSON.stringify(payload),
   });
 }

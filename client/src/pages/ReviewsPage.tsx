@@ -7,8 +7,8 @@ import { EXCEL_MODULES, type ExcelModule } from "../lib/excel_modules";
 
 const RAID_HISTORY = Array.from({ length: 60 }, (_, index) => ({
   day: index,
-  active: Math.random() > 0.4,
-  intensity: Math.floor(Math.random() * 4),
+  active: ((index * 37 + 11) % 10) > 3,
+  intensity: (index * 13 + 7) % 4,
 }));
 
 export function ReviewsPage() {

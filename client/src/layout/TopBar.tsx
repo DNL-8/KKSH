@@ -69,7 +69,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                     <div className="hidden h-14 w-px shrink-0 bg-[hsl(var(--accent)/0.15)] lg:block" />
 
-                    <div className="hidden min-w-[280px] flex-1 items-center gap-3 lg:flex lg:min-w-[340px]">
+                    <div className="flex min-w-[180px] flex-1 items-center gap-2 sm:min-w-[280px] sm:gap-3">
                         <div
                             className="flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] bg-slate-900/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)]"
                             data-testid="top-level-card"

@@ -1,3 +1,4 @@
+ï»¿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -7,11 +8,23 @@ import "./styles.css";
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-  throw new Error("Root element #root não encontrado.");
+  throw new Error("Root element #root nao encontrado.");
 }
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </StrictMode>,
 );

@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 
 import { Badge, BentoMini, ProgressBar, StatPill, Tooltip } from "../components/common";
@@ -70,34 +71,23 @@ function bestDailyQuest(quests: DailyQuestOut[]): DailyQuestOut | null {
 }
 
 export function HubPage() {
-  const { globalStats, authUser, handleGlobalAction, openAuthPanel, navigateTo } = useOutletContext<AppShellContextValue>();
+  const { globalStats, authUser, openAuthPanel, navigateTo } = useOutletContext<AppShellContextValue>();
+  const hubQuery = useQuery<AppStateOut>({
+    queryKey: ["hub-state", authUser?.id ?? "guest"],
+    queryFn: getMeState,
+    enabled: Boolean(authUser),
+  });
 
-  const [hubState, setHubState] = useState<AppStateOut | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const hubState = authUser ? (hubQuery.data ?? null) : null;
+  const loading = authUser ? hubQuery.isFetching : false;
+  const error = authUser && hubQuery.error ? toHubErrorMessage(hubQuery.error) : null;
 
-  const refreshHub = useCallback(async () => {
+  const refreshHub = async () => {
     if (!authUser) {
-      setHubState(null);
-      setError(null);
       return;
     }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const state = await getMeState();
-      setHubState(state);
-    } catch (loadError) {
-      setError(toHubErrorMessage(loadError));
-    } finally {
-      setLoading(false);
-    }
-  }, [authUser]);
-
-  useEffect(() => {
-    void refreshHub();
-  }, [refreshHub]);
+    await hubQuery.refetch();
+  };
 
   const dailyQuests = hubState?.dailyQuests ?? [];
   const activeQuest = useMemo(() => bestDailyQuest(dailyQuests), [dailyQuests]);
@@ -328,7 +318,6 @@ export function HubPage() {
               </div>
               <button
                 onClick={() => {
-                  handleGlobalAction("attack");
                   navigateTo("/revisoes");
                 }}
                 className="group flex w-full items-center justify-center gap-4 rounded-2xl bg-red-600 px-12 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-[0_0_40px_rgba(220,38,38,0.3)] transition-all active:scale-95 hover:bg-red-500 md:w-auto"

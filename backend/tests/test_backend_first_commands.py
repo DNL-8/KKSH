@@ -1,0 +1,138 @@
+from sqlmodel import select
+
+from app.db import get_session
+from app.models import RewardClaim, UserSettings, XpLedgerEvent
+
+
+def _signup(client, csrf_headers, email="backend-first@example.com"):
+    r = client.post(
+        "/api/v1/auth/signup",
+        json={"email": email, "password": "secret123"},
+        headers=csrf_headers(),
+    )
+    assert r.status_code == 200
+    return r.json()["user"]["id"]
+
+
+def _headers(csrf_headers, idem: str):
+    h = csrf_headers()
+    h["Idempotency-Key"] = idem
+    return h
+
+
+def test_progress_endpoint_returns_backend_rank(client, csrf_headers):
+    _signup(client, csrf_headers, email="progress-rank@example.com")
+
+    r = client.get("/api/v1/progress")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["level"] == 1
+    assert body["rank"] == "F"
+    assert "vitals" in body
+    assert body["vitals"]["hp"] >= 0
+
+
+def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers):
+    _signup(client, csrf_headers, email="events-idem@example.com")
+
+    payload = {
+        "eventType": "video.lesson.completed",
+        "occurredAt": "2026-02-14T15:22:00Z",
+        "payload": {
+            "minutes": 12,
+            "sourceRef": "video:lesson-01",
+        },
+    }
+    idem_key = "event-idem-1"
+
+    r1 = client.post(
+        "/api/v1/events",
+        json=payload,
+        headers=_headers(csrf_headers, idem_key),
+    )
+    assert r1.status_code == 200
+    body1 = r1.json()
+    assert body1["applied"] is True
+    assert body1["xpDelta"] > 0
+    assert body1["progress"]["rank"] in {"F", "E", "D", "C", "B", "A", "S"}
+
+    r2 = client.post(
+        "/api/v1/events",
+        json=payload,
+        headers=_headers(csrf_headers, idem_key),
+    )
+    assert r2.status_code == 200
+    body2 = r2.json()
+    assert body2 == body1
+
+    with get_session() as db:
+        rows = db.exec(
+            select(XpLedgerEvent).where(
+                XpLedgerEvent.source_type == "event",
+                XpLedgerEvent.source_ref == "video:lesson-01",
+            )
+        ).all()
+        assert len(rows) == 1
+
+
+def test_claim_endpoint_is_idempotent_with_same_key(client, csrf_headers):
+    _signup(client, csrf_headers, email="claim-idem@example.com")
+
+    missions = client.get("/api/v1/missions?cycle=daily")
+    assert missions.status_code == 200
+    daily = missions.json()["daily"]
+    assert daily
+    mission = daily[0]
+    remaining = max(0, int(mission["targetMinutes"]) - int(mission["progressMinutes"]))
+
+    if remaining > 0:
+        s = client.post(
+            "/api/v1/sessions",
+            json={"subject": mission["subject"], "minutes": remaining, "mode": "pomodoro"},
+            headers=csrf_headers(),
+        )
+        assert s.status_code == 201
+
+    idem_key = "mission-claim-idem-1"
+    claim1 = client.post(
+        f"/api/v1/missions/{mission['missionInstanceId']}/claim",
+        json={"reason": "completed"},
+        headers=_headers(csrf_headers, idem_key),
+    )
+    assert claim1.status_code == 200
+    body1 = claim1.json()
+    assert body1["reward"]["xp"] >= 0
+
+    claim2 = client.post(
+        f"/api/v1/missions/{mission['missionInstanceId']}/claim",
+        json={"reason": "completed"},
+        headers=_headers(csrf_headers, idem_key),
+    )
+    assert claim2.status_code == 200
+    assert claim2.json() == body1
+
+    with get_session() as db:
+        claims = db.exec(
+            select(RewardClaim).where(
+                RewardClaim.mission_id == mission["missionInstanceId"],
+                RewardClaim.mission_cycle == "daily",
+            )
+        ).all()
+        assert len(claims) == 1
+
+
+def test_non_admin_cannot_change_xp_and_gold_per_minute(client, csrf_headers):
+    user_id = _signup(client, csrf_headers, email="settings-non-admin@example.com")
+
+    patch = client.patch(
+        "/api/v1/me/settings",
+        json={"xpPerMinute": 99, "goldPerMinute": 77},
+        headers=csrf_headers(),
+    )
+    assert patch.status_code == 200
+
+    with get_session() as db:
+        settings = db.exec(select(UserSettings).where(UserSettings.user_id == user_id)).first()
+        assert settings is not None
+        assert int(settings.xp_per_minute) == 5
+        assert int(settings.gold_per_minute) == 1

@@ -8,7 +8,12 @@ from sqlmodel import Session, select
 from app.core.audit import log_event
 from app.core.config import settings
 from app.core.cookies import clear_auth_cookies, mint_csrf_token, set_auth_cookies, set_csrf_cookie
-from app.core.deps import db_session, is_admin
+from app.core.deps import (
+    db_session,
+    get_or_create_study_plan,
+    get_or_create_user_settings,
+    is_admin,
+)
 from app.core.rate_limit import Rule, rate_limit
 from app.core.security import (
     create_access_token,
@@ -19,12 +24,15 @@ from app.core.security import (
 )
 from app.models import User
 from app.schemas import AuthIn, AuthOut, UserOut
+from app.services.progression import get_or_create_user_stats
+from app.services.quests import ensure_daily_quests, ensure_weekly_quests
 from app.services.tokens import (
     is_refresh_token_active,
     persist_refresh_token,
     revoke_refresh_token,
     rotate_refresh_token,
 )
+from app.services.utils import date_key, now_local, parse_goals, week_key
 
 router = APIRouter()
 
@@ -70,6 +78,16 @@ def signup(
     session.commit()
     session.refresh(user)
 
+    # Bootstrap canonical user state at signup so read endpoints stay side-effect free.
+    now = now_local()
+    plan = get_or_create_study_plan(user, session, autocommit=False)
+    get_or_create_user_settings(user, session, autocommit=False)
+    get_or_create_user_stats(session, user, autocommit=False)
+    goals = parse_goals(plan.goals_json)
+    ensure_daily_quests(session=session, user=user, dk=date_key(now), goals=goals, autocommit=False)
+    ensure_weekly_quests(session=session, user=user, wk=week_key(now), goals=goals, autocommit=False)
+    session.commit()
+
     access = create_access_token(user.id)
     refresh = create_refresh_token(user.id)
     set_auth_cookies(response, access, refresh)
@@ -93,6 +111,16 @@ def login(
     user = next((u for u in candidates if verify_password(payload.password, u.password_hash)), None)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    # Backfill canonical state for legacy users created before backend-first rollout.
+    now = now_local()
+    plan = get_or_create_study_plan(user, session, autocommit=False)
+    get_or_create_user_settings(user, session, autocommit=False)
+    get_or_create_user_stats(session, user, autocommit=False)
+    goals = parse_goals(plan.goals_json)
+    ensure_daily_quests(session=session, user=user, dk=date_key(now), goals=goals, autocommit=False)
+    ensure_weekly_quests(session=session, user=user, wk=week_key(now), goals=goals, autocommit=False)
+    session.commit()
 
     access = create_access_token(user.id)
     refresh = create_refresh_token(user.id)

@@ -5,21 +5,17 @@ import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { Badge, StatPill } from "../components/common";
 import { useToast } from "../components/common/Toast";
 import type { AppShellContextValue } from "../layout/types";
-import { EXCEL_MODULES, type ExcelQuestion } from "../lib/excel_modules";
+import {
+  ApiRequestError,
+  answerCombatQuestion,
+  drawCombatQuestion,
+  startCombatBattle,
+} from "../lib/api";
+import { EXCEL_MODULES } from "../lib/excel_modules";
 
 interface DamagePopup {
   val: number;
   type: "damage" | "miss";
-}
-
-interface QuestionBounds {
-  minDamage: number;
-  maxDamage: number;
-}
-
-interface DamageRange {
-  min: number;
-  max: number;
 }
 
 interface CombatLocationState {
@@ -27,100 +23,20 @@ interface CombatLocationState {
 }
 
 type TurnState = "PLAYER_IDLE" | "PLAYER_QUIZ" | "PLAYER_ATTACKING" | "ENEMY_TURN" | "VICTORY" | "DEFEAT";
+type ActiveQuestion = {
+  id: string;
+  text: string;
+  options: string[];
+};
 
 const PLAYER_MAX_HP = 100;
-const PLAYER_BASE_PERCENT_MIN = 0.08;
-const PLAYER_BASE_PERCENT_SPAN = 0.06;
-const PLAYER_ROLL_MIN = 0.8;
-const PLAYER_ROLL_MAX = 1.2;
-const PLAYER_EFFECTIVE_PERCENT_MIN = 0.05;
-const PLAYER_EFFECTIVE_PERCENT_MAX = 0.18;
-
-const BOSS_DAMAGE_BY_RANK: Record<string, DamageRange> = {
-  F: { min: 4, max: 7 },
-  E: { min: 5, max: 8 },
-  D: { min: 6, max: 9 },
-  C: { min: 7, max: 10 },
-  B: { min: 8, max: 12 },
-  A: { min: 10, max: 14 },
-  S: { min: 12, max: 16 },
-};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function randomInRange(min: number, max: number): number {
-  return Math.random() * (max - min) + min;
-}
-
-function randomIntInclusive(min: number, max: number): number {
-  return Math.floor(randomInRange(min, max + 1));
-}
-
-function shuffleQuestions(questions: ExcelQuestion[]): ExcelQuestion[] {
-  const next = [...questions];
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = randomIntInclusive(0, index);
-    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-  }
-  return next;
-}
-
-function buildQuestionDeck(questions: ExcelQuestion[], previousQuestionId: string | null): ExcelQuestion[] {
-  if (questions.length === 0) {
-    return [];
-  }
-
-  const shuffled = shuffleQuestions(questions);
-  if (shuffled.length <= 1 || !previousQuestionId || shuffled[0].id !== previousQuestionId) {
-    return shuffled;
-  }
-
-  const alternativeIndex = shuffled.findIndex((question) => question.id !== previousQuestionId);
-  if (alternativeIndex > 0) {
-    [shuffled[0], shuffled[alternativeIndex]] = [shuffled[alternativeIndex], shuffled[0]];
-  }
-  return shuffled;
-}
-
-export function getQuestionBounds(questions: ExcelQuestion[]): QuestionBounds {
-  if (questions.length === 0) {
-    return { minDamage: 1, maxDamage: 1 };
-  }
-
-  let minDamage = Number.POSITIVE_INFINITY;
-  let maxDamage = Number.NEGATIVE_INFINITY;
-
-  for (const question of questions) {
-    minDamage = Math.min(minDamage, question.damage);
-    maxDamage = Math.max(maxDamage, question.damage);
-  }
-
-  return { minDamage, maxDamage };
-}
-
-export function computePlayerDamage(questionDamage: number, bossMaxHp: number, bounds: QuestionBounds): number {
-  const spread = Math.max(1, bounds.maxDamage - bounds.minDamage);
-  const normalized = clamp((questionDamage - bounds.minDamage) / spread, 0, 1);
-  const basePercent = PLAYER_BASE_PERCENT_MIN + normalized * PLAYER_BASE_PERCENT_SPAN;
-  const roll = randomInRange(PLAYER_ROLL_MIN, PLAYER_ROLL_MAX);
-  const effectivePercent = clamp(
-    basePercent * roll,
-    PLAYER_EFFECTIVE_PERCENT_MIN,
-    PLAYER_EFFECTIVE_PERCENT_MAX,
-  );
-  return Math.max(1, Math.round(bossMaxHp * effectivePercent));
-}
-
-export function rollBossDamage(rank: string): number {
-  const normalizedRank = rank.trim().toUpperCase();
-  const range = BOSS_DAMAGE_BY_RANK[normalizedRank] ?? BOSS_DAMAGE_BY_RANK.D;
-  return randomIntInclusive(range.min, range.max);
-}
-
 export function CombatPage() {
-  const { handleGlobalAction } = useOutletContext<AppShellContextValue>();
+  const { syncProgressionFromApi, openAuthPanel } = useOutletContext<AppShellContextValue>();
   const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,220 +44,196 @@ export function CombatPage() {
   const moduleId = (location.state as CombatLocationState | null)?.moduleId;
   const currentModule = EXCEL_MODULES.find((moduleItem) => moduleItem.id === moduleId) ?? EXCEL_MODULES[0];
   const boss = currentModule.boss;
-  const questions = currentModule.questions ?? [];
 
-  const questionBounds = useMemo(() => getQuestionBounds(questions), [questions]);
-
+  const [battleId, setBattleId] = useState<string | null>(null);
+  const [loginRequired, setLoginRequired] = useState(false);
   const [enemyHp, setEnemyHp] = useState(boss.hp);
+  const [enemyMaxHp, setEnemyMaxHp] = useState(boss.hp);
   const [playerHp, setPlayerHp] = useState(PLAYER_MAX_HP);
+  const [playerMaxHp, setPlayerMaxHp] = useState(PLAYER_MAX_HP);
   const [damagePopup, setDamagePopup] = useState<DamagePopup | null>(null);
   const [shake, setShake] = useState(false);
   const [combatLogs, setCombatLogs] = useState<string[]>([
     `Batalha iniciada: ${boss.name} [Rank ${boss.rank}]`,
   ]);
   const [turnState, setTurnState] = useState<TurnState>("PLAYER_IDLE");
-  const [currentQuestion, setCurrentQuestion] = useState<ExcelQuestion | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<ActiveQuestion | null>(null);
+  const [loadingBattle, setLoadingBattle] = useState(true);
+  const [answering, setAnswering] = useState(false);
 
-  const timersRef = useRef<number[]>([]);
-  const questionDeckRef = useRef<ExcelQuestion[]>([]);
-  const lastQuestionIdRef = useRef<string | null>(null);
-  const playerHpRef = useRef<number>(PLAYER_MAX_HP);
+  const battleIdRef = useRef<string | null>(null);
 
-  const clearTimers = useCallback(() => {
-    for (const timerId of timersRef.current) {
-      window.clearTimeout(timerId);
-    }
-    timersRef.current = [];
-  }, []);
-
-  const schedule = useCallback((callback: () => void, delayMs: number): number => {
-    const timerId = window.setTimeout(() => {
-      timersRef.current = timersRef.current.filter((savedId) => savedId !== timerId);
-      callback();
-    }, delayMs);
-    timersRef.current.push(timerId);
-    return timerId;
-  }, []);
+  useEffect(() => {
+    battleIdRef.current = battleId;
+  }, [battleId]);
 
   const pushCombatLog = useCallback((entry: string, maxEntries = 6) => {
     setCombatLogs((previous) => [entry, ...previous].slice(0, maxEntries));
   }, []);
 
-  const drawNextQuestion = useCallback((): ExcelQuestion | null => {
-    if (questions.length === 0) {
-      return null;
-    }
+  const applyBattleState = useCallback(
+    (state: {
+      battleId: string;
+      playerHp: number;
+      playerMaxHp: number;
+      enemyHp: number;
+      enemyMaxHp: number;
+      turn: TurnState | "PLAYER_ATTACKING" | "ENEMY_TURN";
+      status: "ongoing" | "victory" | "defeat";
+    }) => {
+      setBattleId(state.battleId);
+      setPlayerHp(state.playerHp);
+      setPlayerMaxHp(state.playerMaxHp);
+      setEnemyHp(state.enemyHp);
+      setEnemyMaxHp(state.enemyMaxHp);
+      if (state.status === "victory") {
+        setTurnState("VICTORY");
+        return;
+      }
+      if (state.status === "defeat") {
+        setTurnState("DEFEAT");
+        return;
+      }
+      setTurnState(state.turn === "PLAYER_QUIZ" ? "PLAYER_QUIZ" : "PLAYER_IDLE");
+    },
+    [],
+  );
 
-    if (questionDeckRef.current.length === 0) {
-      questionDeckRef.current = buildQuestionDeck(questions, lastQuestionIdRef.current);
-    }
-
-    const nextQuestion = questionDeckRef.current.shift() ?? null;
-    if (nextQuestion) {
-      lastQuestionIdRef.current = nextQuestion.id;
-    }
-    return nextQuestion;
-  }, [questions]);
-
-  const resetBattle = useCallback(() => {
-    clearTimers();
-    lastQuestionIdRef.current = null;
-    questionDeckRef.current = buildQuestionDeck(questions, null);
-    playerHpRef.current = PLAYER_MAX_HP;
-
-    setEnemyHp(boss.hp);
-    setPlayerHp(PLAYER_MAX_HP);
-    setDamagePopup(null);
-    setShake(false);
-    setTurnState("PLAYER_IDLE");
-    setCurrentQuestion(null);
-    setCombatLogs([`Nova batalha iniciada: ${boss.name} [Rank ${boss.rank}]`]);
-  }, [boss.hp, boss.name, boss.rank, clearTimers, questions]);
+  const initBattle = useCallback(
+    async (reset = false) => {
+      setLoadingBattle(true);
+      setCurrentQuestion(null);
+      setDamagePopup(null);
+      setShake(false);
+      try {
+        const result = await startCombatBattle({ moduleId: currentModule.id, reset });
+        setLoginRequired(false);
+        applyBattleState(result.battleState);
+        setEnemyMaxHp(result.boss.hp);
+        setCombatLogs([`Batalha iniciada: ${result.boss.name} [Rank ${result.boss.rank}]`]);
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 401) {
+          setLoginRequired(true);
+          setBattleId(null);
+          setTurnState("PLAYER_IDLE");
+          setCombatLogs(["Login necessario para iniciar o combate backend."]);
+        } else {
+          const message =
+            error instanceof ApiRequestError ? error.message : "Nao foi possivel iniciar a batalha.";
+          pushCombatLog(message);
+          showToast(message, "error");
+        }
+      } finally {
+        setLoadingBattle(false);
+      }
+    },
+    [applyBattleState, currentModule.id, pushCombatLog, showToast],
+  );
 
   useEffect(() => {
-    clearTimers();
-    lastQuestionIdRef.current = null;
-    questionDeckRef.current = buildQuestionDeck(questions, null);
-    playerHpRef.current = PLAYER_MAX_HP;
+    void initBattle(false);
+  }, [initBattle]);
 
-    setEnemyHp(boss.hp);
-    setPlayerHp(PLAYER_MAX_HP);
-    setDamagePopup(null);
-    setShake(false);
-    setTurnState("PLAYER_IDLE");
-    setCurrentQuestion(null);
-    setCombatLogs([`Batalha iniciada: ${boss.name} [Rank ${boss.rank}]`]);
-  }, [boss.hp, boss.name, boss.rank, clearTimers, questions]);
-
-  useEffect(() => {
-    playerHpRef.current = playerHp;
-  }, [playerHp]);
-
-  useEffect(() => {
-    return () => {
-      clearTimers();
-    };
-  }, [clearTimers]);
-
-  const startPlayerAttack = useCallback(() => {
-    if (turnState !== "PLAYER_IDLE") {
+  const startPlayerAttack = useCallback(async () => {
+    if (turnState !== "PLAYER_IDLE" || loadingBattle || answering) {
       return;
     }
-
-    if (questions.length === 0) {
-      pushCombatLog("Sem perguntas neste modulo. Nao e possivel atacar.");
-      showToast("Sem perguntas disponiveis para este modulo.", "error");
+    if (!battleIdRef.current) {
+      showToast("Batalha nao inicializada.", "error");
       return;
     }
-
-    const nextQuestion = drawNextQuestion();
-    if (!nextQuestion) {
-      pushCombatLog("Falha ao sortear pergunta.");
-      showToast("Nao foi possivel carregar uma pergunta.", "error");
-      return;
+    try {
+      const result = await drawCombatQuestion(battleIdRef.current);
+      applyBattleState(result.battleState);
+      setCurrentQuestion(result.question);
+    } catch (error) {
+      const message =
+        error instanceof ApiRequestError ? error.message : "Nao foi possivel carregar a pergunta.";
+      pushCombatLog(message);
+      showToast(message, "error");
     }
-
-    setCurrentQuestion(nextQuestion);
-    setTurnState("PLAYER_QUIZ");
-  }, [drawNextQuestion, pushCombatLog, questions.length, showToast, turnState]);
+  }, [answering, applyBattleState, loadingBattle, pushCombatLog, showToast, turnState]);
 
   const handleAnswer = useCallback(
-    (optionIndex: number) => {
-      if (turnState !== "PLAYER_QUIZ" || !currentQuestion) {
+    async (optionIndex: number) => {
+      if (turnState !== "PLAYER_QUIZ" || !currentQuestion || answering) {
         return;
       }
 
-      clearTimers();
+      const activeQuestion = currentQuestion;
+      const activeBattleId = battleIdRef.current;
+      if (!activeBattleId) {
+        showToast("Batalha nao inicializada.", "error");
+        return;
+      }
 
-      const answeredQuestion = currentQuestion;
-      const isCorrect = optionIndex === answeredQuestion.correctAnswer;
-
+      setAnswering(true);
       setCurrentQuestion(null);
       setTurnState("PLAYER_ATTACKING");
 
-      if (!isCorrect) {
-        setDamagePopup({ val: 0, type: "miss" });
-        pushCombatLog(`Errou! Resposta correta: ${answeredQuestion.options[answeredQuestion.correctAnswer]}`);
-        schedule(() => {
+      try {
+        const result = await answerCombatQuestion({
+          battleId: activeBattleId,
+          questionId: activeQuestion.id,
+          optionIndex,
+        });
+
+        const correct = result.result === "correct";
+        setDamagePopup(correct ? { val: result.playerDamage, type: "damage" } : { val: 0, type: "miss" });
+        if (correct) {
+          pushCombatLog(`Acertou! Causou ${result.playerDamage} de dano.`);
+        } else {
+          pushCombatLog("Errou! Ataque sem dano.");
+        }
+
+        if (result.enemyDamage > 0) {
+          pushCombatLog(`${boss.name} atacou: -${result.enemyDamage} HP`);
+        }
+
+        if (result.playerDamage > 0 || result.enemyDamage > 0) {
+          setShake(true);
+          window.setTimeout(() => setShake(false), 450);
+        }
+
+        window.setTimeout(() => {
           setDamagePopup(null);
-          setTurnState("ENEMY_TURN");
         }, 900);
-        return;
-      }
 
-      const damage = computePlayerDamage(answeredQuestion.damage, boss.hp, questionBounds);
-      const nextEnemyHp = Math.max(0, enemyHp - damage);
+        applyBattleState(result.battleState);
 
-      setEnemyHp(nextEnemyHp);
-      setDamagePopup({ val: damage, type: "damage" });
-      setShake(true);
-      pushCombatLog(`Acertou! Causou ${damage} de dano.`);
-      handleGlobalAction("attack");
-
-      if (nextEnemyHp <= 0) {
-        schedule(() => {
-          setDamagePopup(null);
-          setShake(false);
-          setTurnState("VICTORY");
+        if (result.battleState.status === "victory") {
           pushCombatLog(">>> BOSS DERROTADO! VITORIA! <<<");
-          showToast(`${boss.name} derrotado! +250 XP`, "success");
-        }, 900);
-        return;
+          showToast(`${boss.name} derrotado!`, "success");
+          void syncProgressionFromApi();
+        } else if (result.battleState.status === "defeat") {
+          pushCombatLog(">>> VOCE FOI DERROTADO <<<");
+          showToast("Voce foi derrotado.", "error");
+        }
+      } catch (error) {
+        const message =
+          error instanceof ApiRequestError ? error.message : "Falha ao enviar resposta.";
+        pushCombatLog(message);
+        showToast(message, "error");
+        setTurnState("PLAYER_IDLE");
+      } finally {
+        setAnswering(false);
       }
-
-      schedule(() => {
-        setDamagePopup(null);
-        setShake(false);
-        setTurnState("ENEMY_TURN");
-      }, 900);
     },
     [
-      boss.hp,
+      answering,
+      applyBattleState,
       boss.name,
-      clearTimers,
       currentQuestion,
-      enemyHp,
-      handleGlobalAction,
       pushCombatLog,
-      questionBounds,
-      schedule,
       showToast,
+      syncProgressionFromApi,
       turnState,
     ],
   );
 
-  useEffect(() => {
-    if (turnState !== "ENEMY_TURN" || enemyHp <= 0) {
-      return;
-    }
-
-    const attackTimer = schedule(() => {
-      const bossDamage = rollBossDamage(boss.rank);
-      const nextPlayerHp = Math.max(0, playerHpRef.current - bossDamage);
-      playerHpRef.current = nextPlayerHp;
-
-      setPlayerHp(nextPlayerHp);
-      setShake(true);
-      pushCombatLog(`${boss.name} atacou: -${bossDamage} HP`);
-
-      if (nextPlayerHp <= 0) {
-        setTurnState("DEFEAT");
-        pushCombatLog(">>> VOCE FOI DERROTADO <<<");
-        showToast("Voce foi derrotado.", "error");
-      } else {
-        setTurnState("PLAYER_IDLE");
-      }
-
-      schedule(() => {
-        setShake(false);
-      }, 450);
-    }, 1200);
-
-    return () => {
-      window.clearTimeout(attackTimer);
-      timersRef.current = timersRef.current.filter((savedId) => savedId !== attackTimer);
-    };
-  }, [boss.name, boss.rank, enemyHp, pushCombatLog, schedule, showToast, turnState]);
+  const resetBattle = useCallback(() => {
+    void initBattle(true);
+  }, [initBattle]);
 
   const handleNextChallenge = useCallback(() => {
     const currentIndex = EXCEL_MODULES.findIndex((moduleItem) => moduleItem.id === currentModule.id);
@@ -354,9 +246,17 @@ export function CombatPage() {
     navigate("/combate", { state: { moduleId: nextModule.id } });
   }, [currentModule.id, navigate, showToast]);
 
-  const hpPercent = clamp((enemyHp / boss.hp) * 100, 0, 100);
-  const playerHpPercent = clamp((playerHp / PLAYER_MAX_HP) * 100, 0, 100);
-  const canAttack = turnState === "PLAYER_IDLE" && questions.length > 0;
+  const hpPercent = useMemo(() => clamp((enemyHp / Math.max(1, enemyMaxHp)) * 100, 0, 100), [enemyHp, enemyMaxHp]);
+  const playerHpPercent = useMemo(
+    () => clamp((playerHp / Math.max(1, playerMaxHp)) * 100, 0, 100),
+    [playerHp, playerMaxHp],
+  );
+  const canAttack =
+    turnState === "PLAYER_IDLE" &&
+    !loadingBattle &&
+    !answering &&
+    Boolean(battleId) &&
+    !loginRequired;
 
   return (
     <div className={`animate-in slide-in-from-bottom-8 duration-1000 ${shake ? "animate-shake" : ""}`} data-testid="combat-page">
@@ -384,9 +284,10 @@ export function CombatPage() {
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={`${currentQuestion.id}-${index}`}
-                  onClick={() => handleAnswer(index)}
-                  className="group flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 p-6 text-left transition-all hover:border-[hsl(var(--accent))] hover:bg-[hsl(var(--accent)/0.1)]"
+                  onClick={() => void handleAnswer(index)}
+                  className="group flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 p-6 text-left transition-all hover:border-[hsl(var(--accent))] hover:bg-[hsl(var(--accent)/0.1)] disabled:opacity-60"
                   type="button"
+                  disabled={answering}
                   data-testid={`quiz-option-${index}`}
                 >
                   <span className="text-sm font-bold text-slate-300 group-hover:text-white">{option}</span>
@@ -453,8 +354,8 @@ export function CombatPage() {
               <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl">Vitoria!</h2>
               <p className="text-sm font-black uppercase tracking-[0.3em] text-emerald-400">{boss.name} derrotado</p>
               <div className="flex gap-3">
-                <StatPill label="XP ganho" value="+250" color="text-yellow-400" />
-                <StatPill label="Loot" value="Epico" color="text-purple-400" />
+                <StatPill label="XP ganho" value="Backend" color="text-yellow-400" />
+                <StatPill label="Loot" value="Sincronizado" color="text-purple-400" />
               </div>
               <div className="flex gap-4">
                 <button
@@ -539,7 +440,7 @@ export function CombatPage() {
                   HP boss
                 </span>
                 <span className="font-mono text-2xl font-black tracking-tighter text-white">
-                  <span data-testid="enemy-hp-value">{enemyHp}</span>/<span data-testid="enemy-hp-max">{boss.hp}</span>
+                  <span data-testid="enemy-hp-value">{enemyHp}</span>/<span data-testid="enemy-hp-max">{enemyMaxHp}</span>
                 </span>
               </div>
               <div className="h-8 w-full overflow-hidden rounded-3xl border-2 border-slate-800 bg-slate-900 p-1 shadow-2xl ring-4 ring-red-900/10">
@@ -560,7 +461,7 @@ export function CombatPage() {
                   HP jogador
                 </span>
                 <span className="font-mono text-2xl font-black tracking-tighter text-white">
-                  <span data-testid="player-hp-value">{playerHp}</span>/<span data-testid="player-hp-max">{PLAYER_MAX_HP}</span>
+                  <span data-testid="player-hp-value">{playerHp}</span>/<span data-testid="player-hp-max">{playerMaxHp}</span>
                 </span>
               </div>
               <div className="h-8 w-full overflow-hidden rounded-3xl border-2 border-slate-800 bg-slate-900 p-1 shadow-2xl ring-4 ring-blue-900/10">
@@ -585,7 +486,7 @@ export function CombatPage() {
 
           <div className="flex flex-wrap items-center justify-center gap-8 pt-2">
             <button
-              onClick={startPlayerAttack}
+              onClick={() => void startPlayerAttack()}
               disabled={!canAttack}
               className={`flex items-center gap-4 rounded-[32px] px-10 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-[0_20px_50px_rgba(220,38,38,0.4)] ring-2 ring-red-400/20 transition-all active:scale-95 md:gap-5 md:px-16 md:py-7 md:text-sm ${
                 canAttack ? "bg-red-600 hover:scale-105 hover:bg-red-500" : "cursor-not-allowed bg-slate-800 opacity-50"
@@ -594,10 +495,10 @@ export function CombatPage() {
               data-testid="combat-attack-button"
             >
               <Swords size={20} />
-              {turnState === "PLAYER_IDLE"
-                ? "Iniciar ataque"
-                : turnState === "ENEMY_TURN"
-                  ? "Turno inimigo"
+              {loadingBattle
+                ? "Iniciando..."
+                : turnState === "PLAYER_IDLE"
+                  ? "Iniciar ataque"
                   : turnState === "PLAYER_QUIZ"
                     ? "Responda a pergunta"
                     : "Combatendo..."}
@@ -611,11 +512,17 @@ export function CombatPage() {
               Skill ultimate
             </button>
           </div>
-
-          {questions.length === 0 && (
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-300/80" data-testid="combat-empty-questions">
-              Este modulo nao possui perguntas configuradas.
-            </p>
+          {loginRequired && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300" data-testid="combat-login-required">
+              Login necessario para iniciar o combate no servidor.
+              <button
+                type="button"
+                onClick={openAuthPanel}
+                className="ml-3 rounded-lg border border-red-400/40 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-red-200 transition-colors hover:bg-red-500/20"
+              >
+                Conectar
+              </button>
+            </div>
           )}
         </div>
       </div>

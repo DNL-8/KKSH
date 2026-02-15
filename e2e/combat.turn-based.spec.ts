@@ -61,6 +61,23 @@ async function readHp(page: Page, testId: string): Promise<number> {
   return Number(value.trim());
 }
 
+async function ensureAuthenticated(page: Page): Promise<void> {
+  const email = `combat-${Date.now()}-${Math.floor(Math.random() * 100000)}@example.com`;
+  const password = "secret123";
+
+  const csrfResponse = await page.request.get("/api/v1/auth/csrf");
+  expect(csrfResponse.ok()).toBeTruthy();
+  const csrfPayload = (await csrfResponse.json()) as { csrfToken?: string };
+  const csrfToken = String(csrfPayload.csrfToken ?? "");
+  expect(csrfToken.length).toBeGreaterThan(0);
+
+  const signupResponse = await page.request.post("/api/v1/auth/signup", {
+    data: { email, password },
+    headers: { "X-CSRF-Token": csrfToken },
+  });
+  expect(signupResponse.ok()).toBeTruthy();
+}
+
 async function openQuiz(page: Page): Promise<string> {
   const attackButton = page.getByTestId("combat-attack-button");
   await expect(attackButton).toBeEnabled();
@@ -70,6 +87,7 @@ async function openQuiz(page: Page): Promise<string> {
 }
 
 test("acerto reduz HP do boss com dano relativo dentro da faixa", async ({ page }) => {
+  await ensureAuthenticated(page);
   await page.goto("/combate");
 
   const enemyHpBefore = await readHp(page, "enemy-hp-value");
@@ -94,6 +112,7 @@ test("acerto reduz HP do boss com dano relativo dentro da faixa", async ({ page 
 });
 
 test("erro nao causa dano no boss e ativa turno inimigo", async ({ page }) => {
+  await ensureAuthenticated(page);
   await page.goto("/combate");
 
   const enemyHpBefore = await readHp(page, "enemy-hp-value");
@@ -113,6 +132,7 @@ test("erro nao causa dano no boss e ativa turno inimigo", async ({ page }) => {
 });
 
 test("overlay de derrota aparece e permite voltar para revisoes", async ({ page }) => {
+  await ensureAuthenticated(page);
   await page.goto("/revisoes");
   await page.getByRole("button", { name: /power query/i }).first().click();
   await expect(page.getByText(/a hidra m/i)).toBeVisible();

@@ -5,11 +5,14 @@ from app.api.v1 import (
     ai,
     auth,
     backup,
+    combat,
     drills,
+    events,
     inventory,
     me,
     missions,
     onboarding,
+    progress,
     quests,
     reports,
     reviews,
@@ -27,8 +30,11 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router, tags=["auth"], prefix="/auth")
 api_router.include_router(ai.router)
 api_router.include_router(ai.chat_router)
+api_router.include_router(combat.router)
+api_router.include_router(events.router, tags=["events"])
 api_router.include_router(me.router, tags=["me"])
 api_router.include_router(missions.router)
+api_router.include_router(progress.router, tags=["progress"])
 api_router.include_router(sessions.router, tags=["sessions"], prefix="/sessions")
 api_router.include_router(study_plan.router, tags=["study-plan"], prefix="/study-plan")
 api_router.include_router(quests.router, tags=["daily-quests"], prefix="/daily-quests")

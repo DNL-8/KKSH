@@ -99,7 +99,24 @@ def create_session(
         )
 
         # update progression
-        apply_xp_gold(session, user, xp_delta=xp, gold_delta=gold, autocommit=False)
+        apply_xp_gold(
+            session,
+            user,
+            xp_delta=xp,
+            gold_delta=gold,
+            autocommit=False,
+            persist_ledger=True,
+            event_type="session.created",
+            source_type="study_session",
+            source_ref=s.id,
+            payload_json={
+                "sessionId": s.id,
+                "subject": s.subject,
+                "minutes": int(s.minutes),
+                "mode": s.mode,
+                "date": s.date_key,
+            },
+        )
 
         plan = get_or_create_study_plan(user, session, autocommit=False)
         goals = parse_goals(plan.goals_json)
@@ -225,6 +242,17 @@ def update_session(
             xp_delta=(new_xp - old_xp),
             gold_delta=(new_gold - old_gold),
             autocommit=False,
+            persist_ledger=(new_xp != old_xp or new_gold != old_gold),
+            event_type="session.updated",
+            source_type="study_session_update",
+            source_ref=f"{row.id}:{datetime.now(timezone.utc).isoformat()}",
+            payload_json={
+                "sessionId": row.id,
+                "oldXp": old_xp,
+                "newXp": new_xp,
+                "oldGold": old_gold,
+                "newGold": new_gold,
+            },
         )
 
         # recompute quest progress for affected days
@@ -316,6 +344,11 @@ def delete_session(
             xp_delta=-int(row.xp_earned or 0),
             gold_delta=-int(row.gold_earned or 0),
             autocommit=False,
+            persist_ledger=True,
+            event_type="session.deleted",
+            source_type="study_session_delete",
+            source_ref=f"{row.id}:delete",
+            payload_json={"sessionId": row.id, "date": row.date_key},
         )
 
         row.deleted_at = datetime.now(timezone.utc)

@@ -138,7 +138,9 @@ class UserStats(SQLModel, table=True):
     level: int = Field(default=1)
     xp: int = Field(default=0)
     max_xp: int = Field(default=1000)
+    rank: str = Field(default="F", index=True)
     gold: int = Field(default=0)
+    version: int = Field(default=1)
     hp: int = Field(default=100)
     max_hp: int = Field(default=100)
     mana: int = Field(default=100)
@@ -467,3 +469,105 @@ class AuditEvent(SQLModel, table=True):
     ip: Optional[str] = Field(default=None, index=True)
     user_agent: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class XpLedgerEvent(SQLModel, table=True):
+    """Immutable XP/Gold ledger for auditing and replay."""
+
+    __tablename__ = "xp_ledger_events"
+    __table_args__ = (
+        UniqueConstraint("user_id", "source_type", "source_ref", name="uq_xp_ledger_source"),
+    )
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(
+        sa_column=Column(
+            String,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            index=True,
+            nullable=False,
+        )
+    )
+    event_type: str = Field(index=True)
+    source_type: str = Field(default="generic", index=True)
+    source_ref: str = Field(default_factory=lambda: str(uuid4()), index=True)
+    xp_delta: int = Field(default=0)
+    gold_delta: int = Field(default=0)
+    ruleset_version: int = Field(default=1, index=True)
+    payload_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class RewardClaim(SQLModel, table=True):
+    """Track claim operations and guarantee one claim per mission instance."""
+
+    __tablename__ = "reward_claims"
+    __table_args__ = (
+        UniqueConstraint("user_id", "mission_cycle", "mission_id", name="uq_reward_claim"),
+    )
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(
+        sa_column=Column(
+            String,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            index=True,
+            nullable=False,
+        )
+    )
+    mission_cycle: str = Field(index=True)  # daily | weekly
+    mission_id: str = Field(index=True)
+    reward_xp: int = Field(default=0)
+    reward_gold: int = Field(default=0)
+    created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class CommandIdempotency(SQLModel, table=True):
+    """Persist command outcomes keyed by user + command + idempotency key."""
+
+    __tablename__ = "command_idempotency"
+    __table_args__ = (
+        UniqueConstraint("user_id", "command_type", "idempotency_key", name="uq_command_idempotency"),
+    )
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(
+        sa_column=Column(
+            String,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            index=True,
+            nullable=False,
+        )
+    )
+    command_type: str = Field(index=True)
+    idempotency_key: str = Field(index=True)
+    response_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    status_code: int = Field(default=200)
+    created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class CombatBattle(SQLModel, table=True):
+    __tablename__ = "combat_battles"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(
+        sa_column=Column(
+            String,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            index=True,
+            nullable=False,
+        )
+    )
+    module_id: str = Field(index=True)
+    status: str = Field(default="ongoing", index=True)  # ongoing | victory | defeat
+    turn_state: str = Field(default="PLAYER_IDLE", index=True)
+    player_hp: int = Field(default=100)
+    player_max_hp: int = Field(default=100)
+    enemy_hp: int = Field(default=100)
+    enemy_max_hp: int = Field(default=100)
+    enemy_rank: str = Field(default="F", index=True)
+    current_question_id: Optional[str] = Field(default=None, index=True)
+    last_question_id: Optional[str] = Field(default=None, index=True)
+    deck_json: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    created_at: datetime = Field(default_factory=utcnow, index=True)
+    updated_at: datetime = Field(default_factory=utcnow, index=True)

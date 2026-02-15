@@ -41,9 +41,10 @@ from app.schemas import (
     VitalsOut,
     WeeklyQuestOut,
 )
+from app.core.secrets import decrypt_secret, encrypt_secret
 from app.services.inventory import INVENTORY_CATALOG, list_inventory
 from app.services.quests import ensure_daily_quests, ensure_weekly_quests
-from app.core.secrets import decrypt_secret, encrypt_secret
+from app.services.utils import date_key, now_local, parse_goals, week_key
 
 
 def _mask_api_key(key: str | None) -> str | None:
@@ -51,8 +52,6 @@ def _mask_api_key(key: str | None) -> str | None:
     if not key or len(key) < 10:
         return None
     return f"{key[:4]}{'*' * (len(key) - 8)}{key[-4:]}"
-
-from app.services.utils import date_key, now_local, parse_goals, week_key
 
 router = APIRouter()
 _RESET_RULE = Rule(max_requests=6, window_seconds=60)
@@ -175,13 +174,18 @@ def state(
             or 0
         )
 
-        quests = ensure_daily_quests(session=session, user=user, dk=today_dk, goals=goals)
-        weekly_quests = ensure_weekly_quests(
-            session=session,
-            user=user,
-            wk=week_key(now),
-            goals=goals,
-        )
+        quests = session.exec(
+            select(DailyQuest).where(
+                DailyQuest.user_id == user.id,
+                DailyQuest.date_key == today_dk,
+            )
+        ).all()
+        weekly_quests = session.exec(
+            select(WeeklyQuest).where(
+                WeeklyQuest.user_id == user.id,
+                WeeklyQuest.week_key == week_key(now),
+            )
+        ).all()
 
         blocks = session.exec(
             select(StudyBlock)
@@ -270,6 +274,7 @@ def state(
             ),
             progression=ProgressionOut(
                 level=int(stats_row.level),
+                rank=str(getattr(stats_row, "rank", "F") or "F"),
                 xp=int(stats_row.xp),
                 maxXp=int(stats_row.max_xp),
                 gold=int(stats_row.gold),
@@ -337,18 +342,6 @@ def reset_state(
         weekly_rows = session.exec(select(WeeklyQuest).where(WeeklyQuest.user_id == user.id)).all()
 
         for row in daily_rows:
-            session.delete(row)
-        for row in weekly_rows:
-            session.delete(row)
-        session.commit()
-
-        summary["dailyQuestsDeleted"] = len(daily_rows)
-        summary["weeklyQuestsDeleted"] = len(weekly_rows)
-    elif "missions" in normalized:
-        daily_rows = session.exec(select(DailyQuest).where(DailyQuest.user_id == user.id)).all()
-        weekly_rows = session.exec(select(WeeklyQuest).where(WeeklyQuest.user_id == user.id)).all()
-
-        for row in daily_rows:
             row.progress_minutes = 0
             row.claimed = False
             session.add(row)
@@ -356,6 +349,26 @@ def reset_state(
             row.progress_minutes = 0
             row.claimed = False
             session.add(row)
+        if not daily_rows or not weekly_rows:
+            plan = get_or_create_study_plan(user, session, autocommit=False)
+            goals = parse_goals(plan.goals_json)
+            now_local_dt = now_local()
+            if not daily_rows:
+                daily_rows = ensure_daily_quests(
+                    session=session,
+                    user=user,
+                    dk=date_key(now_local_dt),
+                    goals=goals,
+                    autocommit=False,
+                )
+            if not weekly_rows:
+                weekly_rows = ensure_weekly_quests(
+                    session=session,
+                    user=user,
+                    wk=week_key(now_local_dt),
+                    goals=goals,
+                    autocommit=False,
+                )
         session.commit()
 
         summary["dailyQuestsReset"] = len(daily_rows)
@@ -364,9 +377,11 @@ def reset_state(
     if "progression" in normalized:
         stats_row = get_or_create_user_stats(session, user)
         stats_row.level = 1
+        stats_row.rank = "F"
         stats_row.xp = 0
         stats_row.max_xp = 1000
         stats_row.gold = 0
+        stats_row.version = max(1, int(getattr(stats_row, "version", 1)) + 1)
         stats_row.hp = 100
         stats_row.max_hp = 100
         stats_row.mana = 100
@@ -445,9 +460,9 @@ def update_settings(
         settings_row.reminder_time = payload.reminderTime
     if payload.reminderEveryMin is not None:
         settings_row.reminder_every_min = payload.reminderEveryMin
-    if payload.xpPerMinute is not None:
+    if is_admin(user) and payload.xpPerMinute is not None:
         settings_row.xp_per_minute = payload.xpPerMinute
-    if payload.goldPerMinute is not None:
+    if is_admin(user) and payload.goldPerMinute is not None:
         settings_row.gold_per_minute = payload.goldPerMinute
     
     # New fields

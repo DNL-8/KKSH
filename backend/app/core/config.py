@@ -108,6 +108,9 @@ class Settings(BaseSettings):
     ai_hunter_retry_jitter_ms: int = 250
     ai_hunter_quota_retry_max_sec: int = 8
     ai_mission_regen_cooldown_sec: int = 60 * 60
+    xp_ruleset_version: int = 1
+    ff_ledger_write: bool = True
+    ff_enforce_idempotency: bool = False
 
     # Webhook secret encryption (Fernet-compatible key, urlsafe base64-encoded 32-byte key)
     webhook_secret_enc_key: str = ""

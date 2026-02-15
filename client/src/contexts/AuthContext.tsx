@@ -1,7 +1,6 @@
 import { type FormEvent, createContext, useCallback, useContext, useEffect, useState } from "react";
 
-import { ApiRequestError, getMe, getMeState, login, logout } from "../lib/api";
-import { rankFromLevel } from "../lib/rank";
+import { ApiRequestError, getMe, getProgress, login, logout } from "../lib/api";
 import type { AuthUser, GlobalStats } from "../layout/types";
 
 /* ------------------------------------------------------------------ */
@@ -74,23 +73,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             setAuthUser(me.user);
-            const appState = await getMeState();
-            const progression = appState.progression;
-            if (!progression) {
-                return;
-            }
-
-            const nextLevel = Math.max(1, Number(progression.level) || 1);
+            const progression = await getProgress();
             setGlobalStats((current) => ({
                 ...current,
-                hp: appState.vitals?.hp ?? current.hp,
-                mana: appState.vitals?.mana ?? current.mana,
+                hp: progression.vitals?.hp ?? current.hp,
+                mana: progression.vitals?.mana ?? current.mana,
                 xp: Math.max(0, Number(progression.xp) || 0),
                 maxXp: Math.max(1, Number(progression.maxXp) || current.maxXp || 1),
-                level: nextLevel,
-                rank: rankFromLevel(nextLevel),
+                level: Math.max(1, Number(progression.level) || 1),
+                rank: String(progression.rank || current.rank || "F"),
                 gold: Math.max(0, Number(progression.gold) || 0),
-                streak: typeof appState.streakDays === "number" ? appState.streakDays : current.streak,
+                streak: typeof progression.streakDays === "number" ? progression.streakDays : current.streak,
             }));
         } catch {
             // Keep current UI state on transient API errors.
@@ -193,15 +186,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })();
     }, [authSubmitting, syncProgressionFromApi]);
 
-    const handleGlobalAction = useCallback((type: "attack") => {
-        if (type === "attack") {
-            setGlobalStats((value) => ({
-                ...value,
-                mana: Math.max(0, value.mana - 1),
-                xp: Math.min(value.maxXp, value.xp + 10),
-            }));
-        }
-    }, []);
+    const handleGlobalAction = useCallback(
+        (type: "attack") => {
+            if (type === "attack") {
+                void syncProgressionFromApi();
+            }
+        },
+        [syncProgressionFromApi],
+    );
 
     const value: AuthContextValue = {
         authUser,

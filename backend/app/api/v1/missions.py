@@ -4,7 +4,7 @@ import json
 import time
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlmodel import Session, select
 
 from app.core.audit import log_event
@@ -12,7 +12,24 @@ from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_or_create_study_plan
 from app.core.rate_limit import Rule, rate_limit
 from app.models import AuditEvent, DailyQuest, User, UserSettings, WeeklyQuest
-from app.schemas import DailyQuestOut, RegenerateMissionsIn, RegenerateMissionsOut, WeeklyQuestOut
+from app.schemas import (
+    ClaimMissionIn,
+    ClaimMissionOut,
+    DailyQuestOut,
+    MissionListOut,
+    MissionStartIn,
+    MissionStartOut,
+    RegenerateMissionsIn,
+    RegenerateMissionsOut,
+    WeeklyQuestOut,
+)
+from app.services.backend_first import (
+    CommandError,
+    claim_mission_reward,
+    list_missions_payload,
+    require_idempotency_key,
+    start_mission,
+)
 from app.services.mission_generator import (
     generate_official_mission_specs,
     overwrite_daily_quests,
@@ -22,6 +39,7 @@ from app.services.utils import date_key, now_local, parse_goals, week_key
 
 router = APIRouter(prefix="/missions", tags=["missions"])
 _MISSION_REGEN_RULE = Rule(max_requests=8, window_seconds=60)
+_MISSION_COMMAND_RULE = Rule(max_requests=20, window_seconds=60)
 
 
 def _quest_tags(raw: str | None) -> list[str]:
@@ -108,6 +126,94 @@ def _rate_limited(next_allowed_at: datetime):
             },
         },
     )
+
+
+@router.get("", response_model=MissionListOut)
+def list_missions(
+    cycle: str = Query(default="both", pattern="^(daily|weekly|both)$"),
+    date: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    return list_missions_payload(session, user=user, cycle=cycle, date_value=date)
+
+
+@router.post(
+    "/{mission_instance_id}/start",
+    response_model=MissionStartOut,
+    dependencies=[Depends(rate_limit("mission_start", _MISSION_COMMAND_RULE))],
+)
+def start_mission_instance(
+    mission_instance_id: str,
+    payload: MissionStartIn,  # noqa: ARG001 - reserved for future contextual rules
+    request: Request,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    key = require_idempotency_key(idempotency_key)
+    try:
+        result = start_mission(
+            session,
+            user=user,
+            mission_instance_id=mission_instance_id,
+            idempotency_key=key,
+        )
+        log_event(
+            session,
+            request,
+            "mission.start",
+            user=user,
+            metadata={"missionInstanceId": mission_instance_id},
+            commit=False,
+        )
+        session.commit()
+        return result
+    except CommandError as exc:
+        session.rollback()
+        raise HTTPException(status_code=exc.status_code, detail=exc.to_http_detail()) from exc
+    except Exception:
+        session.rollback()
+        raise
+
+
+@router.post(
+    "/{mission_instance_id}/claim",
+    response_model=ClaimMissionOut,
+    dependencies=[Depends(rate_limit("mission_claim", _MISSION_COMMAND_RULE))],
+)
+def claim_mission_instance(
+    mission_instance_id: str,
+    payload: ClaimMissionIn,  # noqa: ARG001 - reserved for policy extensions
+    request: Request,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    key = require_idempotency_key(idempotency_key)
+    try:
+        result = claim_mission_reward(
+            session,
+            user=user,
+            mission_instance_id=mission_instance_id,
+            idempotency_key=key,
+        )
+        log_event(
+            session,
+            request,
+            "mission.claim",
+            user=user,
+            metadata={"missionInstanceId": mission_instance_id},
+            commit=False,
+        )
+        session.commit()
+        return result
+    except CommandError as exc:
+        session.rollback()
+        raise HTTPException(status_code=exc.status_code, detail=exc.to_http_detail()) from exc
+    except Exception:
+        session.rollback()
+        raise
 
 
 @router.post(

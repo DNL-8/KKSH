@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from sqlalchemy import text as sa_text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.ai import chat_alias_router
@@ -16,7 +17,6 @@ from app.core.logging import setup_logging
 from app.core.metrics import render_metrics
 from app.core.rate_limit import client_ip, init_redis, limiter  # noqa: F401
 from app.db import create_db_and_tables, engine, get_session
-from sqlalchemy import text as sa_text
 from app.error_handlers import register_error_handlers
 from app.frontend_serving import mount_frontend
 from app.middlewares import (
@@ -130,6 +130,7 @@ if _origins:
         allow_headers=[
             "Content-Type",
             "X-Request-ID",
+            "Idempotency-Key",
             settings.csrf_header_name,
         ],
     )

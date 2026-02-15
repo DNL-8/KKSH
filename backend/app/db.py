@@ -52,6 +52,10 @@ _SQLITE_COMPAT_COLUMNS: dict[str, dict[str, str]] = {
         "gemini_api_key": "TEXT",
         "agent_personality": "TEXT DEFAULT 'standard'",
     },
+    "user_stats": {
+        "rank": "TEXT DEFAULT 'F'",
+        "version": "INTEGER DEFAULT 1",
+    },
 }
 
 _SQLITE_QUEST_INDEXES = (
@@ -62,6 +66,7 @@ _SQLITE_QUEST_INDEXES = (
     "CREATE INDEX IF NOT EXISTS ix_weekly_quests_rank ON weekly_quests (rank)",
     "CREATE INDEX IF NOT EXISTS ix_weekly_quests_source ON weekly_quests (source)",
     "CREATE INDEX IF NOT EXISTS ix_weekly_quests_generated_at ON weekly_quests (generated_at)",
+    "CREATE INDEX IF NOT EXISTS ix_user_stats_rank ON user_stats (rank)",
 )
 
 # Enable foreign keys on SQLite (important for tests/dev)
@@ -114,6 +119,12 @@ def _ensure_sqlite_schema_compatibility() -> None:
         connection.exec_driver_sql(
             "UPDATE user_settings SET agent_personality = 'standard' "
             "WHERE agent_personality IS NULL OR TRIM(agent_personality) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE user_stats SET rank = 'F' WHERE rank IS NULL OR TRIM(rank) = ''"
+        )
+        connection.exec_driver_sql(
+            "UPDATE user_stats SET version = 1 WHERE version IS NULL OR version < 1"
         )
 
         for statement in _SQLITE_QUEST_INDEXES:

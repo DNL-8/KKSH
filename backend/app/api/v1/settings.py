@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
-from app.core.deps import db_session, get_current_user, get_or_create_user_settings
+from app.core.deps import db_session, get_current_user, get_or_create_user_settings, is_admin
 from app.models import User
 from app.schemas import UpdateSettingsIn, UserSettingsOut
 
@@ -57,9 +57,9 @@ def update_settings(
         row.reminder_time = payload.reminderTime
     if payload.reminderEveryMin is not None:
         row.reminder_every_min = int(payload.reminderEveryMin)
-    if payload.xpPerMinute is not None:
+    if is_admin(user) and payload.xpPerMinute is not None:
         row.xp_per_minute = int(payload.xpPerMinute)
-    if payload.goldPerMinute is not None:
+    if is_admin(user) and payload.goldPerMinute is not None:
         row.gold_per_minute = int(payload.goldPerMinute)
 
     row.updated_at = datetime.now(timezone.utc)

@@ -240,9 +240,161 @@ class ResetStateOut(BaseModel):
 
 class ProgressionOut(BaseModel):
     level: int
+    rank: str = "F"
     xp: int
     maxXp: int
     gold: int
+
+
+class ApplyXpEventIn(BaseModel):
+    eventType: Literal["video.lesson.completed", "review.completed", "combat.victory"]
+    occurredAt: str
+    payload: dict[str, object] = Field(default_factory=dict)
+
+
+class ApplyXpEventOut(BaseModel):
+    eventId: Optional[str] = None
+    applied: bool = True
+    xpDelta: int = 0
+    goldDelta: int = 0
+    progress: ProgressionOut
+
+
+class MissionStartIn(BaseModel):
+    context: dict[str, object] = Field(default_factory=dict)
+
+
+class MissionStartOut(BaseModel):
+    missionInstanceId: str
+    status: Literal["in_progress"]
+    startedAt: datetime
+
+
+class ClaimMissionIn(BaseModel):
+    reason: Literal["completed", "manual"] = "completed"
+
+
+class MissionRewardOut(BaseModel):
+    xp: int
+    gold: int
+    items: list[dict[str, object]] = Field(default_factory=list)
+
+
+class ClaimMissionOut(BaseModel):
+    claimId: str
+    reward: MissionRewardOut
+    progress: ProgressionOut
+
+
+class MissionListItemOut(BaseModel):
+    missionInstanceId: str
+    cycle: Literal["daily", "weekly"]
+    subject: str
+    targetMinutes: int
+    progressMinutes: int
+    claimed: bool
+    reward: MissionRewardOut
+
+
+class MissionListOut(BaseModel):
+    daily: list[MissionListItemOut] = Field(default_factory=list)
+    weekly: list[MissionListItemOut] = Field(default_factory=list)
+
+
+class ProgressQueryOut(BaseModel):
+    level: int
+    rank: str
+    xp: int
+    maxXp: int
+    gold: int
+    streakDays: int
+    vitals: dict[str, int]
+
+
+class XpHistoryEventOut(BaseModel):
+    id: str
+    eventType: str
+    sourceType: str
+    sourceRef: str
+    xpDelta: int
+    goldDelta: int
+    rulesetVersion: int
+    createdAt: datetime
+
+
+class XpHistoryOut(BaseModel):
+    events: list[XpHistoryEventOut] = Field(default_factory=list)
+
+
+class LeaderboardEntryOut(BaseModel):
+    position: int
+    userId: str
+    label: str
+    xpTotal: int
+    goldTotal: int
+
+
+class LeaderboardOut(BaseModel):
+    scope: Literal["weekly"] = "weekly"
+    entries: list[LeaderboardEntryOut] = Field(default_factory=list)
+
+
+class CombatQuestionOut(BaseModel):
+    id: str
+    text: str
+    options: list[str] = Field(default_factory=list)
+
+
+class CombatBattleStateOut(BaseModel):
+    battleId: str
+    playerHp: int
+    playerMaxHp: int
+    enemyHp: int
+    enemyMaxHp: int
+    turn: Literal["PLAYER_IDLE", "PLAYER_QUIZ", "VICTORY", "DEFEAT", "ENEMY_TURN", "PLAYER_ATTACKING"]
+    status: Literal["ongoing", "victory", "defeat"]
+
+
+class CombatBossOut(BaseModel):
+    name: str
+    rank: str
+    hp: int
+
+
+class CombatStartIn(BaseModel):
+    moduleId: Optional[str] = None
+    reset: bool = False
+
+
+class CombatStartOut(BaseModel):
+    moduleId: str
+    boss: CombatBossOut
+    battleState: CombatBattleStateOut
+    question: Optional[CombatQuestionOut] = None
+    progress: ProgressionOut
+
+
+class CombatQuestionIn(BaseModel):
+    battleId: str
+
+
+class CombatQuestionOutEnvelope(BaseModel):
+    battleState: CombatBattleStateOut
+    question: CombatQuestionOut
+
+
+class CombatAnswerIn(BaseModel):
+    battleId: str
+    questionId: str
+    optionIndex: int = Field(ge=0, le=3)
+
+
+class CombatAnswerOut(BaseModel):
+    result: Literal["correct", "incorrect"]
+    playerDamage: int
+    enemyDamage: int
+    battleState: CombatBattleStateOut
+    progress: ProgressionOut
 
 
 class VitalsOut(BaseModel):
