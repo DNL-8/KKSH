@@ -15,6 +15,8 @@ export function ThemeBackground() {
             >
                 {theme.bgImage && (
                     <div
+                        data-testid="theme-background-image"
+                        data-theme-id={themeId}
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100 transition-opacity duration-700"
                         style={{ backgroundImage: `url(${theme.bgImage})` }}
                     />

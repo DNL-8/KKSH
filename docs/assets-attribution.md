@@ -49,6 +49,36 @@ This project vendors UI assets under `client/public/assets` for runtime independ
   - Origin: Flaticon
   - License: Flaticon Free License (attribution may be required depending on usage)
 
+- `client/public/assets/themes/naruto.gif`
+  - Source page: `https://giphy.com/gifs/naruto-shippuden-Nzz86dByLtYTS`
+  - Direct media URL: `https://media.giphy.com/media/Nzz86dByLtYTS/giphy.gif`
+  - Origin: Giphy
+  - License: Subject to Giphy terms and original content rights
+
+- `client/public/assets/themes/dragonball.gif`
+  - Source page: `https://giphy.com/gifs/goku-dbz-dragon-ball-z-8QtP5TqscKh3O`
+  - Direct media URL: `https://media.giphy.com/media/8QtP5TqscKh3O/giphy.gif`
+  - Origin: Giphy
+  - License: Subject to Giphy terms and original content rights
+
+- `client/public/assets/themes/sololeveling.gif`
+  - Source page: `https://giphy.com/gifs/anime-sololeveling-sololevelling-7wZhANge7PYu4576eC`
+  - Direct media URL: `https://media.giphy.com/media/7wZhANge7PYu4576eC/giphy.gif`
+  - Origin: Giphy
+  - License: Subject to Giphy terms and original content rights
+
+- `client/public/assets/themes/hxh.gif`
+  - Source page: `https://giphy.com/gifs/gon-u4dQ8BMugUYp2`
+  - Direct media URL: `https://media.giphy.com/media/u4dQ8BMugUYp2/giphy.gif`
+  - Origin: Giphy
+  - License: Subject to Giphy terms and original content rights
+
+- `client/public/assets/themes/lotr.gif`
+  - Source page: `https://giphy.com/gifs/reaction-laughing-lotr-TcdpZwYDPlWXC`
+  - Direct media URL: `https://media.giphy.com/media/TcdpZwYDPlWXC/giphy.gif`
+  - Origin: Giphy
+  - License: Subject to Giphy terms and original content rights
+
 ## Notes
 
 - Review license terms before commercial distribution.

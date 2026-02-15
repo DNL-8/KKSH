@@ -3,11 +3,12 @@ interface ThemeOptionProps {
   active: boolean;
   onClick: () => void;
   label: string;
+  testId?: string;
 }
 
-export function ThemeOption({ color, active, onClick, label }: ThemeOptionProps) {
+export function ThemeOption({ color, active, onClick, label, testId }: ThemeOptionProps) {
   return (
-    <button onClick={onClick} className="group flex flex-col items-center gap-3" type="button">
+    <button onClick={onClick} data-testid={testId} className="group flex flex-col items-center gap-3" type="button">
       <div
         className={`h-14 w-14 rounded-[20px] border-4 transition-all duration-500 ${color} ${
           active

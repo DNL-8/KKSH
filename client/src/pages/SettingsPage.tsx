@@ -312,6 +312,7 @@ export function SettingsPage() {
                   {THEME_PRESETS.map(preset => (
                     <ThemeOption
                       key={preset.id}
+                      testId={`theme-option-${preset.id}`}
                       label={preset.name}
                       color={preset.color}
                       active={preferences.theme === preset.id}
