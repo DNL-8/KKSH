@@ -1,7 +1,7 @@
 import sqlite3
 
 def add_column():
-    conn = sqlite3.connect('study_leveling.db')
+    conn = sqlite3.connect('../study_leveling.db')
     cursor = conn.cursor()
     
     try:
