@@ -8,12 +8,16 @@ import {
     Star,
     User,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
+import { HistoryPopover } from "../components/topbar/HistoryPopover";
 import { useAuth } from "../contexts/AuthContext";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
+import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
 import { NAV_ITEMS } from "./Sidebar";
+
+const HISTORY_SEEN_STORAGE_KEY = "cmd8_history_seen_fingerprint_v1";
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                         */
@@ -26,6 +30,9 @@ interface TopBarProps {
 export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const { globalStats, authUser, openAuthPanel } = useAuth();
     const location = useLocation();
+    const historyPopoverRef = useRef<HTMLDivElement | null>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [hasUnreadChanges, setHasUnreadChanges] = useState(true);
 
     const activeNavItem = useMemo(
         () => NAV_ITEMS.find((item) => location.pathname === item.path) ?? NAV_ITEMS[0],
@@ -39,6 +46,71 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const animHp = useAnimatedNumber(hpPercent, 600);
     const animMana = useAnimatedNumber(manaPercent, 600);
     const animXp = useAnimatedNumber(xpPercent, 600);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+        try {
+            const seenFingerprint = window.localStorage.getItem(HISTORY_SEEN_STORAGE_KEY);
+            setHasUnreadChanges(seenFingerprint !== CHANGELOG_FINGERPRINT);
+        } catch {
+            setHasUnreadChanges(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isHistoryOpen) {
+            return;
+        }
+
+        const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node | null;
+            if (!target) {
+                return;
+            }
+            if (!historyPopoverRef.current?.contains(target)) {
+                setIsHistoryOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsHistoryOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("touchstart", handlePointerDown);
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("touchstart", handlePointerDown);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [isHistoryOpen]);
+
+    const handleToggleHistory = useCallback(() => {
+        setIsHistoryOpen((current) => !current);
+    }, []);
+
+    const handleCloseHistory = useCallback(() => {
+        setIsHistoryOpen(false);
+    }, []);
+
+    const handleMarkHistorySeen = useCallback(() => {
+        if (typeof window === "undefined") {
+            setHasUnreadChanges(false);
+            return;
+        }
+        try {
+            window.localStorage.setItem(HISTORY_SEEN_STORAGE_KEY, CHANGELOG_FINGERPRINT);
+        } catch {
+            // Ignore localStorage failures.
+        }
+        setHasUnreadChanges(false);
+    }, []);
 
     return (
         <header className="z-40 shrink-0 px-4 pb-0 pt-4 md:px-8">
@@ -132,10 +204,34 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             </div>
                         </div>
 
-                        <button className="group relative p-2 text-slate-500 transition-all hover:rotate-12 hover:text-white" type="button" aria-label="Alertas">
-                            <Bell size={20} />
-                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-[2px] border-[#020203] bg-red-600 shadow-[0_0_12px_#dc2626]" />
-                        </button>
+                        <div className="relative" ref={historyPopoverRef}>
+                            <button
+                                aria-controls="history-popover"
+                                aria-expanded={isHistoryOpen}
+                                aria-label="Historico"
+                                className="group relative p-2 text-slate-500 transition-all hover:rotate-12 hover:text-white"
+                                data-testid="top-history-button"
+                                onClick={handleToggleHistory}
+                                title="Abrir historico"
+                                type="button"
+                            >
+                                <Bell size={20} />
+                                {hasUnreadChanges && (
+                                    <span
+                                        className="absolute right-2 top-2 h-2 w-2 rounded-full border-[2px] border-[#020203] bg-red-600 shadow-[0_0_12px_#dc2626]"
+                                        data-testid="top-history-badge"
+                                    />
+                                )}
+                            </button>
+
+                            <HistoryPopover
+                                authUser={authUser}
+                                onClose={handleCloseHistory}
+                                onMarkSeen={handleMarkHistorySeen}
+                                onOpenAuth={openAuthPanel}
+                                open={isHistoryOpen}
+                            />
+                        </div>
 
                         <button
                             aria-label={authUser ? "Conta conectada" : "Abrir login"}

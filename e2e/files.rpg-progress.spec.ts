@@ -170,7 +170,7 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   });
 
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
   await injectFolderVideos(page);
 
   await page.getByTestId("header-auth-button").click();
@@ -179,6 +179,7 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   await page.getByTestId("shell-auth-password").fill("test123");
   await page.getByTestId("shell-auth-password").press("Enter");
 
+  await expect(page.getByTestId("files-complete-button")).toBeVisible();
   const completeButton = page.getByTestId("complete-lesson-button");
   await expect(completeButton).toBeEnabled({ timeout: 10000 });
   await completeButton.click();

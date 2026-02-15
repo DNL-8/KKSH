@@ -2,7 +2,6 @@ import {
   Activity,
   AlertTriangle,
   ArrowUpDown,
-  BarChart3,
   CheckCircle2,
   ChevronRight,
   Coins,
@@ -15,7 +14,6 @@ import {
   Maximize2,
   MonitorPlay,
   MoreVertical,
-  Play,
   Search,
   Settings,
   Shield,
@@ -802,7 +800,7 @@ export function FilesPage() {
   const currentFolderCount = filteredFolderSections.length;
 
   return (
-    <div className="animate-in slide-in-from-right-10 space-y-6 duration-700">
+    <div className="animate-in slide-in-from-right-10 space-y-6 pb-20 duration-700">
       <input
         ref={fileInputRef}
         accept="video/*"
@@ -822,21 +820,26 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="relative overflow-hidden rounded-[30px] border border-slate-800 bg-[#090b10]/90 p-4">
+      <div className="relative overflow-hidden rounded-[30px] border border-slate-800 bg-[#090b10]/90 p-4 md:p-6" data-testid="files-header">
         <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-cyan-900/10 blur-[120px]" />
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-violet-900/10 blur-[120px]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.04)_1px,transparent_1px)] bg-[size:36px_36px]" />
 
         <div className="relative z-10 space-y-4">
           <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 p-4 backdrop-blur-md">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
+                <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                  <Activity size={12} className="animate-pulse" />
+                  System Ready
+                </div>
                 <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
                   <span>UPLINK_ON</span>
                   <ChevronRight size={12} />
                   <span>Arquivos de Sincronia</span>
                 </div>
                 <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-                  Biblioteca de <span className="text-[hsl(var(--accent))]">Aulas</span>
+                  Biblioteca de <span className="text-cyan-400">Aulas</span>
                 </h2>
                 <p className="mt-1 text-xs font-medium text-slate-500">
                   Player local com progresso RPG, playlist por pasta e conclusao com XP.
@@ -864,89 +867,117 @@ export function FilesPage() {
             <FilesStatCard label="Gold" value={String(globalStats.gold)} subtext="Creditos" icon={Coins} />
           </div>
 
-          <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
-            <button
-              className="flex items-center gap-2 rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-[rgba(var(--glow),0.2)] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={saving}
-              onClick={handleOpenPicker}
-              type="button"
-            >
-              {saving ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
-              Selecionar videos
-            </button>
-            <button
-              className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={saving}
-              onClick={handleOpenFolderPicker}
-              type="button"
-            >
-              <FolderOpen size={14} />
-              {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
-            </button>
-            {directoryHandleSupported && (
+          <div className="space-y-3 border-t border-slate-800 pt-4" data-testid="files-toolbar">
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                className="flex items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-violet-900/20 transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                data-testid="connect-directory-handle"
+                className="flex items-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-cyan-900/20 transition-all hover:bg-cyan-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                data-testid="files-upload-button"
                 disabled={saving}
-                onClick={() => void handleOpenDirectoryPicker()}
-                title="Conecta uma pasta sem copiar todos os blobs para o IndexedDB."
+                onClick={handleOpenPicker}
+                type="button"
+              >
+                {saving ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
+                Upload
+              </button>
+              <button
+                className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                data-testid="files-folder-button"
+                disabled={saving}
+                onClick={handleOpenFolderPicker}
                 type="button"
               >
                 <FolderOpen size={14} />
-                Conectar pasta (alto volume)
+                {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
               </button>
-            )}
-            <div
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))]"
-            >
-              <ArrowUpDown size={14} />
-              <select
-                className="max-w-[210px] appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                data-testid="toggle-order"
-                disabled={visibleVideos.length === 0 || loading}
-                onChange={(event) => setOrderMode(event.target.value as OrderMode)}
-                value={orderMode}
-              >
-                <option value="newest">{ORDER_LABELS.newest}</option>
-                <option value="oldest">{ORDER_LABELS.oldest}</option>
-                <option value="name_asc">{ORDER_LABELS.name_asc}</option>
-                <option value="name_desc">{ORDER_LABELS.name_desc}</option>
-                <option value="size_desc">{ORDER_LABELS.size_desc}</option>
-                <option value="size_asc">{ORDER_LABELS.size_asc}</option>
-              </select>
-            </div>
-            <button
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-red-500/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-              data-testid="clear-library"
-              disabled={visibleVideos.length === 0 || loading || saving}
-              onClick={() => void handleClearAll()}
-              type="button"
-            >
-              <Trash2 size={14} />
-              Limpar biblioteca
-            </button>
-            <button
-              aria-label="Abrir conteudo"
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))] lg:hidden"
-              data-testid="sidebar-mobile-toggle"
-              disabled={visibleVideos.length === 0}
-              onClick={() => setIsSidebarMobileOpen(true)}
-              type="button"
-            >
-              <List size={14} />
-              Conteudo
-            </button>
-          </div>
-
-          <div className="rounded-xl border border-slate-800 bg-[#0b0d12] p-3 text-xs font-semibold text-slate-400">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>{completedVideoRefs.size} aula(s) concluidas nesta conta</span>
-              {loadingCompletions && (
-                <span className="flex items-center gap-1 text-[hsl(var(--accent-light))]">
-                  <Loader2 size={12} className="animate-spin" />
-                  sincronizando
-                </span>
+              {directoryHandleSupported && (
+                <button
+                  className="flex items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-violet-900/20 transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid="connect-directory-handle"
+                  disabled={saving}
+                  onClick={() => void handleOpenDirectoryPicker()}
+                  title="Conecta uma pasta sem copiar todos os blobs para o IndexedDB."
+                  type="button"
+                >
+                  <FolderOpen size={14} />
+                  Conectar pasta (alto volume)
+                </button>
               )}
+              <div
+                className="hidden items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 md:flex"
+                data-testid="files-sort-select"
+              >
+                <ArrowUpDown size={14} />
+                <select
+                  className="max-w-[210px] appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  data-testid="toggle-order"
+                  disabled={visibleVideos.length === 0 || loading}
+                  onChange={(event) => setOrderMode(event.target.value as OrderMode)}
+                  value={orderMode}
+                >
+                  <option value="newest">{ORDER_LABELS.newest}</option>
+                  <option value="oldest">{ORDER_LABELS.oldest}</option>
+                  <option value="name_asc">{ORDER_LABELS.name_asc}</option>
+                  <option value="name_desc">{ORDER_LABELS.name_desc}</option>
+                  <option value="size_desc">{ORDER_LABELS.size_desc}</option>
+                  <option value="size_asc">{ORDER_LABELS.size_asc}</option>
+                </select>
+              </div>
+              <button
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-red-500/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                data-testid="clear-library"
+                disabled={visibleVideos.length === 0 || loading || saving}
+                onClick={() => void handleClearAll()}
+                type="button"
+              >
+                <Trash2 size={14} />
+                Limpar biblioteca
+              </button>
+              <button
+                aria-label="Abrir conteudo"
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 lg:hidden"
+                data-testid="sidebar-mobile-toggle"
+                disabled={visibleVideos.length === 0}
+                onClick={() => setIsSidebarMobileOpen(true)}
+                type="button"
+              >
+                <List size={14} />
+                Conteudo
+              </button>
+              <button
+                className="ml-auto hidden rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-cyan-300 md:inline-flex"
+                title="Configuracoes visuais"
+                type="button"
+              >
+                <Settings size={14} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="relative w-full md:max-w-xl">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                <input
+                  className="w-full rounded-xl border border-slate-700 bg-[#06080f] py-2.5 pl-9 pr-3 text-xs font-medium text-slate-200 placeholder-slate-500 outline-none transition-colors focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/30"
+                  data-testid="files-search-input"
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Pesquisar por nome ou pasta..."
+                  type="text"
+                  value={searchTerm}
+                />
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-[#0b0d12] px-3 py-2 text-xs font-semibold text-slate-400">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1">
+                    <LayoutGrid size={13} />
+                    {completedVideoRefs.size}/{visibleVideos.length} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
+                  </span>
+                  {loadingCompletions && (
+                    <span className="flex items-center gap-1 text-cyan-300">
+                      <Loader2 size={12} className="animate-spin" />
+                      sincronizando
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1056,9 +1087,9 @@ export function FilesPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-5" data-testid="course-player">
-            <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <section className="space-y-5" data-testid="files-player">
+            <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]" data-testid="course-player">
               <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
               <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
               <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
@@ -1069,48 +1100,75 @@ export function FilesPage() {
                 video={selectedVideo}
                 videoUrl={selectedVideoUrl}
               />
+              <div className="pointer-events-none absolute left-4 top-4 z-20 inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-black/50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-red-300 opacity-0 transition-opacity group-hover:opacity-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                Gravacao
+              </div>
+              <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2 rounded-md border border-slate-700/70 bg-black/50 px-2 py-1 text-slate-300">
+                <MonitorPlay size={14} />
+                <Volume2 size={14} />
+                <Maximize2 size={14} />
+              </div>
+              <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
+                {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
+                  <span
+                    key={`wf-${index}`}
+                    className={`flex-1 rounded-full ${index <= 18 ? "bg-cyan-500/80" : "bg-slate-700/70"}`}
+                    style={{ height: `${value}%` }}
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
+                <div className="space-y-1">
                   <h3 className="text-lg font-black tracking-tight text-white">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Pasta: {selectedVideo?.relativePath ?? "-"}
                   </p>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Armazenamento: {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
                   </p>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Duracao detectada: {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando metadados"}
                   </p>
                 </div>
 
-                <button
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                    : "border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] text-white hover:brightness-110"
-                    } disabled:cursor-not-allowed disabled:opacity-60`}
-                  data-testid="complete-lesson-button"
-                  disabled={
-                    !selectedVideo ||
-                    selectedVideoCompleted ||
-                    completingLesson
-                  }
-                  onClick={() => void handleCompleteLesson()}
-                  type="button"
-                >
-                  {completingLesson ? <Loader2 className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}
-                  {!authUser
-                    ? "Faca login para concluir"
-                    : loadingCompletions
-                      ? "Sincronizando..."
-                    : selectedVideoCompleted
-                      ? "Ja concluida"
-                      : completingLesson
-                        ? "Concluindo..."
-                        : "Concluir aula (+XP)"}
-                </button>
+                <div className="flex items-center gap-2" data-testid="files-complete-button">
+                  <button
+                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                      : "border-cyan-500/40 bg-cyan-600 text-white hover:bg-cyan-500"
+                      } disabled:cursor-not-allowed disabled:opacity-60`}
+                    data-testid="complete-lesson-button"
+                    disabled={
+                      !selectedVideo ||
+                      selectedVideoCompleted ||
+                      completingLesson
+                    }
+                    onClick={() => void handleCompleteLesson()}
+                    type="button"
+                  >
+                    {completingLesson ? <Loader2 className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}
+                    {!authUser
+                      ? "Faca login para concluir"
+                      : loadingCompletions
+                        ? "Sincronizando..."
+                      : selectedVideoCompleted
+                        ? "Ja concluida"
+                        : completingLesson
+                          ? "Concluindo..."
+                          : "Concluir aula (+XP)"}
+                  </button>
+                  <button
+                    className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
+                    title="Mais acoes"
+                    type="button"
+                  >
+                    <MoreVertical size={14} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1123,12 +1181,12 @@ export function FilesPage() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />
-          </div>
+          </section>
 
-          <aside className="hidden lg:block">
+          <aside className="hidden lg:block" data-testid="files-playlist">
             <div className="space-y-4">
               <LessonSidebar
-                folderSections={folderSections}
+                folderSections={filteredFolderSections}
                 selectedLessonId={selectedLessonId}
                 completedVideoRefs={completedVideoRefs}
                 collapsedFolders={collapsedFolders}
@@ -1147,7 +1205,7 @@ export function FilesPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>
-                    <p className="text-xs text-slate-500">Use arquivos locais para reforcar a aula atual.</p>
+                    <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
                   </div>
                 </div>
               </div>
@@ -1165,7 +1223,7 @@ export function FilesPage() {
           />
           <div className="absolute bottom-0 right-0 top-0">
             <LessonSidebar
-              folderSections={folderSections}
+              folderSections={filteredFolderSections}
               selectedLessonId={selectedLessonId}
               completedVideoRefs={completedVideoRefs}
               collapsedFolders={collapsedFolders}

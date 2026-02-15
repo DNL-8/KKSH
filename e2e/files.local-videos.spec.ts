@@ -18,7 +18,8 @@ async function injectFolderVideos(page: Page): Promise<void> {
       }
 
       const createFile = (relativePath: string): File => {
-        const file = new File([bytes], "sample-video.webm", {
+        const fileName = relativePath.split("/").pop() ?? "sample-video.webm";
+        const file = new File([bytes], fileName, {
           type: "video/webm",
           lastModified: 1710000000000,
         });
@@ -30,8 +31,8 @@ async function injectFolderVideos(page: Page): Promise<void> {
       };
 
       const dt = new DataTransfer();
-      dt.items.add(createFile("A/sample-video.webm"));
-      dt.items.add(createFile("B/sample-video.webm"));
+      dt.items.add(createFile("A/alpha-video.webm"));
+      dt.items.add(createFile("B/bravo-video.webm"));
 
       Object.defineProperty(folderInput, "files", {
         configurable: true,
@@ -144,12 +145,16 @@ async function seedLibraryWithManyVideos(page: Page, total: number): Promise<voi
 
 test("modulo arquivos usa layout player + trilha + abas com drawer mobile", async ({ page }) => {
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
+  await expect(page.getByTestId("files-toolbar")).toBeVisible();
 
   await injectFolderVideos(page);
 
-  await expect(page.getByTestId("course-player")).toBeVisible();
+  await expect(page.getByTestId("files-player")).toBeVisible();
+  await expect(page.getByTestId("files-playlist")).toBeVisible();
   await expect(page.getByTestId("course-sidebar")).toBeVisible();
+  await expect(page.getByTestId("files-upload-button")).toBeVisible();
+  await expect(page.getByTestId("files-folder-button")).toBeVisible();
   const directoryHandleSupported = await page.evaluate(
     () => typeof (window as Window & { showDirectoryPicker?: unknown }).showDirectoryPicker === "function",
   );
@@ -158,6 +163,7 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   } else {
     await expect(page.getByTestId("connect-directory-handle")).toHaveCount(0);
   }
+  await expect(page.getByTestId("files-sort-select")).toBeVisible();
   await expect(page.getByTestId("toggle-order")).toBeVisible();
   await expect(page.getByTestId("toggle-order")).toHaveValue("newest");
   await page.getByTestId("toggle-order").selectOption("oldest");
@@ -190,9 +196,14 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   await expect(page.getByText("Nome do arquivo")).toBeVisible();
   await page.getByTestId("tab-overview").click();
   await expect(page.getByText("Total de videos")).toBeVisible();
+  await page.getByTestId("files-search-input").fill("bravo");
+  await expect(page.getByTestId("folder-section-a")).toHaveCount(0);
+  await expect(page.getByTestId("folder-section-b")).toBeVisible();
+  await page.getByTestId("files-search-input").fill("");
+  await expect(page.getByTestId("folder-section-a")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByTestId("course-player")).toBeVisible();
+  await expect(page.getByTestId("files-player")).toBeVisible();
   await expect(page.getByTestId("course-sidebar")).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -208,7 +219,7 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
 
 test("trilha lateral limita render por pasta e expande com mostrar mais", async ({ page }) => {
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
   await injectManyFolderVideos(page, 130);
 
   await expect(page.getByTestId("folder-section-a")).toBeVisible();
@@ -221,7 +232,7 @@ test("trilha lateral limita render por pasta e expande com mostrar mais", async 
 
 test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
   await injectFolderVideos(page);
 
   await page.getByTestId("toggle-order").selectOption("name_desc");
@@ -238,7 +249,7 @@ test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
 
   await page.goto("/hub");
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
 
   await expect(page.getByTestId("toggle-order")).toHaveValue("name_desc");
   await expect(page.getByText("Nome do arquivo")).toBeVisible();
@@ -261,7 +272,7 @@ test("auto-switch de pasta grande tenta conectar pasta e mostra CTA quando usuar
   });
 
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
   await injectManyFolderVideos(page, 500);
 
   await expect(page.getByTestId("high-volume-banner")).toBeVisible();
@@ -293,11 +304,11 @@ test("sem suporte a showDirectoryPicker, upload por pasta tradicional continua f
   });
 
   await page.goto("/arquivos");
-  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await expect(page.getByTestId("files-header")).toBeVisible();
   await injectManyFolderVideos(page, 520);
 
   await expect(page.getByTestId("high-volume-banner")).toHaveCount(0);
-  await expect(page.getByTestId("course-player")).toBeVisible();
+  await expect(page.getByTestId("files-player")).toBeVisible();
   await expect(page.getByTestId("folder-section-a")).toBeVisible();
 });
 
