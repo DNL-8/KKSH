@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
 from sqlalchemy import and_, or_
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core.audit import log_event
@@ -29,6 +30,7 @@ from app.services.utils import date_key, now_local, parse_goals, week_key
 from app.services.webhooks import enqueue_event
 
 router = APIRouter()
+VIDEO_COMPLETION_PREFIX = "video_completion::"
 
 
 def _week_key_from_date_key(dk: str) -> str:
@@ -54,17 +56,55 @@ def _session_to_out(r: StudySession) -> SessionOut:
     )
 
 
+def _normalize_video_completion_ref(*, mode: str | None, notes: str | None) -> str | None:
+    if (mode or "").strip() != "video_lesson":
+        return None
+    raw_notes = (notes or "").strip()
+    if not raw_notes.startswith(VIDEO_COMPLETION_PREFIX):
+        return None
+    ref = raw_notes[len(VIDEO_COMPLETION_PREFIX) :].strip()
+    return ref or None
+
+
+def _is_duplicate_video_completion_integrity_error(exc: IntegrityError) -> bool:
+    message = str(exc).lower()
+    return "xp_ledger_events" in message and (
+        "uq_xp_ledger_source" in message or "source_ref" in message
+    )
+
+
 @router.post("", status_code=201)
 def create_session(
     payload: CreateSessionIn,
     background: BackgroundTasks,
     request: Request,
+    response: Response,
     session: Session = Depends(db_session),
     user: User = Depends(get_current_user),
 ):
     # default to *today* in the user's timezone (frontend can pass explicit date when needed)
     # date_key is set by frontend via "date" for edits; for creates we keep current date.
     dk = date_key(now_local())
+
+    normalized_notes = (
+        payload.notes.strip() if isinstance(payload.notes, str) and payload.notes.strip() else None
+    )
+    video_completion_ref = _normalize_video_completion_ref(
+        mode=payload.mode, notes=normalized_notes
+    )
+    if video_completion_ref:
+        normalized_notes = f"{VIDEO_COMPLETION_PREFIX}{video_completion_ref}"
+        existing = session.exec(
+            select(StudySession.id).where(
+                StudySession.user_id == user.id,
+                StudySession.mode == "video_lesson",
+                StudySession.notes == normalized_notes,
+                StudySession.deleted_at.is_(None),
+            )
+        ).first()
+        if existing:
+            response.status_code = 200
+            return {"ok": True, "xpEarned": 0, "goldEarned": 0}
 
     try:
         settings = get_or_create_user_settings(user, session, autocommit=False)
@@ -75,13 +115,19 @@ def create_session(
             subject=payload.subject,
             minutes=int(payload.minutes),
             mode=payload.mode,
-            notes=payload.notes,
+            notes=normalized_notes,
             date_key=dk,
             xp_earned=xp,
             gold_earned=gold,
         )
         session.add(s)
         session.flush()
+
+        source_type = "study_session"
+        source_ref = s.id
+        if video_completion_ref:
+            source_type = "video_lesson_completion"
+            source_ref = video_completion_ref
 
         log_event(
             session,
@@ -107,8 +153,8 @@ def create_session(
             autocommit=False,
             persist_ledger=True,
             event_type="session.created",
-            source_type="study_session",
-            source_ref=s.id,
+            source_type=source_type,
+            source_ref=source_ref,
             payload_json={
                 "sessionId": s.id,
                 "subject": s.subject,
@@ -141,6 +187,12 @@ def create_session(
         )
 
         session.commit()
+    except IntegrityError as exc:
+        session.rollback()
+        if video_completion_ref and _is_duplicate_video_completion_integrity_error(exc):
+            response.status_code = 200
+            return {"ok": True, "xpEarned": 0, "goldEarned": 0}
+        raise
     except Exception:
         session.rollback()
         raise

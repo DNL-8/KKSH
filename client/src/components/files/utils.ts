@@ -83,9 +83,51 @@ export function formatStorageKind(video: StoredVideo): string {
 /* ------------------------------------------------------------------ */
 
 export const VIDEO_COMPLETION_PREFIX = "video_completion::";
+const VIDEO_REF_SAMPLE_BYTES = 64 * 1024;
 
 export function buildVideoRef(video: StoredVideo): string {
     return video.id;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+function buildMetadataVideoRef(video: StoredVideo): string {
+    return `v2:meta:${video.storageKind}:${video.size}:${video.lastModified}`;
+}
+
+async function partialSha256ForFile(file: File): Promise<string> {
+    const size = file.size;
+    const sample = VIDEO_REF_SAMPLE_BYTES;
+    const middleStart = Math.max(0, Math.floor(size / 2) - Math.floor(sample / 2));
+    const tailStart = Math.max(0, size - sample);
+
+    const header = new TextEncoder().encode(`v2|${size}|${file.lastModified}|${file.type}|`);
+    const material = new Blob([
+        header,
+        file.slice(0, Math.min(sample, size)),
+        file.slice(middleStart, Math.min(size, middleStart + sample)),
+        file.slice(tailStart, size),
+    ]);
+    const digest = await crypto.subtle.digest("SHA-256", await material.arrayBuffer());
+    return bytesToHex(new Uint8Array(digest));
+}
+
+export async function resolveVideoCompletionRef(video: StoredVideo): Promise<string> {
+    if (typeof crypto === "undefined" || !crypto.subtle) {
+        return buildMetadataVideoRef(video);
+    }
+
+    try {
+        const file = await resolvePlayableFile(video);
+        const digest = await partialSha256ForFile(file);
+        return `v2:sha256:${digest}`;
+    } catch {
+        return buildMetadataVideoRef(video);
+    }
 }
 
 export function extractVideoRefFromNotes(notes: string | null | undefined): string | null {

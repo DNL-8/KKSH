@@ -2,7 +2,7 @@ import pytest
 from sqlmodel import select
 
 from app.db import get_session
-from app.models import AuditEvent, StudySession
+from app.models import AuditEvent, StudySession, XpLedgerEvent
 
 
 def _signup(client, csrf_headers, email="b@example.com"):
@@ -92,3 +92,56 @@ def test_create_session_is_atomic_when_mid_flow_fails(client, csrf_headers, monk
             )
         ).all()
         assert audit_rows == []
+
+
+def test_video_lesson_completion_is_deduped_by_notes_ref(client, csrf_headers):
+    user = _signup(client, csrf_headers, email="video-dedupe@example.com")["user"]
+    base_payload = {
+        "subject": "Python",
+        "minutes": 12,
+        "mode": "video_lesson",
+        "notes": "video_completion::v2:sha256:ref-abc",
+    }
+
+    first = client.post("/api/v1/sessions", json=base_payload, headers=csrf_headers())
+    assert first.status_code == 201
+    assert first.json()["xpEarned"] > 0
+
+    duplicate = client.post("/api/v1/sessions", json=base_payload, headers=csrf_headers())
+    assert duplicate.status_code == 200
+    assert duplicate.json() == {"ok": True, "xpEarned": 0, "goldEarned": 0}
+
+    state = client.get("/api/v1/me/state")
+    assert state.status_code == 200
+    assert state.json()["todayMinutes"] == 12
+
+    with get_session() as db:
+        sessions = db.exec(
+            select(StudySession).where(
+                StudySession.user_id == user["id"],
+                StudySession.mode == "video_lesson",
+                StudySession.notes == base_payload["notes"],
+                StudySession.deleted_at.is_(None),
+            )
+        ).all()
+        assert len(sessions) == 1
+
+        ledger_rows = db.exec(
+            select(XpLedgerEvent).where(
+                XpLedgerEvent.user_id == user["id"],
+                XpLedgerEvent.source_type == "video_lesson_completion",
+                XpLedgerEvent.source_ref == "v2:sha256:ref-abc",
+            )
+        ).all()
+        assert len(ledger_rows) == 1
+
+    other_ref = {
+        **base_payload,
+        "notes": "video_completion::v2:sha256:ref-def",
+    }
+    other = client.post("/api/v1/sessions", json=other_ref, headers=csrf_headers())
+    assert other.status_code == 201
+
+    state_after_other = client.get("/api/v1/me/state")
+    assert state_after_other.status_code == 200
+    assert state_after_other.json()["todayMinutes"] == 24

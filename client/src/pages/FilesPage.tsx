@@ -36,6 +36,7 @@ import {
   formatStorageKind,
   normalizePathForTestId,
   resolvePlayableFile,
+  resolveVideoCompletionRef,
   sortGroupPaths,
   subjectFromRelativePath,
   summarizeNames,
@@ -279,6 +280,9 @@ export function FilesPage() {
   const [selectedDurationSec, setSelectedDurationSec] = useState<number | null>(null);
 
   const [completedVideoRefs, setCompletedVideoRefs] = useState<Set<string>>(new Set());
+  const [resolvedVideoRefsById, setResolvedVideoRefsById] = useState<Record<string, string>>({});
+  const [selectedVideoRef, setSelectedVideoRef] = useState<string | null>(null);
+  const [resolvingSelectedVideoRef, setResolvingSelectedVideoRef] = useState(false);
   const [loadingCompletions, setLoadingCompletions] = useState(false);
   const [completingLesson, setCompletingLesson] = useState(false);
   const [viewStateReadyKey, setViewStateReadyKey] = useState<string | null>(null);
@@ -409,12 +413,72 @@ export function FilesPage() {
     return visibleVideos.find((video) => video.id === selectedLessonId) ?? null;
   }, [selectedLessonId, visibleVideos]);
 
-  const selectedVideoRef = selectedVideo ? buildVideoRef(selectedVideo) : null;
-  const selectedVideoCompleted = selectedVideoRef ? completedVideoRefs.has(selectedVideoRef) : false;
+  const isVideoCompleted = useCallback(
+    (video: StoredVideo | null): boolean => {
+      if (!video) {
+        return false;
+      }
+      const legacyRef = buildVideoRef(video);
+      if (completedVideoRefs.has(legacyRef)) {
+        return true;
+      }
+      const resolvedRef = resolvedVideoRefsById[video.id];
+      return Boolean(resolvedRef && completedVideoRefs.has(resolvedRef));
+    },
+    [completedVideoRefs, resolvedVideoRefsById],
+  );
+
+  const selectedVideoCompleted = isVideoCompleted(selectedVideo);
   const estimatedMinutes =
     selectedDurationSec && Number.isFinite(selectedDurationSec)
       ? Math.max(1, Math.ceil(selectedDurationSec / 60))
       : null;
+
+  useEffect(() => {
+    if (!selectedVideo) {
+      setSelectedVideoRef(null);
+      setResolvingSelectedVideoRef(false);
+      return;
+    }
+
+    const legacyRef = buildVideoRef(selectedVideo);
+    const selectedId = selectedVideo.id;
+    let cancelled = false;
+
+    setSelectedVideoRef(legacyRef);
+    setResolvedVideoRefsById((current) =>
+      current[selectedId] === legacyRef ? current : { ...current, [selectedId]: legacyRef },
+    );
+    setResolvingSelectedVideoRef(true);
+
+    const resolveRef = async () => {
+      try {
+        const stableRef = await resolveVideoCompletionRef(selectedVideo);
+        if (cancelled) {
+          return;
+        }
+        setSelectedVideoRef(stableRef);
+        setResolvedVideoRefsById((current) =>
+          current[selectedId] === stableRef ? current : { ...current, [selectedId]: stableRef },
+        );
+      } catch {
+        if (cancelled) {
+          return;
+        }
+        setSelectedVideoRef(legacyRef);
+      } finally {
+        if (!cancelled) {
+          setResolvingSelectedVideoRef(false);
+        }
+      }
+    };
+
+    void resolveRef();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVideo]);
 
   const loadCompletedVideoRefs = useCallback(async () => {
     if (!authUserId) {
@@ -686,7 +750,12 @@ export function FilesPage() {
   };
 
   const handleCompleteLesson = useCallback(async () => {
-    if (!selectedVideo || !selectedVideoRef) {
+    if (!selectedVideo) {
+      return;
+    }
+
+    if (resolvingSelectedVideoRef || !selectedVideoRef) {
+      setStatusMessage("Preparando identificador estavel da aula para dedupe.");
       return;
     }
 
@@ -733,6 +802,7 @@ export function FilesPage() {
       setCompletedVideoRefs((current) => {
         const next = new Set(current);
         next.add(selectedVideoRef);
+        next.add(buildVideoRef(selectedVideo));
         return next;
       });
 
@@ -751,7 +821,17 @@ export function FilesPage() {
     } finally {
       setCompletingLesson(false);
     }
-  }, [authUser, invalidateProgressCaches, loadingCompletions, openAuthPanel, selectedDurationSec, selectedVideo, selectedVideoCompleted, selectedVideoRef]);
+  }, [
+    authUser,
+    invalidateProgressCaches,
+    loadingCompletions,
+    openAuthPanel,
+    resolvingSelectedVideoRef,
+    selectedDurationSec,
+    selectedVideo,
+    selectedVideoCompleted,
+    selectedVideoRef,
+  ]);
 
   const handleVideoEnded = useCallback(() => {
     if (!selectedLessonId) return;
@@ -770,8 +850,12 @@ export function FilesPage() {
     }
   }, [selectedLessonId, folderSections]);
 
+  const completedLessonCount = useMemo(
+    () => visibleVideos.reduce((acc, video) => (isVideoCompleted(video) ? acc + 1 : acc), 0),
+    [isVideoCompleted, visibleVideos],
+  );
   const completionRate = visibleVideos.length > 0
-    ? Math.round((completedVideoRefs.size / visibleVideos.length) * 100)
+    ? Math.round((completedLessonCount / visibleVideos.length) * 100)
     : 0;
   const currentFolderCount = filteredFolderSections.length;
 
@@ -944,7 +1028,7 @@ export function FilesPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1">
                     <Icon name="apps" className="text-[13px]" />
-                    {completedVideoRefs.size}/{visibleVideos.length} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
+                    {completedLessonCount}/{visibleVideos.length} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
                   </span>
                   {loadingCompletions && (
                     <span className="flex items-center gap-1 text-cyan-300">
@@ -1121,7 +1205,8 @@ export function FilesPage() {
                     disabled={
                       !selectedVideo ||
                       selectedVideoCompleted ||
-                      completingLesson
+                      completingLesson ||
+                      resolvingSelectedVideoRef
                     }
                     onClick={() => void handleCompleteLesson()}
                     type="button"
@@ -1131,6 +1216,8 @@ export function FilesPage() {
                       ? "Faca login para concluir"
                       : loadingCompletions
                         ? "Sincronizando..."
+                        : resolvingSelectedVideoRef
+                          ? "Preparando dedupe..."
                         : selectedVideoCompleted
                           ? "Ja concluida"
                           : completingLesson
@@ -1165,6 +1252,7 @@ export function FilesPage() {
                 folderSections={filteredFolderSections}
                 selectedLessonId={selectedLessonId}
                 completedVideoRefs={completedVideoRefs}
+                resolvedVideoRefsById={resolvedVideoRefsById}
                 collapsedFolders={collapsedFolders}
                 visibleCountByFolder={visibleCountByFolder}
                 onToggleFolder={handleToggleFolder}
@@ -1202,6 +1290,7 @@ export function FilesPage() {
               folderSections={filteredFolderSections}
               selectedLessonId={selectedLessonId}
               completedVideoRefs={completedVideoRefs}
+              resolvedVideoRefsById={resolvedVideoRefsById}
               collapsedFolders={collapsedFolders}
               visibleCountByFolder={visibleCountByFolder}
               mobile={true}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 
 import type { StoredVideo } from "../../lib/localVideosStore";
@@ -24,6 +24,7 @@ interface LessonSidebarProps {
   folderSections: FolderSection[];
   selectedLessonId: string | null;
   completedVideoRefs: Set<string>;
+  resolvedVideoRefsById?: Record<string, string>;
   collapsedFolders: Record<string, boolean>;
   visibleCountByFolder: Record<string, number>;
   mobile?: boolean;
@@ -43,6 +44,7 @@ export function LessonSidebar({
   folderSections,
   selectedLessonId,
   completedVideoRefs,
+  resolvedVideoRefsById = {},
   collapsedFolders,
   visibleCountByFolder,
   mobile = false,
@@ -54,6 +56,18 @@ export function LessonSidebar({
   onClose,
 }: LessonSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const isLessonCompleted = useCallback(
+    (lesson: StoredVideo): boolean => {
+      const legacyRef = buildVideoRef(lesson);
+      if (completedVideoRefs.has(legacyRef)) {
+        return true;
+      }
+      const resolvedRef = resolvedVideoRefsById[lesson.id];
+      return Boolean(resolvedRef && completedVideoRefs.has(resolvedRef));
+    },
+    [completedVideoRefs, resolvedVideoRefsById],
+  );
 
   const wrapperClasses = mobile
     ? "h-full w-[340px] max-w-[92vw] overflow-y-auto border-l border-cyan-900/40 bg-[#041022] p-3 shadow-2xl"
@@ -82,10 +96,10 @@ export function LessonSidebar({
     () =>
       filteredSections.reduce(
         (acc, section) =>
-          acc + section.lessons.filter((lesson) => completedVideoRefs.has(buildVideoRef(lesson))).length,
+          acc + section.lessons.filter((lesson) => isLessonCompleted(lesson)).length,
         0,
       ),
-    [completedVideoRefs, filteredSections],
+    [filteredSections, isLessonCompleted],
   );
 
   const collapsedCount = useMemo(
@@ -175,7 +189,7 @@ export function LessonSidebar({
           const visibleCount = visibleCountByFolder[section.path] ?? LESSONS_VISIBLE_DEFAULT;
           const visibleLessons = isSearching ? section.lessons : section.lessons.slice(0, visibleCount);
           const hiddenLessons = isSearching ? 0 : Math.max(0, section.lessons.length - visibleLessons.length);
-          const completedInSection = section.lessons.filter((lesson) => completedVideoRefs.has(buildVideoRef(lesson))).length;
+          const completedInSection = section.lessons.filter((lesson) => isLessonCompleted(lesson)).length;
 
           return (
             <section
@@ -208,7 +222,7 @@ export function LessonSidebar({
                 <div className="divide-y divide-cyan-950/40">
                   {visibleLessons.map((lesson: StoredVideo, index: number) => {
                     const active = selectedLessonId === lesson.id;
-                    const lessonCompleted = completedVideoRefs.has(buildVideoRef(lesson));
+                    const lessonCompleted = isLessonCompleted(lesson);
                     const itemNumber = String(index + 1).padStart(2, "0");
                     const storageLabel = formatStorageKind(lesson).toUpperCase();
 
