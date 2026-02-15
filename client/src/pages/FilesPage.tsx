@@ -1,18 +1,28 @@
 import {
+  Activity,
   AlertTriangle,
   ArrowUpDown,
+  BarChart3,
   CheckCircle2,
   ChevronRight,
   Coins,
   FileVideo,
   Film,
   FolderOpen,
+  LayoutGrid,
   List,
   Loader2,
+  Maximize2,
+  MonitorPlay,
+  MoreVertical,
+  Play,
+  Search,
+  Settings,
   Shield,
   Trophy,
   Trash2,
   Upload,
+  Volume2,
   Zap,
 } from "lucide-react";
 import {
@@ -87,6 +97,8 @@ const ORDER_LABELS: Record<OrderMode, string> = {
   size_desc: "Ordem: maior arquivo",
   size_asc: "Ordem: menor arquivo",
 };
+
+const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
 
 interface FilesViewStateSnapshot {
   selectedLessonId: string | null;
@@ -287,6 +299,7 @@ export function FilesPage() {
   const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
   const [visibleCountByFolder, setVisibleCountByFolder] = useState<Record<string, number>>({});
   const [orderMode, setOrderMode] = useState<OrderMode>("newest");
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabMode>("overview");
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [selectedDurationSec, setSelectedDurationSec] = useState<number | null>(null);
@@ -389,6 +402,31 @@ export function FilesPage() {
         };
       });
   }, [orderMode, visibleVideos]);
+
+  const filteredFolderSections = useMemo<FolderSection[]>(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) {
+      return folderSections;
+    }
+
+    return folderSections
+      .map((section) => ({
+        ...section,
+        lessons: section.lessons.filter((lesson) => {
+          const relativePath = lesson.relativePath || DEFAULT_RELATIVE_PATH;
+          return (
+            lesson.name.toLowerCase().includes(query) ||
+            relativePath.toLowerCase().includes(query)
+          );
+        }),
+      }))
+      .filter((section) => section.lessons.length > 0);
+  }, [folderSections, searchTerm]);
+
+  const filteredLessonCount = useMemo(
+    () => filteredFolderSections.reduce((acc, section) => acc + section.lessons.length, 0),
+    [filteredFolderSections],
+  );
 
   const selectedVideo = useMemo<StoredVideo | null>(() => {
     if (!selectedLessonId) {
@@ -757,6 +795,11 @@ export function FilesPage() {
       }
     }
   }, [selectedLessonId, folderSections]);
+
+  const completionRate = visibleVideos.length > 0
+    ? Math.round((completedVideoRefs.size / visibleVideos.length) * 100)
+    : 0;
+  const currentFolderCount = filteredFolderSections.length;
 
   return (
     <div className="animate-in slide-in-from-right-10 space-y-6 duration-700">

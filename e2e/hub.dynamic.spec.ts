@@ -15,6 +15,7 @@ function buildState(revision: number) {
       SQL: 180,
       Python: 120,
       Excel: 90,
+      ETL: 80,
     },
     dueReviews: revision === 0 ? 7 : 3,
     dailyQuests: [
@@ -56,6 +57,7 @@ function buildState(revision: number) {
     },
     progression: {
       level: 12,
+      rank: "D",
       xp: revision === 0 ? 420 : 580,
       maxXp: 1000,
       gold: revision === 0 ? 210 : 260,
@@ -71,7 +73,30 @@ function buildState(revision: number) {
   };
 }
 
-test("hub: login + dados dinamicos + refresh atualiza missao e progresso", async ({ page }) => {
+function buildWeeklyReport(revision: number) {
+  return {
+    from: "2026-02-08",
+    to: "2026-02-14",
+    totalMinutes: revision === 0 ? 220 : 315,
+    byDay: [
+      { date: "2026-02-08", minutes: 20 },
+      { date: "2026-02-09", minutes: 30 },
+      { date: "2026-02-10", minutes: 25 },
+      { date: "2026-02-11", minutes: 35 },
+      { date: "2026-02-12", minutes: 40 },
+      { date: "2026-02-13", minutes: revision === 0 ? 30 : 70 },
+      { date: "2026-02-14", minutes: 40 },
+    ],
+    bySubject: [
+      { subject: "SQL", minutes: revision === 0 ? 130 : 180 },
+      { subject: "Python", minutes: revision === 0 ? 60 : 90 },
+      { subject: "Excel", minutes: 30 },
+    ],
+    streakDays: revision === 0 ? 4 : 5,
+  };
+}
+
+test("hub: login + dados dinamicos + refresh + modal persistente", async ({ page }) => {
   let authenticated = false;
   let revision = 0;
 
@@ -113,7 +138,6 @@ test("hub: login + dados dinamicos + refresh atualiza missao e progresso", async
       });
       return;
     }
-
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -121,29 +145,58 @@ test("hub: login + dados dinamicos + refresh atualiza missao e progresso", async
     });
   });
 
+  await page.route("**/api/v1/reports/weekly", async (route) => {
+    if (!authenticated) {
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "http_error", message: "Not authenticated", details: {} }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(buildWeeklyReport(revision)),
+    });
+  });
+
   await page.goto("/hub");
-
-  await expect(page.getByRole("button", { name: /conectar para sincronizar/i })).toBeVisible();
-
-  await page.getByRole("button", { name: /conectar para sincronizar/i }).click();
+  await expect(page.getByTestId("hub-connect-button")).toBeVisible();
+  await page.getByTestId("hub-connect-button").click();
   await expect(page.getByTestId("shell-auth-panel")).toBeVisible();
   await page.getByTestId("shell-auth-email").fill("hub@example.com");
   await page.getByTestId("shell-auth-password").fill("test123");
   await page.getByTestId("shell-auth-submit").click();
 
   await expect(page.getByTestId("shell-auth-panel")).toHaveCount(0);
-  await expect(page.getByText("Limpar backlog SQL")).toBeVisible();
-  await expect(page.getByText("30/60 min")).toBeVisible();
-  await expect(page.getByText("Masmorra Ativa")).toBeVisible();
-  await expect(page.getByText("7 Revisoes")).toBeVisible();
-  await expect(page.getByText("Fonte: MIXED")).toBeVisible();
-  await expect(page.getByRole("button", { name: /protocolo treino/i })).toContainText("45/90 min");
+  await expect(page.getByTestId("hub-mission-title")).toContainText("Limpar backlog SQL");
+  await expect(page.getByTestId("hub-mission-progress")).toContainText("30/60 min");
+  await expect(page.getByTestId("hub-system-masmorra-value")).toContainText("7 Revisoes");
+  await expect(page.getByTestId("hub-system-training-value")).toContainText("45/90 min");
 
   revision = 1;
-  await page.getByRole("button", { name: /atualizar dados do hub/i }).click();
+  await page.getByTestId("hub-refresh-button").click();
+  await expect(page.getByTestId("hub-mission-title")).toContainText("Concluir sprint SQL");
+  await expect(page.getByTestId("hub-mission-progress")).toContainText("60/60 min");
+  await expect(page.getByTestId("hub-system-masmorra-value")).toContainText("3 Revisoes");
+  await expect(page.getByTestId("hub-system-training-value")).toContainText("90/90 min");
 
-  await expect(page.getByText("Concluir sprint SQL")).toBeVisible();
-  await expect(page.getByText("60/60 min")).toBeVisible();
-  await expect(page.getByText("3 Revisoes")).toBeVisible();
-  await expect(page.getByRole("button", { name: /protocolo treino/i })).toContainText("90/90 min");
+  await page.getByTestId("hub-attributes-edit-open").click();
+  await expect(page.getByTestId("hub-attributes-modal")).toBeVisible();
+
+  await page.getByTestId("hub-attr-python").evaluate((element) => {
+    const input = element as HTMLInputElement;
+    input.value = "150";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.getByTestId("hub-attr-python-value")).toContainText("100%");
+
+  await page.getByTestId("hub-attributes-save").click();
+  await expect(page.getByTestId("hub-attributes-modal")).toHaveCount(0);
+
+  await page.reload();
+  await page.getByTestId("hub-attributes-edit-open").click();
+  await expect(page.getByTestId("hub-attr-python")).toHaveValue("100");
 });
