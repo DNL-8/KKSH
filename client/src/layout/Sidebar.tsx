@@ -16,11 +16,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
     { id: "hub", label: "Centro de Comando", path: "/hub", icon: "apps" },
-    { id: "combate", label: "Arena de Exterminio", path: "/combate", icon: "crossed-swords" },
+    { id: "combate", label: "Arena de Exterminio", path: "/combate", icon: "sword" },
     { id: "revisoes", label: "Masmorra de Memoria", path: "/revisoes", icon: "target" },
-    { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: "play-alt" },
-    { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: "chart-histogram" },
-    { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: "cpu" },
+    { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: "play" },
+    { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: "stats" },
+    { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: "microchip" },
 ];
 
 export { NAV_ITEMS };

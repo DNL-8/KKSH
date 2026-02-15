@@ -196,7 +196,7 @@ export function SettingsPage() {
             {/* System Preferences */}
             <section>
               <div className="mb-6 flex items-center gap-4">
-                <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="cpu" className="text-[24px]" /></div>
+                <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="microchip" className="text-[24px]" /></div>
                 <h2 className="text-lg font-bold uppercase tracking-widest text-white">Sistema</h2>
               </div>
 
