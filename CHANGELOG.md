@@ -10,12 +10,13 @@ All notable changes to this project will be documented in this file.
 - **AI abuse controls hardened** - authenticated users now have dedicated burst + daily quota limits in addition to existing guest/IP controls
 - **CSRF baseline asserted in tests** - cookie-auth mutating requests without `X-CSRF-Token` are now explicitly covered by backend tests
 - **CSP and security headers asserted in tests** - backend tests now validate `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy`
+- **CSP tightened for same-origin** - inline script handlers are blocked via `script-src-attr 'none'`; global `style-src 'unsafe-inline'` was removed in favor of scoped `style-src-attr 'unsafe-inline'`
 
 ### Added
 - **Web Vitals reporting** - frontend collects CLS/INP/LCP via `web-vitals` library and sends to `/api/v1/reports/web-vitals` using `sendBeacon`
 - **Themed 404 page** - "Portal Corrompido" page for unknown routes instead of silent redirect
 - **Skip-to-content link** - keyboard-accessible skip navigation in `AppShell`
-- **Schema.org JSON-LD** - structured data (`WebApplication`) in `index.html`
+- **Schema.org JSON-LD** - structured data (`WebApplication`) injected at runtime from frontend code (no inline script in HTML)
 - **PWA manifest** - `manifest.webmanifest` with app metadata and icons
 - **SEO files** - `robots.txt`, `sitemap.xml`, canonical URL, `og:image`, Twitter Card meta tags
 - **Bundle size analysis** - `rollup-plugin-visualizer` (run with `$env:ANALYZE="true"; pnpm build:client`)

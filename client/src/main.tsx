@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 
 import App from "./App";
 import "@flaticon/flaticon-uicons/css/all/all.css";
+import { injectStructuredData } from "./lib/structuredData";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
@@ -21,6 +22,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+injectStructuredData();
 
 createRoot(rootElement).render(
   <StrictMode>

@@ -60,8 +60,14 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
 
 - Defina `COOKIE_SAMESITE=lax` (ou `strict` quando possivel).
 - Defina `COOKIE_SECURE=true` em producao.
+- Nao use `COOKIE_SAMESITE=none` sem `COOKIE_SECURE=true` (bloqueado por validacao em prod/staging).
 - Mantenha `CSRF_ENABLED=true` para fluxos com cookie-auth.
-- Configure `CONTENT_SECURITY_POLICY` estrita para seu dominio same-origin.
+- Exponha `GET /api/v1/auth/csrf` no bootstrap do cliente e envie `X-CSRF-Token` em `POST|PUT|PATCH|DELETE`.
+- Configure `CONTENT_SECURITY_POLICY` estrita para same-origin, incluindo:
+  - `script-src 'self'` + `script-src-attr 'none'`
+  - `style-src` sem `unsafe-inline` global e `style-src-attr 'unsafe-inline'` apenas enquanto houver `style={{...}}` no React
+  - `object-src 'none'`, `frame-src 'none'`, `frame-ancestors 'none'`
+- Planeje rotacao periodica de `WEBHOOK_SECRET_ENC_KEY` com fase de keyring em `WEBHOOK_SECRET_ENC_KEY_PREV` e re-encriptacao (`backend/scripts/reencrypt_secrets.py --apply`).
 
 ---
 

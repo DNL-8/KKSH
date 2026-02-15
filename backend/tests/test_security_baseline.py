@@ -26,4 +26,7 @@ def test_security_headers_include_csp_and_baseline_policies(client):
     assert response.headers.get("X-Frame-Options") == "DENY"
     assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
     assert response.headers.get("Permissions-Policy") == "geolocation=(), microphone=(), camera=()"
-    assert response.headers.get("Content-Security-Policy") == settings.content_security_policy
+    csp = response.headers.get("Content-Security-Policy")
+    assert csp == settings.content_security_policy
+    assert "script-src-attr 'none'" in csp
+    assert "style-src-attr 'unsafe-inline'" in csp

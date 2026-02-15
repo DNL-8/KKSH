@@ -124,16 +124,26 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 ### Sessao, CSRF e CSP
 
 - Auth por cookie com `HttpOnly`, `Secure` (prod/staging), `SameSite` configuravel (`lax|strict|none`) e `Path` controlado por config.
-- Protecao CSRF ativa para metodos mutaveis via double-submit cookie (`/api/v1/auth/csrf` + header `X-CSRF-Token`).
-- CSRF validado no middleware para fluxos cookie-auth (`POST|PUT|PATCH|DELETE`).
+- `SameSite=None` so e aceito com cookie `Secure=true` (validacao de startup em prod/staging).
+- Protecao CSRF ativa para metodos mutaveis via double-submit cookie:
+  - endpoint `GET /api/v1/auth/csrf` emite token
+  - cliente envia `X-CSRF-Token` com o mesmo valor do cookie
+  - token e rotacionado em `signup/login/refresh/logout`
+- Em producao (`Secure=true`), o cookie CSRF usa prefixo `__Host-` para mitigar injecao por subdominio.
+- CSRF e aplicado apenas quando ha cookies de sessao (nao bloqueia requests publicos/bearer sem cookie).
 - Headers de seguranca aplicados por padrao: `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `HSTS` (HTTPS em prod).
-- Em same-origin, a CSP padrao restringe `default-src/script-src/connect-src` para `'self'`.
+- CSP same-origin padrao:
+  - `default-src/script-src/connect-src 'self'`
+  - `script-src-attr 'none'` (bloqueia handlers inline)
+  - `style-src` sem `unsafe-inline` global; inline fica limitado a `style-src-attr 'unsafe-inline'` por compatibilidade dos componentes React atuais
+  - `object-src 'none'`, `frame-src 'none'`, `frame-ancestors 'none'`
 
 ## SEO & PWA
 
 - `robots.txt` e `sitemap.xml` em `client/public/`
 - `manifest.webmanifest` para PWA (installable)
-- Open Graph, Twitter Card e Schema.org JSON-LD em `index.html`
+- Open Graph e Twitter Card em `index.html`
+- Schema.org JSON-LD injetado em runtime por `client/src/lib/structuredData.ts` (sem inline script no HTML)
 - Google Fonts com `display=swap`
 - Web Vitals (CLS/INP/LCP) reportados ao backend
 
@@ -149,6 +159,8 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - Logs JSON com `request_id` e campos `extra` estruturados (inclui `worker_id`, `outbox_id`, `correlation_id` quando presentes).
 - Metricas Prometheus para IA (`ai_request_duration_seconds`, `ai_request_errors_total`, `ai_rate_limited_total`).
 - Metricas Prometheus para webhook outbox (`webhook_outbox_sent_total`, `webhook_outbox_retry_total`, `webhook_outbox_dead_total`, `webhook_outbox_queue_depth`).
+- Healthcheck da API: `GET /api/v1/health` (DB + Redis).
+- Healthcheck dedicado do worker: `python backend/scripts/webhook_worker_healthcheck.py`.
 
 ## Scripts uteis
 
@@ -178,6 +190,7 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 
 - Guia operacional: `docs/key_rotation.md`
 - Re-encriptacao assistida: `python backend/scripts/reencrypt_secrets.py --apply`
+- Politica recomendada: rotacao periodica com janela curta de keyring (`WEBHOOK_SECRET_ENC_KEY_PREV`) + remocao da chave antiga apos re-encriptacao validada.
 
 Executar dashboard SQL no compose local:
 
