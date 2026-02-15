@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 /*  Theme definitions                                                 */
 /* ------------------------------------------------------------------ */
 
-export type ThemeId = "cyan" | "red" | "purple" | "emerald" | "orange" | "matrix" | "sololeveling";
+export type ThemeId = "matrix" | "naruto" | "dragonball" | "sololeveling" | "hxh" | "lotr";
 
 interface ThemeColors {
     /** Primary accent HSL values (without `hsl()` wrapper) for CSS vars */
@@ -14,40 +14,35 @@ interface ThemeColors {
 }
 
 const THEMES: Record<ThemeId, ThemeColors> = {
-    cyan: {
-        accent: "188 95% 43%",
-        accentLight: "188 95% 68%",
-        glow: "6, 182, 212",
-    },
-    red: {
-        accent: "0 84% 60%",
-        accentLight: "0 84% 74%",
-        glow: "239, 68, 68",
-    },
-    purple: {
-        accent: "271 76% 53%",
-        accentLight: "271 76% 72%",
-        glow: "147, 51, 234",
-    },
-    emerald: {
-        accent: "160 84% 39%",
-        accentLight: "160 84% 60%",
-        glow: "16, 185, 129",
-    },
-    orange: {
-        accent: "25 95% 53%",
-        accentLight: "25 95% 70%",
-        glow: "249, 115, 22",
-    },
     matrix: {
         accent: "120 100% 50%",
         accentLight: "120 100% 70%",
         glow: "0, 255, 65",
     },
+    naruto: {
+        accent: "25 95% 50%",
+        accentLight: "25 95% 70%",
+        glow: "255, 100, 0",
+    },
+    dragonball: {
+        accent: "45 100% 50%",
+        accentLight: "45 100% 70%",
+        glow: "255, 215, 0",
+    },
     sololeveling: {
-        accent: "212 80% 50%", // #1a73e8
+        accent: "212 80% 50%",
         accentLight: "212 80% 70%",
         glow: "26, 115, 232",
+    },
+    hxh: {
+        accent: "348 83% 47%",
+        accentLight: "348 83% 67%",
+        glow: "220, 20, 60",
+    },
+    lotr: {
+        accent: "210 20% 70%",
+        accentLight: "210 20% 85%",
+        glow: "192, 192, 192",
     },
 };
 
@@ -84,7 +79,7 @@ function readStoredTheme(): ThemeId {
             if (parsed in THEMES) return parsed as ThemeId;
         }
     } catch { /* ignore */ }
-    return "cyan";
+    return "matrix";
 }
 
 function applyThemeVars(id: ThemeId) {

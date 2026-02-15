@@ -17,7 +17,7 @@ interface ClientPreferences {
 }
 
 const DEFAULT_PREFERENCES: ClientPreferences = {
-  theme: "cyber",
+  theme: "matrix",
   notifications: true,
   soundEffects: true,
   glitchEffects: true,
@@ -25,10 +25,12 @@ const DEFAULT_PREFERENCES: ClientPreferences = {
 };
 
 const THEME_PRESETS = [
-  { id: "cyber", name: "Cyber", color: "#06b6d4" },
-  { id: "matrix", name: "Matrix", color: "#22c55e" },
-  { id: "sunset", name: "Sunset", color: "#f97316" },
-  { id: "royal", name: "Royal", color: "#8b5cf6" },
+  { id: "matrix", name: "Matrix", color: "bg-[#00ff41]" },
+  { id: "naruto", name: "Naruto", color: "bg-[#ff6400]" },
+  { id: "dragonball", name: "Dragon Ball", color: "bg-[#ffd700]" },
+  { id: "sololeveling", name: "Solo Leveling", color: "bg-[#1a73e8]" },
+  { id: "hxh", name: "Hunter x Hunter", color: "bg-[#dc143c]" },
+  { id: "lotr", name: "Senhor dos Anéis", color: "bg-[#c0c0c0]" },
 ];
 
 export function SettingsPage() {
