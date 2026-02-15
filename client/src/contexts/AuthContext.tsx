@@ -1,6 +1,7 @@
-import { type FormEvent, createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type FormEvent, createContext, useCallback, useContext, useMemo, useState } from "react";
 
-import { ApiRequestError, getMe, getProgress, login, logout } from "../lib/api";
+import { ApiRequestError, getMe, getProgress, login, logout, signup } from "../lib/api";
 import type { AuthUser, GlobalStats } from "../layout/types";
 
 /* ------------------------------------------------------------------ */
@@ -25,7 +26,7 @@ const INITIAL_STATS: GlobalStats = {
 export interface AuthContextValue {
     authUser: AuthUser | null;
     globalStats: GlobalStats;
-    /** Refresh user + progression from API */
+    /** Refresh canonical server-state (/me + /progress) */
     syncProgressionFromApi: () => Promise<void>;
     /** Login form helpers */
     isAuthPanelOpen: boolean;
@@ -39,9 +40,6 @@ export interface AuthContextValue {
     authFeedback: string | null;
     handleAuthSubmit: (e: FormEvent<HTMLFormElement>) => void;
     handleLogout: () => void;
-    /** Actions */
-    handleGlobalAction: (type: "attack") => void;
-    setGlobalStats: React.Dispatch<React.SetStateAction<GlobalStats>>;
     authMode: "login" | "signup";
     setAuthMode: React.Dispatch<React.SetStateAction<"login" | "signup">>;
     setAuthFeedback: React.Dispatch<React.SetStateAction<string | null>>;
@@ -54,8 +52,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 /* ------------------------------------------------------------------ */
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [globalStats, setGlobalStats] = useState<GlobalStats>(INITIAL_STATS);
-    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+    const queryClient = useQueryClient();
     const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
     const [authEmail, setAuthEmail] = useState("");
     const [authPassword, setAuthPassword] = useState("");
@@ -63,40 +60,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authFeedback, setAuthFeedback] = useState<string | null>(null);
     const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
+    const meQuery = useQuery({
+        queryKey: ["auth", "me"],
+        queryFn: getMe,
+        staleTime: 15_000,
+        retry: 1,
+    });
+
+    const authUser = (meQuery.data?.user ?? null) as AuthUser | null;
+
+    const progressQuery = useQuery({
+        queryKey: ["auth", "progress", authUser?.id ?? "guest"],
+        queryFn: getProgress,
+        enabled: Boolean(authUser),
+        staleTime: 15_000,
+        retry: 1,
+    });
+
+    const globalStats = useMemo<GlobalStats>(() => {
+        const progress = progressQuery.data;
+        if (!authUser || !progress) {
+            return INITIAL_STATS;
+        }
+        return {
+            hp: Math.max(0, Number(progress.vitals?.hp ?? INITIAL_STATS.hp)),
+            mana: Math.max(0, Number(progress.vitals?.mana ?? INITIAL_STATS.mana)),
+            xp: Math.max(0, Number(progress.xp ?? INITIAL_STATS.xp)),
+            maxXp: Math.max(1, Number(progress.maxXp ?? INITIAL_STATS.maxXp)),
+            level: Math.max(1, Number(progress.level ?? INITIAL_STATS.level)),
+            rank: String(progress.rank ?? INITIAL_STATS.rank),
+            gold: Math.max(0, Number(progress.gold ?? INITIAL_STATS.gold)),
+            streak: Math.max(0, Number(progress.streakDays ?? INITIAL_STATS.streak)),
+        };
+    }, [authUser, progressQuery.data]);
+
     const syncProgressionFromApi = useCallback(async () => {
         try {
-            const me = await getMe();
+            const me = await queryClient.fetchQuery({
+                queryKey: ["auth", "me"],
+                queryFn: getMe,
+                staleTime: 0,
+            });
             if (!me.user) {
-                setAuthUser(null);
-                setGlobalStats(INITIAL_STATS);
+                queryClient.removeQueries({ queryKey: ["auth", "progress"] });
                 return;
             }
-
-            setAuthUser(me.user);
-            const progression = await getProgress();
-            setGlobalStats((current) => ({
-                ...current,
-                hp: progression.vitals?.hp ?? current.hp,
-                mana: progression.vitals?.mana ?? current.mana,
-                xp: Math.max(0, Number(progression.xp) || 0),
-                maxXp: Math.max(1, Number(progression.maxXp) || current.maxXp || 1),
-                level: Math.max(1, Number(progression.level) || 1),
-                rank: String(progression.rank || current.rank || "F"),
-                gold: Math.max(0, Number(progression.gold) || 0),
-                streak: typeof progression.streakDays === "number" ? progression.streakDays : current.streak,
-            }));
+            await queryClient.fetchQuery({
+                queryKey: ["auth", "progress", me.user.id],
+                queryFn: getProgress,
+                staleTime: 0,
+            });
         } catch {
             // Keep current UI state on transient API errors.
         }
-    }, []);
-
-    /* Auto-sync on mount */
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            void syncProgressionFromApi();
-        }, 0);
-        return () => window.clearTimeout(timer);
-    }, [syncProgressionFromApi]);
+    }, [queryClient]);
 
     const openAuthPanel = useCallback(() => {
         setAuthFeedback(null);
@@ -127,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             void (async () => {
                 try {
                     if (authMode === "signup") {
-                        const { signup } = await import("../lib/api");
                         await signup(email, password);
                         setAuthFeedback("Conta criada com sucesso!");
                     } else {
@@ -137,12 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                     setAuthPassword("");
                     await syncProgressionFromApi();
-
-                    // Close panel slightly delayed to show success message?
-                    // Or just close immediately if login.
-                    // If signup, maybe show success and switch to login? 
-                    // Actually signup usually logs you in directly in this backend.
-                    // Yes, backend sets cookies on signup.
                     setIsAuthPanelOpen(false);
                 } catch (authError) {
                     if (authError instanceof ApiRequestError) {
@@ -186,15 +196,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })();
     }, [authSubmitting, syncProgressionFromApi]);
 
-    const handleGlobalAction = useCallback(
-        (type: "attack") => {
-            if (type === "attack") {
-                void syncProgressionFromApi();
-            }
-        },
-        [syncProgressionFromApi],
-    );
-
     const value: AuthContextValue = {
         authUser,
         globalStats,
@@ -210,8 +211,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authFeedback,
         handleAuthSubmit,
         handleLogout,
-        handleGlobalAction,
-        setGlobalStats,
         authMode,
         setAuthMode,
         setAuthFeedback,

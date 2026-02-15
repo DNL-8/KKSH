@@ -1,5 +1,3 @@
-export type GlobalActionType = "attack";
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -20,8 +18,6 @@ export interface GlobalStats {
 export interface AppShellContextValue {
   globalStats: GlobalStats;
   authUser: AuthUser | null;
-  handleGlobalAction: (type: GlobalActionType) => void;
-  syncProgressionFromApi: () => Promise<void>;
   openAuthPanel: () => void;
   navigateTo: (path: string) => void;
 }

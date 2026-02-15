@@ -44,7 +44,7 @@ export function AppShell() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { globalStats, authUser, handleGlobalAction, syncProgressionFromApi, openAuthPanel } = useAuth();
+  const { globalStats, authUser, openAuthPanel } = useAuth();
   const { themeId } = useTheme(); // Added useTheme hook
 
   /* Boot splash */
@@ -82,8 +82,6 @@ export function AppShell() {
   const outletContext: AppShellContextValue = {
     globalStats,
     authUser,
-    handleGlobalAction,
-    syncProgressionFromApi,
     openAuthPanel,
     navigateTo: (path: string) => navigate(path),
   };

@@ -1,3 +1,10 @@
+from sqlmodel import select
+
+from app.core.audit import idempotency_key_hash
+from app.db import get_session
+from app.models import AuditEvent
+
+
 def _signup(client, csrf_headers, email="combat-backend@example.com"):
     r = client.post(
         "/api/v1/auth/signup",
@@ -5,6 +12,7 @@ def _signup(client, csrf_headers, email="combat-backend@example.com"):
         headers=csrf_headers(),
     )
     assert r.status_code == 200
+    return r.json()["user"]["id"]
 
 
 def _headers(csrf_headers, idem: str | None = None):
@@ -32,21 +40,23 @@ def _question_answer(question_text: str) -> int:
 
 
 def test_combat_answer_correct_is_idempotent(client, csrf_headers):
-    _signup(client, csrf_headers, email="combat-correct@example.com")
+    user_id = _signup(client, csrf_headers, email="combat-correct@example.com")
 
+    start_key = "combat-start-correct-1"
     start = client.post(
         "/api/v1/combat/start",
         json={"moduleId": "basic", "reset": True},
-        headers=_headers(csrf_headers, "combat-start-correct-1"),
+        headers=_headers(csrf_headers, start_key),
     )
     assert start.status_code == 200
     battle = start.json()["battleState"]
     battle_id = battle["battleId"]
 
+    question_key = "combat-question-correct-1"
     q = client.post(
         "/api/v1/combat/question",
         json={"battleId": battle_id},
-        headers=_headers(csrf_headers, "combat-question-correct-1"),
+        headers=_headers(csrf_headers, question_key),
     )
     assert q.status_code == 200
     question = q.json()["question"]
@@ -71,6 +81,39 @@ def test_combat_answer_correct_is_idempotent(client, csrf_headers):
     )
     assert answer2.status_code == 200
     assert answer2.json() == body1
+
+    with get_session() as db:
+        rows = db.exec(
+            select(AuditEvent).where(
+                AuditEvent.user_id == user_id,
+                AuditEvent.event.in_(["combat.start", "combat.question", "combat.answer"]),
+            )
+        ).all()
+        by_event = {}
+        for row in rows:
+            by_event.setdefault(row.event, []).append(dict(row.metadata_json or {}))
+
+        assert by_event.get("combat.start")
+        assert any(
+            md.get("commandType") == "combat.start"
+            and md.get("idempotencyKeyHash") == idempotency_key_hash(start_key)
+            and start_key not in str(md)
+            for md in by_event["combat.start"]
+        )
+        assert by_event.get("combat.question")
+        assert any(
+            md.get("commandType") == "combat.question"
+            and md.get("idempotencyKeyHash") == idempotency_key_hash(question_key)
+            and question_key not in str(md)
+            for md in by_event["combat.question"]
+        )
+        assert by_event.get("combat.answer")
+        assert any(
+            md.get("commandType") == "combat.answer"
+            and md.get("idempotencyKeyHash") == idempotency_key_hash(idem)
+            and idem not in str(md)
+            for md in by_event["combat.answer"]
+        )
 
 
 def test_combat_start_is_idempotent_with_same_key(client, csrf_headers):

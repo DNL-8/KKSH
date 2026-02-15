@@ -15,6 +15,7 @@
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 
 import { DetailedToggle, ThemeOption } from "../components/common";
@@ -124,9 +125,10 @@ function HoldButton({ onComplete, label, loading, disabled, className }: HoldBut
 /* ------------------------------------------------------------------ */
 
 export function SettingsPage() {
-  const { authUser, openAuthPanel, syncProgressionFromApi, navigateTo } = useOutletContext<AppShellContextValue>();
+  const { authUser, openAuthPanel, navigateTo } = useOutletContext<AppShellContextValue>();
   const { themeId, setTheme } = useTheme();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
   const [difficulty, setDifficulty] = usePersistedState("cmd8_difficulty", "cacador");
   const [stealthMode, setStealthMode] = usePersistedState("cmd8_stealth", false);
@@ -142,6 +144,15 @@ export function SettingsPage() {
     loading: true,
     saving: false,
   });
+
+  const invalidateProgressCaches = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] }),
+      queryClient.invalidateQueries({ queryKey: ["auth", "progress"] }),
+      queryClient.invalidateQueries({ queryKey: ["hub-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["evolution-state"] }),
+    ]);
+  };
 
   // Load user settings on mount
   useEffect(() => {
@@ -191,7 +202,7 @@ export function SettingsPage() {
     try {
       // Force all scopes for a 'Hard Reset'
       const output = await resetMeState(["all"]);
-      await syncProgressionFromApi();
+      await invalidateProgressCaches();
 
       try {
         const keysToRemove = [];
@@ -242,11 +253,11 @@ export function SettingsPage() {
     setDangerBusy("logout");
     try {
       await logout();
-      await syncProgressionFromApi();
+      await invalidateProgressCaches();
       showToast("Desconexao neural completa. Ate logo, Cacador.", "success");
     } catch {
       showToast("Erro ao encerrar link neural. Forcando desconexao local...", "error");
-      await syncProgressionFromApi();
+      await invalidateProgressCaches();
     } finally {
       setDangerBusy(null);
       navigateTo("/hub");

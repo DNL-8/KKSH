@@ -1,5 +1,6 @@
 import { ArrowRight, Brain, Shield, Skull, Swords, Trophy, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 
 import { Badge, StatPill } from "../components/common";
@@ -36,10 +37,20 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function CombatPage() {
-  const { syncProgressionFromApi, openAuthPanel } = useOutletContext<AppShellContextValue>();
+  const { openAuthPanel } = useOutletContext<AppShellContextValue>();
   const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const invalidateProgressCaches = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] }),
+      queryClient.invalidateQueries({ queryKey: ["auth", "progress"] }),
+      queryClient.invalidateQueries({ queryKey: ["hub-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["evolution-state"] }),
+    ]);
+  }, [queryClient]);
 
   const fallbackModule = EXCEL_MODULES[0];
   const requestedModuleId = (location.state as CombatLocationState | null)?.moduleId;
@@ -223,7 +234,7 @@ export function CombatPage() {
         if (result.battleState.status === "victory") {
           pushCombatLog(">>> BOSS DERROTADO! VITORIA! <<<");
           showToast(`${bossName} derrotado!`, "success");
-          void syncProgressionFromApi();
+          void invalidateProgressCaches();
         } else if (result.battleState.status === "defeat") {
           pushCombatLog(">>> VOCE FOI DERROTADO <<<");
           showToast("Voce foi derrotado.", "error");
@@ -245,7 +256,7 @@ export function CombatPage() {
       currentQuestion,
       pushCombatLog,
       showToast,
-      syncProgressionFromApi,
+      invalidateProgressCaches,
       turnState,
     ],
   );

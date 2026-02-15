@@ -22,6 +22,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 
 import {
@@ -131,8 +132,18 @@ function FilesStatCard({ label, value, subtext, icon: Icon }: FilesStatCardProps
 
 
 export function FilesPage() {
-  const { globalStats, authUser, syncProgressionFromApi, openAuthPanel } =
+  const { globalStats, authUser, openAuthPanel } =
     useOutletContext<AppShellContextValue>();
+  const queryClient = useQueryClient();
+
+  const invalidateProgressCaches = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] }),
+      queryClient.invalidateQueries({ queryKey: ["auth", "progress"] }),
+      queryClient.invalidateQueries({ queryKey: ["hub-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["evolution-state"] }),
+    ]);
+  }, [queryClient]);
 
   const [videos, setVideos] = useState<StoredVideo[]>([]);
   const [runtimeVideos, setRuntimeVideos] = useState<StoredVideo[]>([]);
@@ -519,17 +530,17 @@ export function FilesPage() {
           ? `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados (duracao minima aplicada).`
           : `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados.`,
       );
-      await syncProgressionFromApi();
+      await invalidateProgressCaches();
     } catch (completeError) {
       if (completeError instanceof ApiRequestError && completeError.status === 401) {
         setError("Sessao expirada. Faca login novamente.");
-        await syncProgressionFromApi();
+        await invalidateProgressCaches();
       }
       setError(toErrorMessage(completeError, "Falha ao registrar conclusao da aula."));
     } finally {
       setCompletingLesson(false);
     }
-  }, [authUser, loadingCompletions, openAuthPanel, selectedDurationSec, selectedVideo, selectedVideoCompleted, selectedVideoRef, syncProgressionFromApi]);
+  }, [authUser, invalidateProgressCaches, loadingCompletions, openAuthPanel, selectedDurationSec, selectedVideo, selectedVideoCompleted, selectedVideoRef]);
 
   const handleVideoEnded = useCallback(() => {
     if (!selectedLessonId) return;

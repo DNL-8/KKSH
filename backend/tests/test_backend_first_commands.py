@@ -1,7 +1,8 @@
 from sqlmodel import select
 
+from app.core.audit import idempotency_key_hash
 from app.db import get_session
-from app.models import RewardClaim, UserSettings, UserStats, XpLedgerEvent
+from app.models import AuditEvent, RewardClaim, UserSettings, UserStats, XpLedgerEvent
 
 
 def _signup(client, csrf_headers, email="backend-first@example.com"):
@@ -59,7 +60,7 @@ def test_progress_endpoint_is_read_only_when_stats_row_is_missing(client, csrf_h
 
 
 def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers):
-    _signup(client, csrf_headers, email="events-idem@example.com")
+    user_id = _signup(client, csrf_headers, email="events-idem@example.com")
     created = client.post(
         "/api/v1/sessions",
         json={"subject": "Excel", "minutes": 12, "mode": "video_lesson"},
@@ -109,6 +110,16 @@ def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers
             )
         ).all()
         assert len(rows) == 1
+        audit = db.exec(
+            select(AuditEvent)
+            .where(AuditEvent.user_id == user_id, AuditEvent.event == "event.applied")
+            .order_by(AuditEvent.created_at.desc())
+        ).first()
+        assert audit is not None
+        metadata = dict(audit.metadata_json or {})
+        assert metadata.get("commandType") == "event.apply_xp"
+        assert metadata.get("idempotencyKeyHash") == idempotency_key_hash(idem_key)
+        assert idem_key not in str(metadata)
 
 
 def test_events_require_source_ref_and_idempotency_key(client, csrf_headers):
@@ -141,7 +152,7 @@ def test_events_require_source_ref_and_idempotency_key(client, csrf_headers):
 
 
 def test_claim_endpoint_is_idempotent_with_same_key(client, csrf_headers):
-    _signup(client, csrf_headers, email="claim-idem@example.com")
+    user_id = _signup(client, csrf_headers, email="claim-idem@example.com")
 
     missions = client.get("/api/v1/missions?cycle=daily")
     assert missions.status_code == 200
@@ -184,6 +195,16 @@ def test_claim_endpoint_is_idempotent_with_same_key(client, csrf_headers):
             )
         ).all()
         assert len(claims) == 1
+        audit = db.exec(
+            select(AuditEvent)
+            .where(AuditEvent.user_id == user_id, AuditEvent.event == "mission.claim")
+            .order_by(AuditEvent.created_at.desc())
+        ).first()
+        assert audit is not None
+        metadata = dict(audit.metadata_json or {})
+        assert metadata.get("commandType") == "mission.claim"
+        assert metadata.get("idempotencyKeyHash") == idempotency_key_hash(idem_key)
+        assert idem_key not in str(metadata)
 
 
 def test_mission_commands_require_idempotency_key(client, csrf_headers):
