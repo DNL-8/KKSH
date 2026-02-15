@@ -3,7 +3,8 @@ export const LOCAL_MEDIA_DB_VERSION = 4;
 export const LOCAL_MEDIA_STORE_VIDEOS = "videos";
 export const LOCAL_MEDIA_STORE_CHUNKS = "chunks";
 export const DEFAULT_RELATIVE_PATH = "Arquivos avulsos";
-export const MAX_LIBRARY_VIDEOS = 5000;
+export const MAX_LIBRARY_VIDEOS = 20000;
+export const HIGH_VOLUME_FOLDER_THRESHOLD = 500;
 const SAVE_CHUNK_SIZE = 250;
 const FILE_CHUNK_SIZE = 50 * 1024 * 1024; // 50MB chunks
 
@@ -35,6 +36,22 @@ export interface SaveResult {
   skippedNoSpace: string[];
   skippedByLimit: string[];
   processed: number;
+}
+
+export type LocalMediaStorageErrorCode = "quota_exceeded" | "storage_unavailable" | "unknown";
+
+export class LocalMediaStorageError extends Error {
+  readonly code: LocalMediaStorageErrorCode;
+
+  constructor(code: LocalMediaStorageErrorCode, message: string) {
+    super(message);
+    this.name = "LocalMediaStorageError";
+    this.code = code;
+  }
+}
+
+export function isLocalMediaStorageError(error: unknown): error is LocalMediaStorageError {
+  return error instanceof LocalMediaStorageError;
 }
 
 type RelativeFile = File & { webkitRelativePath?: string };
@@ -188,19 +205,25 @@ function isQuotaError(error: unknown): boolean {
   );
 }
 
-function toStorageError(error: unknown, fallbackMessage: string): Error {
-  if (isQuotaError(error)) {
-    return new Error("Sem espaco no navegador para salvar novos videos.");
-  }
-  if (error instanceof Error && error.message) {
+function toStorageError(error: unknown, fallbackMessage: string): LocalMediaStorageError {
+  if (error instanceof LocalMediaStorageError) {
     return error;
   }
-  return new Error(fallbackMessage);
+  if (isQuotaError(error)) {
+    return new LocalMediaStorageError("quota_exceeded", "Sem espaco no navegador para salvar novos videos.");
+  }
+  if (error instanceof Error && error.message) {
+    if (error.message.toLowerCase().includes("indisponivel")) {
+      return new LocalMediaStorageError("storage_unavailable", error.message);
+    }
+    return new LocalMediaStorageError("unknown", error.message);
+  }
+  return new LocalMediaStorageError("unknown", fallbackMessage);
 }
 
 export async function initDb(): Promise<IDBDatabase> {
   if (typeof window === "undefined" || !window.indexedDB) {
-    throw new Error("Persistencia local indisponivel: IndexedDB nao suportado.");
+    throw new LocalMediaStorageError("storage_unavailable", "Persistencia local indisponivel: IndexedDB nao suportado.");
   }
 
   return new Promise<IDBDatabase>((resolve, reject) => {
@@ -236,7 +259,8 @@ export async function initDb(): Promise<IDBDatabase> {
     };
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("Nao foi possivel abrir o armazenamento local."));
+    request.onerror = () =>
+      reject(toStorageError(request.error ?? new Error("Nao foi possivel abrir o armazenamento local."), "Nao foi possivel abrir o armazenamento local."));
   });
 }
 

@@ -32,6 +32,7 @@ import {
 } from "../lib/api";
 import {
   DEFAULT_RELATIVE_PATH,
+  HIGH_VOLUME_FOLDER_THRESHOLD,
   MAX_LIBRARY_VIDEOS,
   clearVideos,
   listVideos,
@@ -219,6 +220,9 @@ export function FilesPage() {
     saving,
     rejectedFiles,
     directoryHandleSupported,
+    highVolumeHint,
+    clearHighVolumeHint,
+    triggerDirectoryConnect,
     handleOpenPicker,
     handleOpenFolderPicker,
     handleOpenDirectoryPicker,
@@ -639,7 +643,7 @@ export function FilesPage() {
               type="button"
             >
               <FolderOpen size={14} />
-              Carregar pasta
+              {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
             </button>
             {directoryHandleSupported && (
               <button
@@ -706,6 +710,34 @@ export function FilesPage() {
           </div>
         )}
 
+        {highVolumeHint && directoryHandleSupported && (
+          <div
+            className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs font-semibold text-cyan-200"
+            data-testid="high-volume-banner"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>{highVolumeHint}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  className="rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-100 transition-colors hover:bg-cyan-500/30"
+                  data-testid="switch-to-directory-handle"
+                  onClick={() => void triggerDirectoryConnect()}
+                  type="button"
+                >
+                  Conectar pasta agora
+                </button>
+                <button
+                  className="rounded-lg border border-slate-600/60 bg-slate-900/60 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
+                  onClick={clearHighVolumeHint}
+                  type="button"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
           <div className="mt-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs font-semibold text-indigo-200">
             Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
@@ -762,7 +794,7 @@ export function FilesPage() {
             type="button"
           >
             <FolderOpen size={16} />
-            Carregar pasta inteira
+            {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD})`}
           </button>
           {directoryHandleSupported && (
             <button
