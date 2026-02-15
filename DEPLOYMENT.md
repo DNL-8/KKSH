@@ -57,7 +57,9 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
 4. Configure o build (o Netlify deve detectar automaticamente, mas confirme):
    - **Base directory**: `.` (raiz)
    - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
+   - **Publish directory**: `dist/public`
+
+> 💡 **Dica (Backend)**: O repositório já contém um arquivo `render.yaml`. No Render, você pode escolher **Blueprints** em vez de **Web Service** para configurar tudo automaticamente.
 
 5. Adicione as **Environment Variables** (Site settings > Environment variables):
    | Variável | Valor | Descrição |
