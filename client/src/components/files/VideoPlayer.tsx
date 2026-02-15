@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../common/Icon";
-
-import { StoredVideo } from "../../lib/localVideosStore";
+import { widthPercentClass } from "../../lib/percentClasses";
+import type { StoredVideo } from "../../lib/localVideosStore";
 
 interface VideoPlayerProps {
   video: StoredVideo | null;
@@ -358,11 +358,9 @@ export function VideoPlayer({
         className={`absolute bottom-0 left-0 right-0 z-30 px-3 pb-3 transition-opacity duration-300 ${controlsVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
         <div className="group/slider relative mb-2 h-1.5 w-full cursor-pointer rounded-full bg-white/30" onClick={onProgressClick}>
-          <div className="absolute left-0 top-0 h-full rounded-full bg-rose-500" style={{ width: `${progressPercent}%` }} />
-          <div
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.75)]"
-            style={{ left: `calc(${progressPercent}% - 7px)` }}
-          />
+          <div className={`absolute left-0 top-0 h-full rounded-full bg-rose-500 ${widthPercentClass(progressPercent)}`}>
+            <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.75)]" />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">

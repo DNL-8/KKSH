@@ -47,9 +47,7 @@ class Settings(BaseSettings):
 
     # Security headers (recommended in prod)
     security_headers_enabled: bool = True
-    # CSP baseline for same-origin deployment.
-    # Note: style attributes are still used by some React components, so we scope inline
-    # allowance to style attributes only via CSP3 (`style-src-attr`), keeping script inline blocked.
+    # CSP baseline for strict same-origin deployment (no inline scripts/styles).
     content_security_policy: str = (
         "default-src 'self'; "
         "script-src 'self'; "
@@ -57,7 +55,7 @@ class Settings(BaseSettings):
         "script-src-attr 'none'; "
         "style-src 'self' https://fonts.googleapis.com; "
         "style-src-elem 'self' https://fonts.googleapis.com; "
-        "style-src-attr 'unsafe-inline'; "
+        "style-src-attr 'none'; "
         "font-src 'self' data: https://fonts.gstatic.com; "
         "img-src 'self' data: blob:; "
         "media-src 'self' blob:; "

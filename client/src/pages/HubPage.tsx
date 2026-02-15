@@ -22,6 +22,7 @@ import {
   type AttributeKey,
   type TechnicalAttributes,
 } from "../lib/hub/attributes";
+import { widthPercentClass } from "../lib/percentClasses";
 import { HubAttributesModal } from "../components/hub/HubAttributesModal";
 import { StatBar } from "../components/hub/StatBar";
 import { SystemCard } from "../components/hub/SystemCard";
@@ -226,7 +227,7 @@ export function HubPage() {
               <span data-testid="hub-mission-progress" className="text-red-400">{missionProgress}</span>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full border border-white/10 bg-black/40">
-              <div className="h-full rounded-full bg-gradient-to-r from-red-900 via-red-600 to-red-400 transition-all" style={{ width: `${missionPercent}%` }} />
+              <div className={`h-full rounded-full bg-gradient-to-r from-red-900 via-red-600 to-red-400 transition-all ${widthPercentClass(missionPercent)}`} />
             </div>
           </div>
           <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className="mt-8 flex items-center gap-2 rounded-xl bg-red-600 px-8 py-3 text-xs font-black uppercase tracking-[0.2em] text-white hover:bg-red-500">

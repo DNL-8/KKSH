@@ -29,4 +29,4 @@ def test_security_headers_include_csp_and_baseline_policies(client):
     csp = response.headers.get("Content-Security-Policy")
     assert csp == settings.content_security_policy
     assert "script-src-attr 'none'" in csp
-    assert "style-src-attr 'unsafe-inline'" in csp
+    assert "style-src-attr 'none'" in csp

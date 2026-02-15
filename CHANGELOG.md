@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - **AI abuse controls hardened** - authenticated users now have dedicated burst + daily quota limits in addition to existing guest/IP controls
 - **CSRF baseline asserted in tests** - cookie-auth mutating requests without `X-CSRF-Token` are now explicitly covered by backend tests
 - **CSP and security headers asserted in tests** - backend tests now validate `Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy`
-- **CSP tightened for same-origin** - inline script handlers are blocked via `script-src-attr 'none'`; global `style-src 'unsafe-inline'` was removed in favor of scoped `style-src-attr 'unsafe-inline'`
+- **CSP tightened for same-origin** - inline scripts/styles are blocked via `script-src-attr 'none'` and `style-src-attr 'none'`
 
 ### Added
 - **Web Vitals reporting** - frontend collects CLS/INP/LCP via `web-vitals` library and sends to `/api/v1/reports/web-vitals` using `sendBeacon`

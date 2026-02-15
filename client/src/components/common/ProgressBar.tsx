@@ -1,3 +1,5 @@
+import { percentInt, widthPercentClass } from "../../lib/percentClasses";
+
 interface ProgressBarProps {
   label: string;
   value: number;
@@ -29,8 +31,7 @@ export function ProgressBar({
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800/50 bg-slate-900/50 p-0.5 shadow-inner">
         <div
-          className={`relative h-full rounded-full transition-all duration-700 ease-out ${color} ${glow}`}
-          style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
+          className={`relative h-full rounded-full transition-all duration-700 ease-out ${color} ${glow} ${widthPercentClass(percentInt(value))}`}
         >
           <div className="absolute inset-0 animate-pulse bg-white/20" />
         </div>

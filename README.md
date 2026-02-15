@@ -135,7 +135,7 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - CSP same-origin padrao:
   - `default-src/script-src/connect-src 'self'`
   - `script-src-attr 'none'` (bloqueia handlers inline)
-  - `style-src` sem `unsafe-inline` global; inline fica limitado a `style-src-attr 'unsafe-inline'` por compatibilidade dos componentes React atuais
+  - `style-src-attr 'none'` (sem inline style em atributos)
   - `object-src 'none'`, `frame-src 'none'`, `frame-ancestors 'none'`
 
 ## SEO & PWA

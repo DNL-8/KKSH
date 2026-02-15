@@ -5,6 +5,7 @@ import { HistoryPopover } from "../components/topbar/HistoryPopover";
 import { useAuth } from "../contexts/AuthContext";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
 import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
+import { widthPercentClass } from "../lib/percentClasses";
 import { NAV_ITEMS } from "./Sidebar";
 import { Icon } from "../components/common/Icon";
 
@@ -145,7 +146,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             <div className="flex items-center gap-2">
                                 <Icon name="heart" className="shrink-0 text-red-500 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
-                                    <div className="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400" style={{ width: `${hpPercent}%` }} />
+                                    <div className={`h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400 ${widthPercentClass(hpPercent)}`} />
                                 </div>
                                 <span className="w-8 text-right text-[10px] font-black text-red-300">{animHp}%</span>
                             </div>
@@ -153,7 +154,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             <div className="flex items-center gap-2">
                                 <Icon name="raindrops" className="shrink-0 text-blue-400 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
-                                    <div className="h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" style={{ width: `${manaPercent}%` }} />
+                                    <div className={`h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 ${widthPercentClass(manaPercent)}`} />
                                 </div>
                                 <span className="w-8 text-right text-[10px] font-black text-blue-300">{animMana}%</span>
                             </div>
@@ -161,7 +162,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             <div className="flex items-center gap-2">
                                 <Icon name="star" className="shrink-0 text-yellow-400 text-xs" />
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718]">
-                                    <div className="h-full rounded-full bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300" style={{ width: `${xpPercent}%` }} />
+                                    <div className={`h-full rounded-full bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300 ${widthPercentClass(xpPercent)}`} />
                                 </div>
                                 <span className="w-8 text-right text-[10px] font-black text-yellow-300">{animXp}%</span>
                             </div>

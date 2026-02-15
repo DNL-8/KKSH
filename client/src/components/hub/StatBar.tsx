@@ -1,4 +1,6 @@
 
+import { percentInt, widthPercentClass } from "../../lib/percentClasses";
+
 interface StatBarProps {
     label: string;
     percent: number;
@@ -15,7 +17,7 @@ export function StatBar({ label, percent, gradientClass, sub, valueTestId }: Sta
                 <span data-testid={valueTestId}>{percent}%</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full border border-white/10 bg-black/40">
-                <div className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`} style={{ width: `${percent}%` }} />
+                <div className={`h-full rounded-full bg-gradient-to-r ${gradientClass} ${widthPercentClass(percentInt(percent))}`} />
             </div>
             <div className="text-right text-[9px] text-slate-500">{sub}</div>
         </div>

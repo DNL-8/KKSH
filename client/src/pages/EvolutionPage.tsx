@@ -19,6 +19,7 @@ import {
   type WeeklyQuestOut,
   type WeeklyReportOut,
 } from "../lib/api";
+import { widthPercentClass } from "../lib/percentClasses";
 import type { AppShellContextValue } from "../layout/types";
 
 interface EvolutionQueryData {
@@ -398,16 +399,6 @@ export function EvolutionPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-6 lg:p-8">
-      <style>{`
-        @keyframes evo-slide-up {
-          from { opacity: 0; transform: translateY(14px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .evo-slide-up {
-          animation: evo-slide-up 0.45s ease-out both;
-        }
-      `}</style>
-
       {errorMessage && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300">
           <span className="flex items-center gap-2">
@@ -501,8 +492,7 @@ export function EvolutionPage() {
                 </div>
                 <div className="h-2 overflow-hidden rounded-full border border-cyan-500/20 bg-black/40">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-700 via-cyan-500 to-blue-400 transition-all duration-500"
-                    style={{ width: `${dungeonProgressPercent}%` }}
+                    className={`h-full rounded-full bg-gradient-to-r from-cyan-700 via-cyan-500 to-blue-400 transition-all duration-500 ${widthPercentClass(dungeonProgressPercent)}`}
                   />
                 </div>
                 <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">

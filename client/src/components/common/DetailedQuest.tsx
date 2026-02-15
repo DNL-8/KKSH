@@ -1,4 +1,5 @@
 import { Icon } from "./Icon";
+import { percentInt, widthPercentClass } from "../../lib/percentClasses";
 
 interface DetailedQuestProps {
   title: string;
@@ -53,7 +54,7 @@ export function DetailedQuest({
       {!completed && (
         <div className="space-y-2">
           <div className="h-1 w-full overflow-hidden rounded-full bg-slate-800">
-            <div className={`h-full rounded-full ${color}`} style={{ width: `${(progress / total) * 100}%` }} />
+            <div className={`h-full rounded-full ${color} ${widthPercentClass(percentInt((progress / Math.max(1, total)) * 100))}`} />
           </div>
           <div className="text-right font-mono text-[10px] uppercase text-slate-400">
             {progress} / {total}

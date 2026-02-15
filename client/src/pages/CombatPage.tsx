@@ -12,6 +12,7 @@ import {
   drawCombatQuestion,
   startCombatBattle,
 } from "../lib/api";
+import { widthPercentClass } from "../lib/percentClasses";
 import { EXCEL_MODULES } from "../lib/excel_modules";
 
 interface DamagePopup {
@@ -343,7 +344,7 @@ export function CombatPage() {
               HP jogador
             </div>
             <div className="h-2 w-40 overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${playerHpPercent}%` }} />
+              <div className={`h-full bg-blue-500 transition-all duration-300 ${widthPercentClass(playerHpPercent)}`} />
             </div>
           </div>
         </div>
@@ -469,8 +470,7 @@ export function CombatPage() {
               </div>
               <div className="h-8 w-full overflow-hidden rounded-3xl border-2 border-slate-800 bg-slate-900 p-1 shadow-2xl ring-4 ring-red-900/10">
                 <div
-                  className="relative h-full rounded-2xl bg-gradient-to-r from-red-800 via-red-500 to-orange-500 shadow-[0_0_25px_rgba(239,68,68,0.5)] transition-all duration-300"
-                  style={{ width: `${hpPercent}%` }}
+                  className={`relative h-full rounded-2xl bg-gradient-to-r from-red-800 via-red-500 to-orange-500 shadow-[0_0_25px_rgba(239,68,68,0.5)] transition-all duration-300 ${widthPercentClass(hpPercent)}`}
                   data-testid="enemy-hp-bar"
                 >
                   <div className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)]" />
@@ -490,8 +490,7 @@ export function CombatPage() {
               </div>
               <div className="h-8 w-full overflow-hidden rounded-3xl border-2 border-slate-800 bg-slate-900 p-1 shadow-2xl ring-4 ring-blue-900/10">
                 <div
-                  className="relative h-full rounded-2xl bg-gradient-to-r from-blue-800 via-blue-500 to-cyan-400 shadow-[0_0_25px_rgba(59,130,246,0.45)] transition-all duration-300"
-                  style={{ width: `${playerHpPercent}%` }}
+                  className={`relative h-full rounded-2xl bg-gradient-to-r from-blue-800 via-blue-500 to-cyan-400 shadow-[0_0_25px_rgba(59,130,246,0.45)] transition-all duration-300 ${widthPercentClass(playerHpPercent)}`}
                   data-testid="player-hp-bar"
                 >
                   <div className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)]" />

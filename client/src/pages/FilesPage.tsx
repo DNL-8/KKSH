@@ -26,6 +26,7 @@ import type { AppShellContextValue } from "../layout/types";
 import { VideoPlayer } from "../components/files/VideoPlayer";
 import { VideoMetadata } from "../components/files/VideoMetadata";
 import { LessonSidebar, LESSONS_VISIBLE_DEFAULT, LESSONS_VISIBLE_INCREMENT } from "../components/files/LessonSidebar";
+import { heightPercentClass, widthPercentClass } from "../lib/percentClasses";
 import {
   type FolderSection,
   type OrderMode,
@@ -201,7 +202,7 @@ function HudProgressBar({ value, max, tone, label, textValue }: HudProgressBarPr
         <span className={HUD_TEXT_TONE_CLASS[tone]}>{textValue}</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full border border-slate-700/40 bg-slate-800/50">
-        <div className={`h-full rounded-full transition-all duration-700 ${HUD_BAR_TONE_CLASS[tone]}`} style={{ width: `${percentage}%` }} />
+        <div className={`h-full rounded-full transition-all duration-700 ${HUD_BAR_TONE_CLASS[tone]} ${widthPercentClass(percentage)}`} />
       </div>
     </div>
   );
@@ -1173,8 +1174,7 @@ export function FilesPage() {
                 {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
                   <span
                     key={`wf-${index}`}
-                    className={`flex-1 rounded-full ${index <= 18 ? "bg-cyan-500/80" : "bg-slate-700/70"}`}
-                    style={{ height: `${value}%` }}
+                    className={`flex-1 rounded-full ${index <= 18 ? "bg-cyan-500/80" : "bg-slate-700/70"} ${heightPercentClass(value)}`}
                   />
                 ))}
               </div>

@@ -1,14 +1,7 @@
 
 import { useMemo } from "react";
 import { Icon } from "../common/Icon";
-
-// Local helper to avoid importing from lib if it's just this one simple function
-function clampPercent(value: number): number {
-    if (!Number.isFinite(value)) {
-        return 0;
-    }
-    return Math.max(0, Math.min(100, Math.round(value)));
-}
+import { widthPercentClass } from "../../lib/percentClasses";
 
 interface SystemCardProps {
     icon: string;
@@ -55,8 +48,7 @@ export function SystemCard({
             {showBar && (
                 <div className="mt-4 h-1.5 overflow-hidden rounded-full border border-white/10 bg-black/40">
                     <div
-                        className="h-full rounded-full bg-blue-500 transition-all"
-                        style={{ width: `${clampPercent(progress)}%` }}
+                        className={`h-full rounded-full bg-blue-500 transition-all ${widthPercentClass(progress)}`}
                     />
                 </div>
             )}

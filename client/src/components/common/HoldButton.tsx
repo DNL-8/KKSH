@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { percentInt, widthPercentClass } from "../../lib/percentClasses";
 
 interface HoldButtonProps {
     label: string;
@@ -68,8 +69,7 @@ export function HoldButton({
             disabled={loading}
         >
             <div
-                className="absolute bottom-0 left-0 top-0 bg-white/20 transition-all duration-75 ease-linear"
-                style={{ width: `${progress}%` }}
+                className={`absolute bottom-0 left-0 top-0 bg-white/20 transition-all duration-75 ease-linear ${widthPercentClass(percentInt(progress))}`}
             />
             <span className="relative z-10">{label}</span>
         </button>

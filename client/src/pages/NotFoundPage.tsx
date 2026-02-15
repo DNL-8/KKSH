@@ -49,11 +49,7 @@ export function NotFoundPage() {
 
             {/* Background decoration */}
             <div
-                className="pointer-events-none fixed inset-0 -z-10 opacity-[0.03]"
-                style={{
-                    backgroundImage:
-                        "repeating-linear-gradient(0deg, transparent, transparent 50px, hsl(var(--accent)) 50px, hsl(var(--accent)) 51px)",
-                }}
+                className="not-found-grid-bg pointer-events-none fixed inset-0 -z-10 opacity-[0.03]"
                 aria-hidden="true"
             />
         </div>
