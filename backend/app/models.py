@@ -24,6 +24,7 @@ class User(SQLModel, table=True):
 
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     email: str = Field(index=True, unique=True)
+    username: Optional[str] = Field(default=None, index=True, unique=True)
     password_hash: str
     onboarding_done: bool = Field(default=False)
     created_at: datetime = Field(default_factory=utcnow)

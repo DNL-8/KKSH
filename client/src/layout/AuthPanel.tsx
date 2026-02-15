@@ -66,7 +66,7 @@ export function AuthPanel() {
                                     <Icon name="user" className="text-[48px]" />
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-sm font-bold text-white">{authUser.email}</p>
+                                    <p className="text-sm font-bold text-white">{authUser.username || authUser.email}</p>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Online</p>
                                 </div>
                             </div>

@@ -7,6 +7,7 @@ import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme, type ThemeId } from "../contexts/ThemeContext";
+import { updateProfile } from "../lib/api";
 
 // Definição local de preferências (client-side only por enquanto)
 interface ClientPreferences {
@@ -15,6 +16,7 @@ interface ClientPreferences {
   soundEffects: boolean;
   glitchEffects: boolean;
   stealthMode: boolean;
+  difficulty: "casual" | "hardcore";
 }
 
 const DEFAULT_PREFERENCES: ClientPreferences = {
@@ -23,6 +25,7 @@ const DEFAULT_PREFERENCES: ClientPreferences = {
   soundEffects: true,
   glitchEffects: true,
   stealthMode: false,
+  difficulty: "casual",
 };
 
 const THEME_PRESETS = [
@@ -50,6 +53,11 @@ export function SettingsPage() {
   });
 
   const [dangerBusy, setDangerBusy] = useState<"logout" | "reset" | null>(null);
+
+  // Username editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
 
   // Sync state with global themeId if it changes externallly
   useEffect(() => {
@@ -140,199 +148,269 @@ export function SettingsPage() {
                     <Icon name="robot" className="h-10 w-10 md:h-12 md:w-12 text-[48px]" />
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="absolute bottom-0 right-0 rounded-full bg-slate-800 p-2 text-white shadow-lg transition-transform hover:scale-110 hover:bg-cyan-600"
-                >
-                  <Icon name="pencil" className="text-[14px]" />
-                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                {isEditingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={tempName}
+                      onChange={(e) => setTempName(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-white text-xl font-bold uppercase tracking-tight focus:outline-none focus:border-cyan-500 min-w-[200px]"
+                      placeholder="Novo nome"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        void (async () => {
+                          setIsSavingName(true);
+                          try {
+                            await updateProfile({ username: tempName });
+                            await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+                            // Force reload or re-sync? 
+                            // Accessing handleSave logic basically
+                            window.location.reload(); // Simple/Safe for now to update all context
+                          } catch (err) {
+                            showToast("Erro ao atualizar nome. Pode estar em uso.", "error");
+                          } finally {
+                            setIsSavingName(false);
+                            setIsEditingName(false);
+                          }
+                        })();
+                      }}
+                      disabled={isSavingName}
+                      className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30 disabled:opacity-50"
+                    >
+                      <Icon name="check" className="text-[18px]" />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingName(false)}
+                      disabled={isSavingName}
+                      className="p-2 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/30 disabled:opacity-50"
+                    >
+                      <Icon name="cross" className="text-[18px]" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+                      {user?.username || user?.email?.split('@')[0] || "Caçador"}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setTempName(user?.username || "");
+                        setIsEditingName(true);
+                      }}
+                      className="p-2 rounded-full hover:bg-slate-800 text-slate-500 hover:text-cyan-400 transition-colors"
+                    >
+                      <Icon name="pencil" className="text-[14px]" />
+                    </button>
+                  </>
+                )}
+
+                <Badge color="bg-cyan-500/10 text-cyan-400 border-cyan-500/20" icon="check-circle">
+                  Verificado
+                </Badge>
+                <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20" icon="crown">
+                  Premium
+                </Badge>
               </div>
 
-              <div className="flex-1 space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
-                    {user?.email?.split('@')[0] ?? "Caçador"}
-                  </h2>
-                  <Badge color="bg-cyan-500/10 text-cyan-400 border-cyan-500/20" icon="check-circle">
-                    Verificado
-                  </Badge>
-                  <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20" icon="crown">
-                    Premium
-                  </Badge>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl bg-slate-950/50 p-4">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">ID do Usuario</span>
+                  <code className="font-mono text-xs text-slate-300">{user?.id}</code>
                 </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl bg-slate-950/50 p-4">
-                    <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">ID do Usuario</span>
-                    <code className="font-mono text-xs text-slate-300">{user?.id}</code>
-                  </div>
-                  <div className="rounded-2xl bg-slate-950/50 p-4">
-                    <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Email</span>
-                    <div className="flex items-center justify-between">
-                      <code className="font-mono text-xs text-slate-300">{user?.email}</code>
-                      <Icon name="key" className="text-slate-600 text-[14px]" />
-                    </div>
+                <div className="rounded-2xl bg-slate-950/50 p-4">
+                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Email</span>
+                  <div className="flex items-center justify-between">
+                    <code className="font-mono text-xs text-slate-300">{user?.email}</code>
+                    <Icon name="key" className="text-slate-600 text-[14px]" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
-          {/* Main Settings */}
-          <div className="space-y-8 lg:col-span-8">
-            {/* Visual Preferences */}
-            <section>
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* Main Settings */}
+        <div className="space-y-8 lg:col-span-8">
+          {/* Visual Preferences */}
+          <section>
+            <div className="mb-6 flex items-center gap-4">
+              <div className="rounded-xl bg-cyan-500/10 p-3 text-cyan-500"><Icon name="palette" className="text-[24px]" /></div>
+              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Interface Visual</h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DetailedToggle
+                label="Efeitos Glitch"
+                desc="Artefatos visuais de instabilidade do sistema."
+                active={preferences.glitchEffects}
+                onClick={() => updatePreference("glitchEffects", !preferences.glitchEffects)}
+                icon="activity"
+              />
+              <DetailedToggle
+                label="Modo Furtivo"
+                desc="Oculta status online de outros caçadores."
+                active={preferences.stealthMode}
+                onClick={() => updatePreference("stealthMode", !preferences.stealthMode)}
+                icon="eye-crossed"
+              />
+            </div>
+          </section>
+
+          {/* System Preferences */}
+          <section>
+            <div className="mb-6 flex items-center gap-4">
+              <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="microchip" className="text-[24px]" /></div>
+              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Sistema</h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DetailedToggle
+                label="Notificacoes"
+                desc="Alertas de missoes e atualizacoes do sistema."
+                active={preferences.notifications}
+                onClick={() => updatePreference("notifications", !preferences.notifications)}
+              />
+              <DetailedToggle
+                label="Efeitos Sonoros"
+                desc="Feedback auditivo de interacoes e combate."
+                active={preferences.soundEffects}
+                onClick={() => updatePreference("soundEffects", !preferences.soundEffects)}
+              />
+            </div>
+          </section>
+
+          {/* Danger Zone */}
+          <section className="relative overflow-hidden rounded-[32px] border border-red-900/30 bg-red-950/5 p-8">
+            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(220,38,38,0.05)_10px,rgba(220,38,38,0.05)_20px)]" />
+
+            <div className="relative z-10">
+              <div className="mb-6 flex items-center gap-4 text-red-500">
+                <Icon name="exclamation" className="animate-pulse text-[24px]" />
+                <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="font-bold text-white">Resetar Progresso Local</h3>
+                    <p className="text-sm text-red-200/60">Limpa cache e dados temporarios. Nao apaga conta.</p>
+                  </div>
+                  <HoldButton
+                    label="SEGURE PARA DELETAR TUDO"
+                    onComplete={() => void executeHardReset()}
+                    loading={dangerBusy === "reset"}
+                    className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto md:px-8"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="font-bold text-white">Encerrar Sessao</h3>
+                    <p className="text-sm text-red-200/60">Desconecta do terminal com segurança.</p>
+                  </div>
+                  <button
+                    onClick={() => void handleLogout()}
+                    disabled={dangerBusy === "logout"}
+                    className="flex items-center justify-center gap-2 w-full rounded-xl border border-red-500/30 bg-transparent py-4 text-xs font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-500/10 active:scale-95 md:w-auto md:px-8"
+                    type="button"
+                  >
+                    <Icon name="trash" className="text-[16px]" />
+                    Desconectar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Sidebar Settings (Theme) */}
+        <div className="lg:col-span-4">
+          <div className="sticky top-24 space-y-6">
+            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
               <div className="mb-6 flex items-center gap-4">
-                <div className="rounded-xl bg-cyan-500/10 p-3 text-cyan-500"><Icon name="palette" className="text-[24px]" /></div>
-                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Interface Visual</h2>
+                <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Icon name="bolt" className="text-[24px]" /></div>
+                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <DetailedToggle
-                  label="Efeitos Glitch"
-                  desc="Artefatos visuais de instabilidade do sistema."
-                  active={preferences.glitchEffects}
-                  onClick={() => updatePreference("glitchEffects", !preferences.glitchEffects)}
-                  icon="activity"
-                />
-                <DetailedToggle
-                  label="Modo Furtivo"
-                  desc="Oculta status online de outros caçadores."
-                  active={preferences.stealthMode}
-                  onClick={() => updatePreference("stealthMode", !preferences.stealthMode)}
-                  icon="eye-crossed"
-                />
-              </div>
-            </section>
-
-            {/* System Preferences */}
-            <section>
-              <div className="mb-6 flex items-center gap-4">
-                <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="microchip" className="text-[24px]" /></div>
-                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Sistema</h2>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <DetailedToggle
-                  label="Notificacoes"
-                  desc="Alertas de missoes e atualizacoes do sistema."
-                  active={preferences.notifications}
-                  onClick={() => updatePreference("notifications", !preferences.notifications)}
-                />
-                <DetailedToggle
-                  label="Efeitos Sonoros"
-                  desc="Feedback auditivo de interacoes e combate."
-                  active={preferences.soundEffects}
-                  onClick={() => updatePreference("soundEffects", !preferences.soundEffects)}
-                />
-              </div>
-            </section>
-
-            {/* Danger Zone */}
-            <section className="relative overflow-hidden rounded-[32px] border border-red-900/30 bg-red-950/5 p-8">
-              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(220,38,38,0.05)_10px,rgba(220,38,38,0.05)_20px)]" />
-
-              <div className="relative z-10">
-                <div className="mb-6 flex items-center gap-4 text-red-500">
-                  <Icon name="exclamation" className="animate-pulse text-[24px]" />
-                  <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="font-bold text-white">Resetar Progresso Local</h3>
-                      <p className="text-sm text-red-200/60">Limpa cache e dados temporarios. Nao apaga conta.</p>
-                    </div>
-                    <HoldButton
-                      label="SEGURE PARA DELETAR TUDO"
-                      onComplete={() => void executeHardReset()}
-                      loading={dangerBusy === "reset"}
-                      className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto md:px-8"
-                    />
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => updatePreference("difficulty", "casual")}
+                  className={`rounded-2xl p-4 border transition-all text-left group ${preferences.difficulty === "casual"
+                    ? "bg-slate-900 border-emerald-500/50 opacity-100"
+                    : "bg-slate-900/50 border-slate-800 opacity-50 grayscale hover:grayscale-0 hover:opacity-100"
+                    }`}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className={`font-black uppercase tracking-wider ${preferences.difficulty === "casual" ? "text-emerald-400" : "text-white"
+                      }`}>Casual</span>
+                    {preferences.difficulty === "casual" && (
+                      <Icon name="check-circle" className="text-emerald-500 text-[18px]" />
+                    )}
                   </div>
+                  <p className="text-xs text-slate-500">Modo historia sem desafios.</p>
+                </button>
 
-                  <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="font-bold text-white">Encerrar Sessao</h3>
-                      <p className="text-sm text-red-200/60">Desconecta do terminal com segurança.</p>
-                    </div>
-                    <button
-                      onClick={() => void handleLogout()}
-                      disabled={dangerBusy === "logout"}
-                      className="flex items-center justify-center gap-2 w-full rounded-xl border border-red-500/30 bg-transparent py-4 text-xs font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-500/10 active:scale-95 md:w-auto md:px-8"
-                      type="button"
-                    >
-                      <Icon name="trash" className="text-[16px]" />
-                      Desconectar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          {/* Sidebar Settings (Theme) */}
-          <div className="lg:col-span-4">
-            <div className="sticky top-24 space-y-6">
-              <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Icon name="bolt" className="text-[24px]" /></div>
-                  <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 opacity-50 grayscale cursor-not-allowed">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-black text-white uppercase tracking-wider">Casual</span>
-                      <Icon name="cross-circle" className="text-slate-600 text-[18px]" />
-                    </div>
-                    <p className="text-xs text-slate-500">Modo historia sem desafios.</p>
-                  </div>
-                  <div className="rounded-2xl bg-red-900/20 p-4 border border-red-500/20 relative overflow-hidden">
+                <button
+                  onClick={() => updatePreference("difficulty", "hardcore")}
+                  className={`rounded-2xl p-4 border transition-all text-left relative overflow-hidden group ${preferences.difficulty === "hardcore"
+                    ? "bg-red-900/20 border-red-500/50"
+                    : "bg-red-900/5 border-red-500/10 hover:bg-red-900/10 hover:border-red-500/30"
+                    }`}
+                >
+                  {preferences.difficulty === "hardcore" && (
                     <div className="absolute top-0 right-0 p-2 text-red-500"><Icon name="skull" className="text-[14px]" /></div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-black text-white uppercase tracking-wider">Hardcore</span>
+                  )}
+                  <div className="flex justify-between items-center mb-2">
+                    <span className={`font-black uppercase tracking-wider ${preferences.difficulty === "hardcore" ? "text-red-500" : "text-red-400"
+                      }`}>Hardcore</span>
+                    {preferences.difficulty === "hardcore" && (
                       <Icon name="check-circle" className="text-red-500 text-[18px]" />
-                    </div>
-                    <p className="text-xs text-red-200/60">Dano permanente. Boot loops reais.</p>
+                    )}
                   </div>
-                </div>
+                  <p className="text-xs text-red-200/60">Dano permanente. Boot loops reais.</p>
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Tema</h2>
+                <Icon name="refresh" className="text-slate-600 animate-spin-slow text-[16px]" />
               </div>
 
-              <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-lg font-bold uppercase tracking-widest text-white">Tema</h2>
-                  <Icon name="refresh" className="text-slate-600 animate-spin-slow text-[16px]" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {THEME_PRESETS.map(preset => (
-                    <ThemeOption
-                      key={preset.id}
-                      testId={`theme-option-${preset.id}`}
-                      label={preset.name}
-                      color={preset.color}
-                      active={preferences.theme === preset.id}
-                      onClick={() => updatePreference("theme", preset.id)}
-                    />
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                {THEME_PRESETS.map(preset => (
+                  <ThemeOption
+                    key={preset.id}
+                    testId={`theme-option-${preset.id}`}
+                    label={preset.name}
+                    color={preset.color}
+                    active={preferences.theme === preset.id}
+                    onClick={() => updatePreference("theme", preset.id)}
+                  />
+                ))}
               </div>
+            </div>
 
-              <div className="rounded-[32px] bg-gradient-to-br from-[#0a0a0b] to-slate-950 p-8 text-center border border-slate-800 shadow-xl">
-                <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)] inline-block">
-                  <Icon name="skull" className="text-[48px]" />
-                </div>
-                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Build v0.9.4</h3>
-                <p className="text-xs font-mono text-slate-500">COMPILADO: 2024-05-20</p>
-                <div className="mt-6 flex justify-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-                </div>
+            <div className="rounded-[32px] bg-gradient-to-br from-[#0a0a0b] to-slate-950 p-8 text-center border border-slate-800 shadow-xl">
+              <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)] inline-block">
+                <Icon name="skull" className="text-[48px]" />
+              </div>
+              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Build v0.9.4</h3>
+              <p className="text-xs font-mono text-slate-500">COMPILADO: 2024-05-20</p>
+              <div className="mt-6 flex justify-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
               </div>
             </div>
           </div>

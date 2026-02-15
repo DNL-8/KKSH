@@ -14,6 +14,7 @@ export interface HunterSystemResponse {
 export interface UserOut {
   id: string;
   email: string;
+  username?: string | null;
   isAdmin: boolean;
 }
 
@@ -502,6 +503,17 @@ export interface UpdateSettingsIn {
 
 export async function updateSettings(payload: UpdateSettingsIn): Promise<UserSettingsOut> {
   return requestJson<UserSettingsOut>("/api/v1/me/settings", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface UserUpdateIn {
+  username?: string;
+}
+
+export async function updateProfile(payload: UserUpdateIn): Promise<UserOut> {
+  return requestJson<UserOut>("/api/v1/me", {
     method: "PATCH",
     body: JSON.stringify(payload),
   });

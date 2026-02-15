@@ -22,8 +22,13 @@ class AuthIn(BaseModel):
         return str(value).strip().lower()
 
 
+class UserUpdateIn(BaseModel):
+    username: Optional[str] = Field(default=None, min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
+
+
 class UserOut(BaseModel):
     id: str
+    username: Optional[str] = None
     email: EmailStr
     isAdmin: bool = False
 

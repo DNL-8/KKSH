@@ -41,6 +41,7 @@ from app.schemas import (
     UserOut,
     UserSettingsOut,
     UpdateSettingsIn,
+    UserUpdateIn,
     VitalsOut,
     WeeklyQuestOut,
 )
@@ -64,7 +65,30 @@ _RESET_RULE = Rule(max_requests=6, window_seconds=60)
 def me(user: User | None = Depends(get_optional_user)):
     if not user:
         return {"user": None}
-    return {"user": UserOut(id=user.id, email=user.email, isAdmin=is_admin(user))}
+    return {"user": UserOut(id=user.id, username=user.username, email=user.email, isAdmin=is_admin(user))}
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(
+    payload: UserUpdateIn,
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    if payload.username is not None:
+        # Check uniqueness
+        # We could rely on DB constraint, but a friendly error is better
+        existing = session.exec(select(User).where(User.username == payload.username)).first()
+        if existing and existing.id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="username_taken"
+            )
+        user.username = payload.username
+    
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return UserOut(id=user.id, username=user.username, email=user.email, isAdmin=is_admin(user))
 
 
 def _sum_minutes(session: Session, user: User, dk: str) -> int:
