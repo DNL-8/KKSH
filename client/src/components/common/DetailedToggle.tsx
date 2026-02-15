@@ -1,14 +1,14 @@
-import type { LucideIcon } from "lucide-react";
+import { Icon } from "./Icon";
 
 interface DetailedToggleProps {
   label: string;
   desc: string;
   active: boolean;
   onClick?: () => void;
-  icon?: LucideIcon;
+  icon?: string;
 }
 
-export function DetailedToggle({ label, desc, active, onClick, icon: Icon }: DetailedToggleProps) {
+export function DetailedToggle({ label, desc, active, onClick, icon }: DetailedToggleProps) {
   return (
     <button
       onClick={onClick}
@@ -20,7 +20,7 @@ export function DetailedToggle({ label, desc, active, onClick, icon: Icon }: Det
     >
       <div className="flex-1 space-y-2 pr-6">
         <div className="flex items-center gap-3">
-          {Icon && <Icon size={18} className={active ? "text-cyan-400" : "text-slate-600"} aria-hidden="true" />}
+          {icon && <Icon name={icon} className={`text-[18px] ${active ? "text-cyan-400" : "text-slate-600"}`} aria-hidden="true" />}
           <h4
             className={`text-base font-black uppercase tracking-widest transition-colors ${active ? "text-white" : "text-slate-500 group-hover:text-slate-400"
               }`}

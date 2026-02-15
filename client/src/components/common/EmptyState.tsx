@@ -1,7 +1,7 @@
-import type { LucideIcon } from "lucide-react";
+import { Icon } from "./Icon";
 
 interface EmptyStateProps {
-    icon: LucideIcon;
+    icon: string;
     title: string;
     description: string;
     action?: { label: string; onClick: () => void };
@@ -10,11 +10,11 @@ interface EmptyStateProps {
 /**
  * Reusable empty state placeholder with icon, message, and optional CTA.
  */
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
     return (
         <div className="flex flex-col items-center justify-center gap-6 py-20 text-center animate-in fade-in duration-500">
             <div className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
-                <Icon size={40} className="text-slate-500" />
+                <Icon name={icon} className="text-slate-500 text-[40px]" />
             </div>
             <div className="space-y-2">
                 <h3 className="text-lg font-black uppercase tracking-widest text-slate-300">{title}</h3>

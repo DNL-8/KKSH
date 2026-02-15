@@ -1,8 +1,8 @@
-import { ArrowUpRight, type LucideIcon } from "lucide-react";
 import { useCallback, useRef } from "react";
+import { Icon } from "./Icon";
 
 interface BentoMiniProps {
-  icon: LucideIcon;
+  icon: string;
   title: string;
   val: string;
   sub: string;
@@ -11,7 +11,7 @@ interface BentoMiniProps {
   children?: React.ReactNode;
 }
 
-export function BentoMini({ icon: Icon, title, val, sub, color, onClick, children }: BentoMiniProps) {
+export function BentoMini({ icon, title, val, sub, color, onClick, children }: BentoMiniProps) {
   const glowRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -43,10 +43,10 @@ export function BentoMini({ icon: Icon, title, val, sub, color, onClick, childre
           <div
             className={`rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-xl transition-transform group-hover:scale-110 ${color}`}
           >
-            <Icon size={20} />
+            <Icon name={icon} className="text-[20px]" />
           </div>
           <div className="opacity-0 transition-opacity group-hover:opacity-100">
-            <ArrowUpRight size={14} className="text-slate-600" />
+            <Icon name="arrow-up-right" className="text-slate-600 text-[14px]" />
           </div>
         </div>
         <div className="space-y-1">

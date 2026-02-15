@@ -300,208 +300,246 @@ export function SettingsPage() {
               <div>
                 <label className="mb-4 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                   Sincronia Cromatica
-                </label>
-                <div className="flex flex-wrap gap-4">
-                  {/* Theme options customized */}
-                  <ThemeOption color="bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.4)]" active={themeId === "cyan"} onClick={() => setTheme("cyan" as ThemeId)} label="Neon Cyan" />
-                  <ThemeOption color="bg-red-600 shadow-[0_0_20px_rgba(220,38,38,0.4)]" active={themeId === "red"} onClick={() => setTheme("red" as ThemeId)} label="Red Alert" />
-                  <ThemeOption color="bg-purple-600 shadow-[0_0_20px_rgba(147,51,234,0.4)]" active={themeId === "purple"} onClick={() => setTheme("purple" as ThemeId)} label="Synthwave" />
-                  <ThemeOption color="bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]" active={themeId === "emerald"} onClick={() => setTheme("emerald" as ThemeId)} label="Matrix" />
-                  <ThemeOption color="bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.4)]" active={themeId === "orange"} onClick={() => setTheme("orange" as ThemeId)} label="Amber" />
-                  <ThemeOption color="bg-[#00af00] border border-green-400 shadow-[0_0_20px_rgba(0,175,0,0.6)]" active={themeId === "matrix"} onClick={() => setTheme("matrix" as ThemeId)} label="Code" />
-                  <ThemeOption color="bg-[#0b1c35] border border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]" active={themeId === "sololeveling"} onClick={() => setTheme("sololeveling" as ThemeId)} label="Monarch" />
-                </div>
-              </div>
+                  navigate("/");
+    } catch {
+                    setDangerBusy(null);
+    }
+  }, [logout, navigate]);
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <DetailedToggle
-                  label="Glitch FX"
-                  desc="Artefatos visuais de instabilidade do sistema."
-                  active={glitchEffects}
-                  onClick={() => setGlitchEffects((v) => !v)}
-                  icon={Activity}
-                />
-                <DetailedToggle label="Modo Furtivo" desc="Oculta status online de outros caçadores." active={stealthMode} onClick={() => setStealthMode(v => !v)} icon={EyeOff} />
-              </div>
-            </div>
-          </section>
+                  return (
+                  <div className="animate-in fade-in slide-in-from-bottom-8 duration-700" data-testid="settings-page">
+                    <div className="mx-auto max-w-4xl space-y-8 pb-20">
+                      {/* Header */}
+                      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div className="space-y-2">
+                          <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl" data-text="SISTEMA">
+                            SISTEMA
+                          </h1>
+                          <p className="flex items-center gap-2 font-mono text-sm text-slate-400">
+                            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                            CONFIGURACAO DO TERMINAL DO USUARIO
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={handleSave}
+                            className="flex items-center gap-3 rounded-2xl bg-slate-800 px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-slate-700 active:scale-95"
+                            type="button"
+                          >
+                            <Icon name="disk" className="text-[16px]" />
+                            Salvar Alteracoes
+                          </button>
+                        </div>
+                      </div>
 
-          {/* AI Settings */}
-          <section className="group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-8 backdrop-blur-xl transition-all hover:border-blue-500/30">
-            <div className="mb-8 flex items-center gap-4 border-b border-slate-800/50 pb-6">
-              <div className="rounded-xl bg-blue-500/10 p-3 text-blue-500">
-                <Bot size={24} />
-              </div>
-              <h2 className="text-xl font-bold uppercase tracking-widest text-white">I.A. Assistente</h2>
-            </div>
+                      {/* Profile Section */}
+                      <div className="overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b]/60 p-1 shadow-2xl backdrop-blur-xl">
+                        <div className="relative overflow-hidden rounded-[36px] bg-slate-900/50 p-8 md:p-12">
+                          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-50" />
 
-            <div className="grid gap-8 md:grid-cols-2">
-              <div className="space-y-4">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  <Key size={12} /> Chave API (Gemini)
-                </label>
-                <input
-                  type="password"
-                  value={aiSettings.apiKey}
-                  onChange={(e) => setAiSettings((prev) => ({ ...prev, apiKey: e.target.value }))}
-                  placeholder="Cole sua chave aqui..."
-                  className="w-full rounded-xl border border-slate-800 bg-[#050506] px-4 py-3 text-xs font-mono text-white placeholder-slate-700 outline-none transition-all focus:border-blue-500/50 focus:bg-blue-500/5 focus:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
-                />
-              </div>
+                          <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
+                            <div className="relative group">
+                              <div className="absolute inset-0 -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur opacity-25 group-hover:opacity-75 transition duration-500" />
+                              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-slate-700 bg-slate-800 p-1 md:h-32 md:w-32">
+                                {user?.avatar_url ? (
+                                  <img src={user.avatar_url} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-slate-600">
+                                    <Icon name="robot" className="h-10 w-10 md:h-12 md:w-12 text-[48px]" />
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className="absolute bottom-0 right-0 rounded-full bg-slate-800 p-2 text-white shadow-lg transition-transform hover:scale-110 hover:bg-cyan-600"
+                              >
+                                <Icon name="pencil" className="text-[14px]" />
+                              </button>
+                            </div>
 
-              <div className="space-y-4">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  <Cpu size={12} /> Personalidade
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {["standard", "hardcore", "zen", "gamer"].map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setAiSettings((prev) => ({ ...prev, personality: p }))}
-                      className={`rounded-lg border px-3 py-2 text-[10px] font-bold uppercase transition-all ${aiSettings.personality === p
-                        ? "border-blue-500 bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                        : "border-slate-800 bg-[#050506] text-slate-600 hover:border-slate-600"
-                        }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+                            <div className="flex-1 space-y-4">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+                                  {profile?.username ?? "Anonimo"}
+                                </h2>
+                                <Badge color="bg-cyan-500/10 text-cyan-400 border-cyan-500/20" icon="check-circle">
+                                  Verificado
+                                </Badge>
+                                <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20" icon="crown">
+                                  Premium
+                                </Badge>
+                              </div>
 
-            <div className="mt-8 flex justify-end">
-              <button
-                onClick={() => void saveAiSettings()}
-                disabled={aiSettings.saving || aiSettings.loading}
-                className="flex items-center gap-2 rounded-xl bg-blue-600/10 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-blue-500 border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] active:scale-95 disabled:opacity-50"
-                type="button"
-              >
-                {aiSettings.saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                {aiSettings.saving ? "Sincronizando..." : "Salvar Configuração"}
-              </button>
-            </div>
-          </section>
+                              <div className="grid gap-4 md:grid-cols-2">
+                                <div className="rounded-2xl bg-slate-950/50 p-4">
+                                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">ID do Usuario</span>
+                                  <code className="font-mono text-xs text-slate-300">{user?.id}</code>
+                                </div>
+                                <div className="rounded-2xl bg-slate-950/50 p-4">
+                                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Email</span>
+                                  <div className="flex items-center justify-between">
+                                    <code className="font-mono text-xs text-slate-300">{user?.email}</code>
+                                    <Icon name="key" className="text-slate-600 text-[14px]" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-        </div>
+                      <div className="grid gap-8 lg:grid-cols-12">
+                        {/* Main Settings */}
+                        <div className="space-y-8 lg:col-span-8">
+                          {/* Visual Preferences */}
+                          <section>
+                            <div className="mb-6 flex items-center gap-4">
+                              <div className="rounded-xl bg-cyan-500/10 p-3 text-cyan-500"><Icon name="palette" className="text-[24px]" /></div>
+                              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Interface Visual</h2>
+                            </div>
 
-        {/* Right Column: Difficulty & Danger Zone */}
-        <div className="space-y-12 lg:col-span-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <DetailedToggle
+                                label="Efeitos Glitch"
+                                desc="Artefatos visuais de instabilidade do sistema."
+                                active={glitchEffects}
+                                onClick={() => setGlitchEffects(v => !v)}
+                                icon="activity"
+                              />
+                              <DetailedToggle label="Modo Furtivo" desc="Oculta status online de outros caçadores." active={stealthMode} onClick={() => setStealthMode(v => !v)} icon="eye-crossed" />
+                            </div>
+                          </section>
 
-          {/* Difficulty Selection */}
-          <section className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-8">
-            <div className="mb-6 flex items-center gap-4">
-              <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Zap size={24} /></div>
-              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
-            </div>
+                          {/* System Preferences */}
+                          <section>
+                            <div className="mb-6 flex items-center gap-4">
+                              <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="cpu" className="text-[24px]" /></div>
+                              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Sistema</h2>
+                            </div>
 
-            <div className="space-y-4">
-              {["Iniciado", "Cacador", "Monarca"].map((level) => {
-                const id = level.toLowerCase();
-                const isActive = difficulty === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setDifficulty(id)}
-                    className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all ${isActive
-                      ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
-                      : "border-slate-800 bg-[#050506] hover:border-slate-700"
-                      }`}
-                    type="button"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs font-black uppercase tracking-widest ${isActive ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300"}`}>{level}</span>
-                      {isActive && <CheckCircle2 size={16} className="text-orange-500" />}
+                            <div className="grid gap-4 sm:grid-cols-2">
+                              <DetailedToggle
+                                label="Notificacoes"
+                                desc="Alertas de missoes e atualizacoes do sistema."
+                                active={notifications}
+                                onClick={() => setNotifications(!notifications)}
+                              />
+                              <DetailedToggle
+                                label="Efeitos Sonoros"
+                                desc="Feedback auditivo de interacoes e combate."
+                                active={soundEffects}
+                                onClick={() => setSoundEffects(!soundEffects)}
+                              />
+                            </div>
+                          </section>
+
+                          {/* Danger Zone */}
+                          <section className="relative overflow-hidden rounded-[32px] border border-red-900/30 bg-red-950/5 p-8">
+                            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(220,38,38,0.05)_10px,rgba(220,38,38,0.05)_20px)]" />
+
+                            <div className="relative z-10">
+                              <div className="mb-6 flex items-center gap-4 text-red-500">
+                                <Icon name="exclamation" className="animate-pulse text-[24px]" />
+                                <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+                                  <div>
+                                    <h3 className="font-bold text-white">Resetar Progresso Local</h3>
+                                    <p className="text-sm text-red-200/60">Limpa cache e dados temporarios. Nao apaga conta.</p>
+                                  </div>
+                                  <HoldButton
+                                    label="SEGURE PARA DELETAR TUDO"
+                                    onComplete={() => void executeHardReset()}
+                                    loading={dangerBusy === "reset"}
+                                    className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto md:px-8"
+                                  />
+                                </div>
+
+                                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+                                  <div>
+                                    <h3 className="font-bold text-white">Encerrar Sessao</h3>
+                                    <p className="text-sm text-red-200/60">Desconecta do terminal com segurança.</p>
+                                  </div>
+                                  <button
+                                    onClick={() => void handleLogout()}
+                                    disabled={dangerBusy === "logout"}
+                                    className="flex items-center justify-center gap-2 w-full rounded-xl border border-red-500/30 bg-transparent py-4 text-xs font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-500/10 active:scale-95 md:w-auto md:px-8"
+                                    type="button"
+                                  >
+                                    <Icon name="trash" className="text-[16px]" />
+                                    Desconectar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </section>
+                        </div>
+
+                        {/* Sidebar Settings (Theme) */}
+                        <div className="lg:col-span-4">
+                          <div className="sticky top-24 space-y-6">
+                            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
+                              <div className="mb-6 flex items-center gap-4">
+                                <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Icon name="bolt" className="text-[24px]" /></div>
+                                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                <div className="rounded-2xl bg-slate-900 p-4 border border-slate-800 opacity-50 grayscale cursor-not-allowed">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="font-black text-white uppercase tracking-wider">Casual</span>
+                                    <Icon name="cross-circle" className="text-slate-600 text-[18px]" />
+                                  </div>
+                                  <p className="text-xs text-slate-500">Modo historia sem desafios.</p>
+                                </div>
+                                <div className="rounded-2xl bg-red-900/20 p-4 border border-red-500/20 relative overflow-hidden">
+                                  <div className="absolute top-0 right-0 p-2 text-red-500"><Icon name="skull" className="text-[14px]" /></div>
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="font-black text-white uppercase tracking-wider">Hardcore</span>
+                                    <Icon name="check-circle" className="text-red-500 text-[18px]" />
+                                  </div>
+                                  <p className="text-xs text-red-200/60">Dano permanente. Boot loops reais.</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
+                              <div className="mb-6 flex items-center justify-between">
+                                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Tema</h2>
+                                <Icon name="refresh" className="text-slate-600 animate-spin-slow text-[16px]" />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                {THEME_PRESETS.map(preset => (
+                                  <ThemeOption
+                                    key={preset.id}
+                                    label={preset.name}
+                                    color={preset.color}
+                                    active={theme === preset.id}
+                                    onClick={() => setTheme(preset.id)}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="rounded-[32px] bg-gradient-to-br from-[#0a0a0b] to-slate-950 p-8 text-center border border-slate-800 shadow-xl">
+                              <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)] inline-block">
+                                <Icon name="skull" className="text-[48px]" />
+                              </div>
+                              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Build v0.9.4</h3>
+                              <p className="text-xs font-mono text-slate-500">COMPILADO: 2024-05-20</p>
+                              <div className="mt-6 flex justify-center gap-2">
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* DANGER ZONE */}
-          <section className="relative overflow-hidden rounded-[32px] border border-red-900/40 bg-[#0f0505] p-8 before:absolute before:inset-0 before:bg-[url('/noise.png')] before:opacity-5">
-            <div className="relative z-10">
-              <div className="mb-6 flex items-center gap-4 text-red-500">
-                <AlertTriangle size={24} className="animate-pulse" />
-                <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
-              </div>
-
-              <p className="mb-8 text-[10px] font-medium leading-relaxed text-red-500/60">
-                Ações nesta zona são irreversíveis. O protocolo de 'Hard Reset' resultará na perda total de XP, Itens e Conquistas.
-              </p>
-
-              <div className="space-y-4">
-                <button
-                  onClick={() => setResetModalOpen(true)}
-                  className="group flex w-full items-center justify-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-500 transition-all hover:bg-red-500 hover:text-black hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]"
-                  type="button"
-                >
-                  <Trash2 size={14} className="transition-transform group-hover:rotate-12" />
-                  Hard Reset
-                </button>
-
-                <button
-                  onClick={() => void handleSystemLogout()}
-                  disabled={dangerBusy !== null}
-                  className="w-full rounded-xl border border-slate-800 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-800 hover:text-white"
-                  type="button"
-                >
-                  {dangerBusy === "logout" ? "Desconectando..." : "Logout"}
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      {/* HARD RESET CONFIRMATION MODAL */}
-      {resetModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-lg rounded-3xl border border-red-500 bg-[#0a0505] p-10 shadow-[0_0_100px_rgba(220,38,38,0.3)]">
-            <div className="mb-8 flex flex-col items-center text-center">
-              <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)]">
-                <Skull size={48} />
-              </div>
-              <h3 className="text-2xl font-black uppercase tracking-[0.2em] text-white">Confirmação Final</h3>
-              <p className="mt-2 text-xs font-bold uppercase tracking-widest text-red-500">Exterminar todo o progresso?</p>
-            </div>
-
-            <div className="mb-8 space-y-4 rounded-xl border border-red-900/30 bg-red-950/10 p-6">
-              <div className="flex items-center gap-3 text-red-400">
-                <XCircle size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-wide">Nível do Jogador → 1</span>
-              </div>
-              <div className="flex items-center gap-3 text-red-400">
-                <XCircle size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-wide">Inventário → Vazio</span>
-              </div>
-              <div className="flex items-center gap-3 text-red-400">
-                <XCircle size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-wide">Rank → F</span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <HoldButton
-                label="SEGURE PARA DELETAR TUDO"
-                onComplete={() => void executeHardReset()}
-                loading={dangerBusy === "reset"}
-                className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
-              />
-
-              <button
-                onClick={() => setResetModalOpen(false)}
-                className="w-full rounded-xl border border-slate-800 py-4 text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-800 hover:text-white"
-                type="button"
-              >
-                Cancelar Operação
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
+                  </div>
+                  );
 }
