@@ -11,6 +11,12 @@ interface ThemeColors {
     accent: string;
     accentLight: string;
     glow: string;
+    /** URL path to background image */
+    bgImage: string;
+    /** Fallback CSS gradient if image fails */
+    bgGradient: string;
+    /** CSS overlay color/opacity, e.g. "rgba(0,0,0,0.7)" */
+    overlayColor: string;
 }
 
 const THEMES: Record<ThemeId, ThemeColors> = {
@@ -18,31 +24,49 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         accent: "120 100% 50%",
         accentLight: "120 100% 70%",
         glow: "0, 255, 65",
+        bgImage: "https://images6.alphacoders.com/550/550739.jpg",
+        bgGradient: "radial-gradient(circle at center, #001f00 0%, #000000 100%)",
+        overlayColor: "rgba(0, 20, 0, 0.85)",
     },
     naruto: {
         accent: "25 95% 50%",
         accentLight: "25 95% 70%",
         glow: "255, 100, 0",
+        bgImage: "https://images8.alphacoders.com/605/605592.png",
+        bgGradient: "linear-gradient(135deg, #2a1000 0%, #000000 100%)",
+        overlayColor: "rgba(20, 10, 0, 0.85)",
     },
     dragonball: {
         accent: "45 100% 50%",
         accentLight: "45 100% 70%",
         glow: "255, 215, 0",
+        bgImage: "https://images.alphacoders.com/605/605598.jpg",
+        bgGradient: "radial-gradient(circle at bottom, #2a2000 0%, #000000 100%)",
+        overlayColor: "rgba(20, 15, 0, 0.85)",
     },
     sololeveling: {
         accent: "212 80% 50%",
         accentLight: "212 80% 70%",
         glow: "26, 115, 232",
+        bgImage: "https://images.alphacoders.com/133/1330693.jpeg",
+        bgGradient: "linear-gradient(to bottom, #020510 0%, #050a14 100%)",
+        overlayColor: "rgba(0, 10, 30, 0.9)",
     },
     hxh: {
         accent: "348 83% 47%",
         accentLight: "348 83% 67%",
         glow: "220, 20, 60",
+        bgImage: "https://images5.alphacoders.com/605/605667.jpg",
+        bgGradient: "radial-gradient(circle at top right, #2a0005 0%, #000000 100%)",
+        overlayColor: "rgba(30, 0, 10, 0.85)",
     },
     lotr: {
         accent: "210 20% 70%",
         accentLight: "210 20% 85%",
         glow: "192, 192, 192",
+        bgImage: "https://images.alphacoders.com/264/264024.jpg",
+        bgGradient: "linear-gradient(to top, #0a1f1d 0%, #000000 100%)",
+        overlayColor: "rgba(10, 15, 20, 0.85)",
     },
 };
 
@@ -55,6 +79,7 @@ const STORAGE_KEY = "cmd8_hud_theme";
 interface ThemeContextValue {
     themeId: ThemeId;
     setTheme: (id: ThemeId) => void;
+    theme: ThemeColors;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -104,7 +129,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         } catch { /* ignore */ }
     }, []);
 
-    const value = useMemo(() => ({ themeId, setTheme }), [themeId, setTheme]);
+    const value = useMemo(() => ({ themeId, setTheme, theme: THEMES[themeId] }), [themeId, setTheme]);
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
