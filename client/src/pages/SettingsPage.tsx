@@ -6,6 +6,7 @@ import { Badge, DetailedToggle, HoldButton, ThemeOption } from "../components/co
 import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme, type ThemeId } from "../contexts/ThemeContext";
 
 // Definição local de preferências (client-side only por enquanto)
 interface ClientPreferences {
@@ -38,14 +39,22 @@ export function SettingsPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { themeId, setTheme } = useTheme();
 
   // Load preferences from localStorage or defaults
   const [preferences, setPreferences] = useState<ClientPreferences>(() => {
     const stored = localStorage.getItem("cmd8_preferences");
-    return stored ? JSON.parse(stored) : DEFAULT_PREFERENCES;
+    const parsed = stored ? JSON.parse(stored) : DEFAULT_PREFERENCES;
+    // Ensure theme matches global context on mount
+    return { ...parsed, theme: themeId || parsed.theme };
   });
 
   const [dangerBusy, setDangerBusy] = useState<"logout" | "reset" | null>(null);
+
+  // Sync state with global themeId if it changes externallly
+  useEffect(() => {
+    setPreferences(prev => ({ ...prev, theme: themeId }));
+  }, [themeId]);
 
   // Update localStorage when preferences change
   useEffect(() => {
@@ -56,6 +65,9 @@ export function SettingsPage() {
 
   const updatePreference = <K extends keyof ClientPreferences>(key: K, value: ClientPreferences[K]) => {
     setPreferences(prev => ({ ...prev, [key]: value }));
+    if (key === "theme") {
+      setTheme(value as ThemeId);
+    }
   };
 
   const handleSave = useCallback(async () => {
