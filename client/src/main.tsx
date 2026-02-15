@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import App from "./App";
+import "@flaticon/flaticon-uicons/css/all/all.css";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");

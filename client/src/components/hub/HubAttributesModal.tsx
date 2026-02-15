@@ -1,5 +1,5 @@
 
-import { Save, X } from "lucide-react";
+import { Icon } from "../common/Icon";
 import type { AttributeKey, TechnicalAttributes } from "../../lib/hub/attributes";
 
 interface HubAttributesModalProps {
@@ -21,7 +21,7 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
                 <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-3">
                     <h3 className="text-lg font-black uppercase italic text-white">Configuracao de Status</h3>
                     <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-white/10">
-                        <X size={18} className="text-slate-400" />
+                        <Icon name="cross" className="text-slate-400 text-lg" />
                     </button>
                 </div>
                 {(["python", "sql", "excel", "etl"] as AttributeKey[]).map((key) => (
@@ -52,7 +52,7 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
                     onClick={onSave}
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-black uppercase tracking-wider text-white hover:bg-blue-500"
                 >
-                    <Save size={15} /> Salvar Alteracoes
+                    <Icon name="disk" className="mr-2" /> Salvar Alteracoes
                 </button>
             </div>
         </div>

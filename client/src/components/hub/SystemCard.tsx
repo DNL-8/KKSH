@@ -1,6 +1,6 @@
 
-import type { LucideIcon } from "lucide-react";
 import { useMemo } from "react";
+import { Icon } from "../common/Icon";
 
 // Local helper to avoid importing from lib if it's just this one simple function
 function clampPercent(value: number): number {
@@ -11,7 +11,7 @@ function clampPercent(value: number): number {
 }
 
 interface SystemCardProps {
-    icon: LucideIcon;
+    icon: string;
     title: string;
     value: string;
     sub: string;
@@ -24,7 +24,7 @@ interface SystemCardProps {
 }
 
 export function SystemCard({
-    icon: Icon,
+    icon,
     title,
     value,
     sub,
@@ -45,7 +45,7 @@ export function SystemCard({
     return (
         <article className="group rounded-3xl border border-white/10 bg-[#0a0b10]/90 p-6 transition-all hover:-translate-y-1">
             <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl border ${toneMap[tone]}`}>
-                <Icon size={20} />
+                <Icon name={icon} className="text-xl" />
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">{title}</div>
             <div data-testid={valueTestId} className="mt-1 text-2xl font-black text-white">

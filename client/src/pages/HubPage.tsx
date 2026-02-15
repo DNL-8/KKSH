@@ -1,23 +1,4 @@
 
-import {
-  Activity,
-  AlertTriangle,
-  Brain,
-  ChevronRight,
-  Cpu,
-  Layers,
-  LayoutGrid,
-  Loader2,
-  RefreshCw,
-  Settings,
-  Shield,
-  Sparkles,
-  Sword,
-  Terminal,
-  TrendingUp,
-  User,
-  Zap,
-} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
@@ -44,6 +25,7 @@ import {
 import { HubAttributesModal } from "../components/hub/HubAttributesModal";
 import { StatBar } from "../components/hub/StatBar";
 import { SystemCard } from "../components/hub/SystemCard";
+import { Icon } from "../components/common/Icon";
 
 interface HubQueryData {
   state: AppStateOut;
@@ -188,7 +170,7 @@ export function HubPage() {
 
       {error && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300">
-          <span className="flex items-center gap-2"><AlertTriangle size={15} />{error}</span>
+          <span className="flex items-center gap-2"><Icon name="exclamation" />{error}</span>
           {authUser && <button type="button" onClick={() => void refreshHub()} className="rounded border border-red-500/30 px-3 py-1">Tentar de novo</button>}
         </div>
       )}
@@ -196,18 +178,18 @@ export function HubPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <section className="lg:col-span-4 rounded-3xl border border-white/10 bg-[#0a0b10]/90 p-6">
           <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Activity size={12} />Biometria Hunter</div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Icon name="pulse" />Biometria Hunter</div>
             <div className="flex items-center gap-2">
-              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-white"><Settings size={12} /></button>
-              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-cyan-300">{loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}</button>}
+              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-white"><Icon name="settings" /></button>
+              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-cyan-300">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
             </div>
           </div>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-500/30 bg-slate-900"><User className="text-slate-300" size={42} /></div>
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-500/30 bg-slate-900"><Icon name="user" className="text-slate-300 text-3xl" /></div>
             <div>
               <h2 className="text-2xl font-black uppercase italic text-white">{authUser ? "Shadow Hunter" : "Operador Visitante"}</h2>
               <p className="text-[10px] uppercase tracking-wider text-blue-400">Nivel {level} Operacional • Rank {rank}</p>
-              <div className="mt-2 flex gap-2 text-slate-400"><Zap size={14} /><Brain size={14} /><Sparkles size={14} /></div>
+              <div className="mt-2 flex gap-2 text-slate-400"><Icon name="bolt" className="text-sm" /><Icon name="brain" className="text-sm" /><Icon name="sparkles" className="text-sm" /></div>
             </div>
           </div>
           <div className="space-y-4 rounded-xl border border-white/10 bg-black/30 p-4">
@@ -217,7 +199,7 @@ export function HubPage() {
             <StatBar label="ETL / ELT" percent={attributes.etl} gradientClass="from-amber-500 to-orange-400" sub="Data Pipelines" />
           </div>
           <button type="button" data-testid="hub-connect-button" onClick={() => (authUser ? void refreshHub() : openAuthPanel())} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 py-3 text-xs font-black uppercase tracking-[0.2em] text-blue-300 hover:bg-blue-500/20">
-            {authUser ? "Sincronizar Sistema" : "Conectar Sistema"} <ChevronRight size={14} />
+            {authUser ? "Sincronizar Sistema" : "Conectar Sistema"} <Icon name="angle-right" className="text-sm" />
           </button>
         </section>
 
@@ -234,9 +216,9 @@ export function HubPage() {
           <h1 data-testid="hub-mission-title" className={`text-4xl font-black uppercase italic text-white md:text-6xl ${glitchActive ? "tracking-[0.02em]" : ""}`}>{missionTitle}</h1>
           <p className="mt-4 max-w-2xl text-sm text-slate-400">{activeQuest?.objective ?? activeQuest?.description ?? "Conclua revisoes e sessoes para abrir uma incursao."}</p>
           <div className="mt-6 flex flex-wrap gap-4">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-blue-400"><Brain size={14} className="mb-1" />Materia: {activeQuest?.subject ?? "Geral"}</div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-red-400"><Shield size={14} className="mb-1" />Dificuldade: {(activeQuest?.difficulty ?? "medio").toUpperCase()}</div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-purple-400"><Sparkles size={14} className="mb-1" />Loot: +{activeQuest?.rewardXp ?? 0} XP</div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-blue-400"><Icon name="brain" className="mb-1" />Materia: {activeQuest?.subject ?? "Geral"}</div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-red-400"><Icon name="shield" className="mb-1" />Dificuldade: {(activeQuest?.difficulty ?? "medio").toUpperCase()}</div>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-purple-400"><Icon name="sparkles" className="mb-1" />Loot: +{activeQuest?.rewardXp ?? 0} XP</div>
           </div>
           <div className="mt-8">
             <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
@@ -248,16 +230,16 @@ export function HubPage() {
             </div>
           </div>
           <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className="mt-8 flex items-center gap-2 rounded-xl bg-red-600 px-8 py-3 text-xs font-black uppercase tracking-[0.2em] text-white hover:bg-red-500">
-            <Sword size={14} /> Iniciar Revisoes
+            <Icon name="sword" className="text-sm" /> Iniciar Revisoes
           </button>
         </section>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <SystemCard icon={Layers} tone="orange" title="Masmorra Ativa" value={`${dueReviews} Revisoes`} sub={`${openDailyQuests} Missoes em Aberto`} valueTestId="hub-system-masmorra-value" />
-        <SystemCard icon={Terminal} tone="blue" title="Protocolo Treino" value={`${todayMinutes}/${dailyTarget} min`} sub={`${todayPercent}% da Meta Diaria`} showBar progress={todayPercent} valueTestId="hub-system-training-value" />
-        <SystemCard icon={Cpu} tone="cyan" title="Nucleo Central" value={missionSource} sub={`Semana ${weekMinutes}/${weeklyTarget} min`} valueTestId="hub-system-core-value" action={<button type="button" onClick={() => navigateTo("/ia")} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-[10px] font-black uppercase tracking-wider text-cyan-300"><LayoutGrid size={12} />Sincronizado</button>} />
-        <SystemCard icon={TrendingUp} tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} • ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-white/10 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
+        <SystemCard icon="layers" tone="orange" title="Masmorra Ativa" value={`${dueReviews} Revisoes`} sub={`${openDailyQuests} Missoes em Aberto`} valueTestId="hub-system-masmorra-value" />
+        <SystemCard icon="terminal" tone="blue" title="Protocolo Treino" value={`${todayMinutes}/${dailyTarget} min`} sub={`${todayPercent}% da Meta Diaria`} showBar progress={todayPercent} valueTestId="hub-system-training-value" />
+        <SystemCard icon="cpu" tone="cyan" title="Nucleo Central" value={missionSource} sub={`Semana ${weekMinutes}/${weeklyTarget} min`} valueTestId="hub-system-core-value" action={<button type="button" onClick={() => navigateTo("/ia")} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-[10px] font-black uppercase tracking-wider text-cyan-300"><Icon name="grid" className="text-xs mr-2" />Sincronizado</button>} />
+        <SystemCard icon="chart-histogram" tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} • ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-white/10 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
       </div>
     </div>
   );
