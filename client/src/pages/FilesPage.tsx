@@ -60,6 +60,7 @@ import {
 import { useFileImporter } from "../hooks/useFileImporter";
 
 const MAX_SESSION_PAGES = 300;
+const FILES_VIEW_STATE_STORAGE_PREFIX = "cmd8_files_view_state_v1";
 
 type HudTone = "red" | "blue" | "yellow" | "green" | "purple";
 
@@ -76,6 +77,114 @@ interface FilesStatCardProps {
   value: string;
   subtext: string;
   icon: ComponentType<{ size?: string | number; className?: string }>;
+}
+
+const ORDER_LABELS: Record<OrderMode, string> = {
+  newest: "Ordem: recentes",
+  oldest: "Ordem: antigas",
+  name_asc: "Ordem: nome A-Z",
+  name_desc: "Ordem: nome Z-A",
+  size_desc: "Ordem: maior arquivo",
+  size_asc: "Ordem: menor arquivo",
+};
+
+interface FilesViewStateSnapshot {
+  selectedLessonId: string | null;
+  collapsedFolders: Record<string, boolean>;
+  visibleCountByFolder: Record<string, number>;
+  orderMode: OrderMode;
+  activeTab: TabMode;
+}
+
+const ORDER_MODES: OrderMode[] = ["newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];
+const TAB_MODES: TabMode[] = ["overview", "metadata"];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isOrderMode(value: string): value is OrderMode {
+  return ORDER_MODES.includes(value as OrderMode);
+}
+
+function isTabMode(value: string): value is TabMode {
+  return TAB_MODES.includes(value as TabMode);
+}
+
+function viewStateStorageKey(scope: string): string {
+  return `${FILES_VIEW_STATE_STORAGE_PREFIX}:${scope}`;
+}
+
+function sanitizeBooleanMap(value: unknown): Record<string, boolean> {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const next: Record<string, boolean> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item === "boolean") {
+      next[key] = item;
+    }
+  }
+  return next;
+}
+
+function sanitizeNumberMap(value: unknown): Record<string, number> {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const next: Record<string, number> = {};
+  for (const [key, item] of Object.entries(value)) {
+    const parsed = Number(item);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      next[key] = Math.round(parsed);
+    }
+  }
+  return next;
+}
+
+function readFilesViewState(scope: string): FilesViewStateSnapshot | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(viewStateStorageKey(scope));
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    const selectedLessonId =
+      typeof parsed.selectedLessonId === "string"
+        ? parsed.selectedLessonId
+        : parsed.selectedLessonId === null
+          ? null
+          : null;
+
+    const orderMode =
+      typeof parsed.orderMode === "string" && isOrderMode(parsed.orderMode)
+        ? parsed.orderMode
+        : "newest";
+
+    const activeTab =
+      typeof parsed.activeTab === "string" && isTabMode(parsed.activeTab)
+        ? parsed.activeTab
+        : "overview";
+
+    return {
+      selectedLessonId,
+      collapsedFolders: sanitizeBooleanMap(parsed.collapsedFolders),
+      visibleCountByFolder: sanitizeNumberMap(parsed.visibleCountByFolder),
+      orderMode,
+      activeTab,
+    };
+  } catch {
+    return null;
+  }
 }
 
 const HUD_BAR_TONE_CLASS: Record<HudTone, string> = {
@@ -131,6 +240,25 @@ function FilesStatCard({ label, value, subtext, icon: Icon }: FilesStatCardProps
   );
 }
 
+function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): number {
+  switch (mode) {
+    case "newest":
+      return right.createdAt - left.createdAt || left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" });
+    case "oldest":
+      return left.createdAt - right.createdAt || left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" });
+    case "name_asc":
+      return left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" }) || right.createdAt - left.createdAt;
+    case "name_desc":
+      return right.name.localeCompare(left.name, "pt-BR", { sensitivity: "base" }) || right.createdAt - left.createdAt;
+    case "size_desc":
+      return right.size - left.size || right.createdAt - left.createdAt;
+    case "size_asc":
+      return left.size - right.size || right.createdAt - left.createdAt;
+    default:
+      return right.createdAt - left.createdAt;
+  }
+}
+
 
 export function FilesPage() {
   const { globalStats, authUser, openAuthPanel } =
@@ -166,8 +294,11 @@ export function FilesPage() {
   const [completedVideoRefs, setCompletedVideoRefs] = useState<Set<string>>(new Set());
   const [loadingCompletions, setLoadingCompletions] = useState(false);
   const [completingLesson, setCompletingLesson] = useState(false);
+  const [viewStateReadyKey, setViewStateReadyKey] = useState<string | null>(null);
 
   const authUserId = authUser?.id ?? null;
+  const viewStateScope = authUserId ?? "guest";
+  const currentViewStateKey = viewStateStorageKey(viewStateScope);
   const visibleVideos = storageUnavailable ? runtimeVideos : videos;
 
   const loadVideos = useCallback(async () => {
@@ -250,9 +381,7 @@ export function FilesPage() {
     return Array.from(groups.keys())
       .sort(sortGroupPaths)
       .map((path) => {
-        const sortedLessons = [...(groups.get(path) ?? [])].sort((a, b) =>
-          orderMode === "newest" ? b.createdAt - a.createdAt : a.createdAt - b.createdAt,
-        );
+        const sortedLessons = [...(groups.get(path) ?? [])].sort((a, b) => compareVideos(a, b, orderMode));
         return {
           path,
           pathId: normalizePathForTestId(path),
@@ -327,6 +456,50 @@ export function FilesPage() {
   }, [loadCompletedVideoRefs]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    setViewStateReadyKey(null);
+    const snapshot = readFilesViewState(viewStateScope);
+    if (snapshot) {
+      setSelectedLessonId(snapshot.selectedLessonId);
+      setCollapsedFolders(snapshot.collapsedFolders);
+      setVisibleCountByFolder(snapshot.visibleCountByFolder);
+      setOrderMode(snapshot.orderMode);
+      setActiveTab(snapshot.activeTab);
+    }
+    setViewStateReadyKey(currentViewStateKey);
+  }, [currentViewStateKey, viewStateScope]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || viewStateReadyKey !== currentViewStateKey) {
+      return;
+    }
+
+    const snapshot: FilesViewStateSnapshot = {
+      selectedLessonId,
+      collapsedFolders,
+      visibleCountByFolder,
+      orderMode,
+      activeTab,
+    };
+    try {
+      window.localStorage.setItem(currentViewStateKey, JSON.stringify(snapshot));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [
+    activeTab,
+    collapsedFolders,
+    currentViewStateKey,
+    orderMode,
+    selectedLessonId,
+    viewStateReadyKey,
+    visibleCountByFolder,
+  ]);
+
+  useEffect(() => {
     const folderInput = folderInputRef.current;
     if (!folderInput) {
       return;
@@ -334,13 +507,6 @@ export function FilesPage() {
     folderInput.setAttribute("webkitdirectory", "");
     folderInput.setAttribute("directory", "");
   }, [folderInputRef]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.localStorage.removeItem("cmd8_files_group_prefs_v1");
-  }, []);
 
   useEffect(() => {
     setSelectedVideoUrl("");
@@ -379,6 +545,9 @@ export function FilesPage() {
   }, [selectedVideo]);
 
   useEffect(() => {
+    if (loading) {
+      return;
+    }
     if (visibleVideos.length === 0) {
       setSelectedLessonId(null);
       return;
@@ -390,9 +559,12 @@ export function FilesPage() {
 
     const firstLessonId = folderSections[0]?.lessons[0]?.id ?? visibleVideos[0]?.id ?? null;
     setSelectedLessonId(firstLessonId);
-  }, [folderSections, selectedLessonId, visibleVideos]);
+  }, [folderSections, loading, selectedLessonId, visibleVideos]);
 
   useEffect(() => {
+    if (loading) {
+      return;
+    }
     const validPaths = new Set(folderSections.map((section) => section.path));
     setCollapsedFolders((current) => {
       const entries = Object.entries(current);
@@ -412,9 +584,12 @@ export function FilesPage() {
 
       return changed ? next : current;
     });
-  }, [folderSections]);
+  }, [folderSections, loading]);
 
   useEffect(() => {
+    if (loading) {
+      return;
+    }
     const validPaths = new Set(folderSections.map((section) => section.path));
     setVisibleCountByFolder((current) => {
       const entries = Object.entries(current);
@@ -446,6 +621,26 @@ export function FilesPage() {
       [path]: !current[path],
     }));
   };
+
+  const handleCollapseAllFolders = useCallback(() => {
+    setCollapsedFolders(() => {
+      const next: Record<string, boolean> = {};
+      for (const section of folderSections) {
+        next[section.path] = true;
+      }
+      return next;
+    });
+  }, [folderSections, loading]);
+
+  const handleExpandAllFolders = useCallback(() => {
+    setCollapsedFolders(() => {
+      const next: Record<string, boolean> = {};
+      for (const section of folderSections) {
+        next[section.path] = false;
+      }
+      return next;
+    });
+  }, [folderSections]);
 
   const handleSelectLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
@@ -658,16 +853,25 @@ export function FilesPage() {
                 Conectar pasta (alto volume)
               </button>
             )}
-            <button
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))] disabled:cursor-not-allowed disabled:opacity-50"
-              data-testid="toggle-order"
-              disabled={visibleVideos.length === 0 || loading}
-              onClick={() => setOrderMode((value) => (value === "newest" ? "oldest" : "newest"))}
-              type="button"
+            <div
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.3)] hover:text-[hsl(var(--accent-light))]"
             >
               <ArrowUpDown size={14} />
-              {orderMode === "newest" ? "Ordem: recentes" : "Ordem: antigas"}
-            </button>
+              <select
+                className="max-w-[210px] appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                data-testid="toggle-order"
+                disabled={visibleVideos.length === 0 || loading}
+                onChange={(event) => setOrderMode(event.target.value as OrderMode)}
+                value={orderMode}
+              >
+                <option value="newest">{ORDER_LABELS.newest}</option>
+                <option value="oldest">{ORDER_LABELS.oldest}</option>
+                <option value="name_asc">{ORDER_LABELS.name_asc}</option>
+                <option value="name_desc">{ORDER_LABELS.name_desc}</option>
+                <option value="size_desc">{ORDER_LABELS.size_desc}</option>
+                <option value="size_asc">{ORDER_LABELS.size_asc}</option>
+              </select>
+            </div>
             <button
               className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-red-500/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="clear-library"
@@ -889,6 +1093,8 @@ export function FilesPage() {
                 onToggleFolder={handleToggleFolder}
                 onSelectLesson={handleSelectLesson}
                 onShowMore={handleShowMoreLessons}
+                onCollapseAllFolders={handleCollapseAllFolders}
+                onExpandAllFolders={handleExpandAllFolders}
                 onClose={() => setIsSidebarMobileOpen(false)}
               />
               <div className="cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 transition-all hover:border-cyan-500/30 hover:bg-slate-800/50">
@@ -925,6 +1131,8 @@ export function FilesPage() {
               onToggleFolder={handleToggleFolder}
               onSelectLesson={handleSelectLesson}
               onShowMore={handleShowMoreLessons}
+              onCollapseAllFolders={handleCollapseAllFolders}
+              onExpandAllFolders={handleExpandAllFolders}
               onClose={() => setIsSidebarMobileOpen(false)}
             />
           </div>

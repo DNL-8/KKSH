@@ -159,13 +159,24 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
     await expect(page.getByTestId("connect-directory-handle")).toHaveCount(0);
   }
   await expect(page.getByTestId("toggle-order")).toBeVisible();
-  await expect(page.getByTestId("toggle-order")).toContainText("Ordem: recentes");
-  await page.getByTestId("toggle-order").click();
-  await expect(page.getByTestId("toggle-order")).toContainText("Ordem: antigas");
-  await page.getByTestId("toggle-order").click();
-  await expect(page.getByTestId("toggle-order")).toContainText("Ordem: recentes");
+  await expect(page.getByTestId("toggle-order")).toHaveValue("newest");
+  await page.getByTestId("toggle-order").selectOption("oldest");
+  await expect(page.getByTestId("toggle-order")).toHaveValue("oldest");
+  await page.getByTestId("toggle-order").selectOption("name_asc");
+  await expect(page.getByTestId("toggle-order")).toHaveValue("name_asc");
+  await page.getByTestId("toggle-order").selectOption("newest");
+  await expect(page.getByTestId("toggle-order")).toHaveValue("newest");
   await expect(page.getByTestId("folder-section-a")).toBeVisible();
   await expect(page.getByTestId("folder-section-b")).toBeVisible();
+  await expect(page.getByTestId("toggle-all-folders")).toBeVisible();
+  await expect(page.getByTestId("toggle-all-folders")).toContainText("Esconder todos");
+  await page.getByTestId("toggle-all-folders").click();
+  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
+  await expect(page.getByTestId("lesson-item-b-0")).toHaveCount(0);
+  await expect(page.getByTestId("toggle-all-folders")).toContainText("Abrir todos");
+  await page.getByTestId("toggle-all-folders").click();
+  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(1);
+  await expect(page.getByTestId("lesson-item-b-0")).toHaveCount(1);
 
   await expect(page.getByTestId("lesson-item-a-0")).toHaveAttribute("data-active", "true");
   await page.getByTestId("lesson-item-b-0").click();
@@ -206,6 +217,33 @@ test("trilha lateral limita render por pasta e expande com mostrar mais", async 
 
   await page.getByTestId("folder-show-more-a").click();
   await expect(page.getByTestId("lesson-item-a-120")).toBeVisible();
+});
+
+test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
+  await page.goto("/arquivos");
+  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+  await injectFolderVideos(page);
+
+  await page.getByTestId("toggle-order").selectOption("name_desc");
+  await expect(page.getByTestId("toggle-order")).toHaveValue("name_desc");
+
+  await page.getByTestId("tab-metadata").click();
+  await expect(page.getByText("Nome do arquivo")).toBeVisible();
+
+  await page.getByTestId("lesson-item-b-0").click();
+  await expect(page.getByTestId("lesson-item-b-0")).toHaveAttribute("data-active", "true");
+
+  await page.getByTestId("folder-toggle-a").click();
+  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
+
+  await page.goto("/hub");
+  await page.goto("/arquivos");
+  await expect(page.locator("h2", { hasText: "Biblioteca de" })).toBeVisible();
+
+  await expect(page.getByTestId("toggle-order")).toHaveValue("name_desc");
+  await expect(page.getByText("Nome do arquivo")).toBeVisible();
+  await expect(page.getByTestId("lesson-item-b-0")).toHaveAttribute("data-active", "true");
+  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
 });
 
 test("auto-switch de pasta grande tenta conectar pasta e mostra CTA quando usuario cancela", async ({ page }) => {

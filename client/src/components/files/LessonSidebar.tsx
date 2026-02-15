@@ -30,6 +30,8 @@ interface LessonSidebarProps {
   onToggleFolder: (path: string) => void;
   onSelectLesson: (id: string) => void;
   onShowMore: (path: string) => void;
+  onCollapseAllFolders?: () => void;
+  onExpandAllFolders?: () => void;
   onClose?: () => void;
 }
 
@@ -47,6 +49,8 @@ export function LessonSidebar({
   onToggleFolder,
   onSelectLesson,
   onShowMore,
+  onCollapseAllFolders,
+  onExpandAllFolders,
   onClose,
 }: LessonSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +88,25 @@ export function LessonSidebar({
     [completedVideoRefs, filteredSections],
   );
 
+  const collapsedCount = useMemo(
+    () => folderSections.filter((section) => collapsedFolders[section.path] ?? false).length,
+    [collapsedFolders, folderSections],
+  );
+  const hasFolders = folderSections.length > 0;
+  const allCollapsed = hasFolders && collapsedCount === folderSections.length;
+  const canToggleAll = Boolean(onCollapseAllFolders && onExpandAllFolders) && hasFolders;
+  const toggleAllLabel = allCollapsed ? "Abrir todos" : "Esconder todos";
+  const handleToggleAll = () => {
+    if (!canToggleAll) {
+      return;
+    }
+    if (allCollapsed) {
+      onExpandAllFolders?.();
+      return;
+    }
+    onCollapseAllFolders?.();
+  };
+
   return (
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
       <div className="border-b border-cyan-950/50 px-4 py-4">
@@ -97,6 +120,20 @@ export function LessonSidebar({
             {totalCompleted}/{Math.max(totalLessons, 1)}
           </span>
         </div>
+
+        {canToggleAll && (
+          <div className="mt-2">
+            <button
+              className="rounded-md border border-cyan-900/40 bg-[#071327] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-300 transition-colors hover:bg-[#0a1a33] disabled:opacity-40"
+              data-testid="toggle-all-folders"
+              disabled={Boolean(searchQuery)}
+              onClick={handleToggleAll}
+              type="button"
+            >
+              {toggleAllLabel}
+            </button>
+          </div>
+        )}
 
         <div className="mt-3 flex items-center gap-2">
           <div className="relative flex-1">

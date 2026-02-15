@@ -1,25 +1,25 @@
 import {
-  AlertTriangle,
+  AlertCircle,
   Brain,
   CheckCircle2,
+  ChevronRight,
   Clock3,
-  Flame,
+  LayoutGrid,
   Loader2,
   RefreshCw,
-  Shield,
+  Skull,
   Sparkles,
-  Swords,
+  Sword,
   Target,
+  Timer,
   Trophy,
-  TrendingUp,
   Zap,
-  type LucideIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import type { LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
 
-import { Badge } from "../components/common";
 import {
   ApiRequestError,
   getMeState,
@@ -28,49 +28,86 @@ import {
   listAchievements,
   listSessions,
   type AchievementOut,
+  type AppStateOut,
+  type DailyQuestOut,
   type MonthlyReportOut,
-  type ProgressionOut,
   type SessionOut,
+  type WeeklyQuestOut,
   type WeeklyReportOut,
 } from "../lib/api";
 import type { AppShellContextValue } from "../layout/types";
 
-const HEATMAP_DAYS = 119;
-const MAX_SESSION_PAGES = 8;
-const SESSION_PAGE_LIMIT = 200;
-const REPORT_MONTHS = 12;
-
-const ACHIEVEMENT_ICON_MAP: Record<string, LucideIcon> = {
-  sparkles: Sparkles,
-  "trending-up": TrendingUp,
-  clock: Clock3,
-  flame: Flame,
-  check: CheckCircle2,
-  brain: Brain,
-};
-
-interface EvolutionData {
+interface EvolutionQueryData {
+  state: AppStateOut;
   weekly: WeeklyReportOut;
   monthly: MonthlyReportOut;
   achievements: AchievementOut[];
   sessions: SessionOut[];
-  dailyTargetMinutes: number;
-  progression: ProgressionOut | null;
 }
 
-interface AttributeCard {
-  label: string;
-  value: number;
-  desc: string;
-  color: string;
+interface QuestCardVM {
+  id: string;
+  title: string;
+  subject: string;
+  objective: string;
+  rewardXp: number;
+  rewardGold: number;
+  rewardLabel: string;
+  completed: boolean;
+  typeKey: "daily" | "weekly";
+  typeLabel: string;
+  progressMinutes: number;
+  targetMinutes: number;
+  progressRatio: number;
+  progressLabel: string;
+  rank: string;
+  difficulty: string;
 }
 
-interface HeatmapCell {
-  key: string;
+interface RaidCellVM {
   date: string;
   minutes: number;
-  level: 0 | 1 | 2 | 3;
+  intensity: 0 | 1 | 2 | 3;
+  active: boolean;
+  tooltip: string;
 }
+
+type StatBadgeTone = "cyan" | "red";
+
+interface StatBadgeProps {
+  icon: LucideIcon;
+  value: string;
+  label: string;
+  tone?: StatBadgeTone;
+}
+
+interface StatBoxProps {
+  label: string;
+  value: string;
+  sub?: string;
+  highlight?: boolean;
+}
+
+const HEATMAP_DAYS = 28;
+const SESSION_PAGE_LIMIT = 200;
+const MAX_SESSION_PAGES = 6;
+
+const HEATMAP_INTENSITY_CLASS: Record<RaidCellVM["intensity"], string> = {
+  0: "bg-[#10131d] border-white/10",
+  1: "bg-cyan-900/35 border-cyan-500/25",
+  2: "bg-cyan-700/65 border-cyan-400/50",
+  3: "bg-cyan-400 border-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.45)]",
+};
+
+const QUEST_TYPE_CLASS: Record<QuestCardVM["typeKey"], string> = {
+  daily: "bg-blue-500/10 border-blue-500/25 text-blue-400",
+  weekly: "bg-purple-500/10 border-purple-500/25 text-purple-300",
+};
+
+const BADGE_TONE_CLASS: Record<StatBadgeTone, string> = {
+  cyan: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300",
+  red: "bg-red-500/10 border-red-500/30 text-red-300",
+};
 
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) {
@@ -79,421 +116,601 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function dateKey(value: Date): string {
+function roundPositive(value: number): number {
+  if (!Number.isFinite(value) || value < 0) {
+    return 0;
+  }
+  return Math.round(value);
+}
+
+function toIsoDate(value: Date): string {
   return value.toISOString().slice(0, 10);
 }
 
-function formatMonthLabel(monthKey: string): string {
-  const [yearText, monthText] = monthKey.split("-");
-  const year = Number(yearText);
-  const month = Number(monthText);
-  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
-    return monthKey;
+function makeRecentDateRange(days: number): { from: string; to: string; keys: string[] } {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const keys: string[] = [];
+  for (let cursor = days - 1; cursor >= 0; cursor -= 1) {
+    const target = new Date(now);
+    target.setDate(now.getDate() - cursor);
+    keys.push(toIsoDate(target));
   }
-  return new Intl.DateTimeFormat("pt-BR", { month: "short", year: "2-digit" }).format(
-    new Date(year, month - 1, 1),
-  );
+  return {
+    from: keys[0] ?? toIsoDate(now),
+    to: keys[keys.length - 1] ?? toIsoDate(now),
+    keys,
+  };
 }
 
-function toErrorMessage(error: unknown): string {
+function toEvolutionErrorMessage(error: unknown): string {
   if (error instanceof ApiRequestError) {
     if (error.status === 401) {
-      return "Sessao expirada. Faca login novamente.";
+      return "Sessao expirada. Conecte a conta novamente.";
     }
     return error.message || "Falha ao carregar dados de evolucao.";
   }
   return "Falha ao carregar dados de evolucao.";
 }
 
-function toHeatLevel(minutes: number, dailyTargetMinutes: number): 0 | 1 | 2 | 3 {
+function questProgressRatio(progressMinutes: number, targetMinutes: number): number {
+  return Math.max(0, progressMinutes) / Math.max(1, targetMinutes);
+}
+
+function toQuestVm(quest: DailyQuestOut | WeeklyQuestOut, typeKey: "daily" | "weekly"): QuestCardVM {
+  const targetMinutes = Math.max(1, Number(quest.targetMinutes ?? 0));
+  const progressMinutes = Math.max(0, Number(quest.progressMinutes ?? 0));
+  const rewardXp = roundPositive(Number(quest.rewardXp ?? 0));
+  const rewardGold = roundPositive(Number(quest.rewardGold ?? 0));
+  const titleFromApi = String(quest.title ?? "").trim();
+  const subject = String(quest.subject ?? "Geral").trim() || "Geral";
+  const objective = String(quest.objective ?? quest.description ?? "").trim();
+  const title = titleFromApi || `Revisar ${subject}`;
+  const rewardLabel = `+${rewardXp} XP / +${rewardGold} G`;
+
+  return {
+    id: String(quest.id),
+    title,
+    subject,
+    objective: objective || "Complete sessoes para atingir a meta da missao.",
+    rewardXp,
+    rewardGold,
+    rewardLabel,
+    completed: Boolean(quest.claimed),
+    typeKey,
+    typeLabel: typeKey === "daily" ? "Diaria" : "Desafio Semanal",
+    progressMinutes,
+    targetMinutes,
+    progressRatio: questProgressRatio(progressMinutes, targetMinutes),
+    progressLabel: `${progressMinutes}/${targetMinutes} min`,
+    rank: String(quest.rank ?? "F").toUpperCase(),
+    difficulty: String(quest.difficulty ?? "medio").toUpperCase(),
+  };
+}
+
+function pickActiveQuest(quests: QuestCardVM[]): QuestCardVM | null {
+  if (!quests.length) {
+    return null;
+  }
+  const ordered = [...quests].sort((left, right) => {
+    if (left.completed !== right.completed) {
+      return left.completed ? 1 : -1;
+    }
+    if (left.progressRatio !== right.progressRatio) {
+      return right.progressRatio - left.progressRatio;
+    }
+    return right.rewardXp - left.rewardXp;
+  });
+  return ordered[0] ?? null;
+}
+
+function raidIntensity(minutes: number, targetMinutes: number): RaidCellVM["intensity"] {
   if (minutes <= 0) {
     return 0;
   }
-  const safeTarget = Math.max(1, dailyTargetMinutes);
-  if (minutes < safeTarget * 0.5) {
-    return 1;
+  const ratio = minutes / Math.max(1, targetMinutes);
+  if (ratio >= 1) {
+    return 3;
   }
-  if (minutes < safeTarget) {
+  if (ratio >= 0.5) {
     return 2;
   }
-  return 3;
+  return 1;
+}
+
+function buildRaidHistory(dayKeys: string[], sessions: SessionOut[], dailyTargetMinutes: number): RaidCellVM[] {
+  const minutesByDate = new Map<string, number>();
+  for (const session of sessions) {
+    const dateKey = String(session.date ?? "").slice(0, 10);
+    if (!dateKey) {
+      continue;
+    }
+    minutesByDate.set(dateKey, (minutesByDate.get(dateKey) ?? 0) + Math.max(0, Number(session.minutes ?? 0)));
+  }
+
+  return dayKeys.map((date) => {
+    const minutes = roundPositive(minutesByDate.get(date) ?? 0);
+    const intensity = raidIntensity(minutes, dailyTargetMinutes);
+    return {
+      date,
+      minutes,
+      intensity,
+      active: minutes > 0,
+      tooltip: `${date} - ${minutes} min`,
+    };
+  });
+}
+
+function resolveArenaPrompt(activeQuest: QuestCardVM | null): { question: string; answer: string } {
+  if (!activeQuest) {
+    return {
+      question: "Nenhuma dungeon ativa. Conecte uma missao para iniciar a arena de revisao.",
+      answer: "Abra Revisoes, conclua sessoes e retorne para desbloquear perguntas taticas.",
+    };
+  }
+
+  return {
+    question: activeQuest.objective,
+    answer: `Para concluir: alcance ${activeQuest.progressLabel}. Recompensa ${activeQuest.rewardLabel}.`,
+  };
 }
 
 async function loadRecentSessions(dateFrom: string, dateTo: string): Promise<SessionOut[]> {
-  const out: SessionOut[] = [];
+  const sessions: SessionOut[] = [];
   let cursor: string | undefined;
+
   for (let page = 0; page < MAX_SESSION_PAGES; page += 1) {
     const response = await listSessions({
-      limit: SESSION_PAGE_LIMIT,
-      cursor,
       dateFrom,
       dateTo,
+      limit: SESSION_PAGE_LIMIT,
+      cursor,
     });
-    out.push(...response.sessions);
+    sessions.push(...(response.sessions ?? []));
     cursor = response.nextCursor ?? undefined;
     if (!cursor) {
       break;
     }
   }
-  return out;
+
+  return sessions;
 }
 
-function achievementIcon(iconName?: string | null): LucideIcon {
-  if (!iconName) {
-    return Trophy;
-  }
-  return ACHIEVEMENT_ICON_MAP[iconName] ?? Trophy;
+function StatBadge({ icon: Icon, value, label, tone = "cyan" }: StatBadgeProps) {
+  return (
+    <div className="flex min-w-[170px] items-center gap-3 rounded-lg border border-white/10 bg-[#0a0a0b] px-4 py-2 shadow-lg">
+      <div className={`rounded border px-2 py-1 ${BADGE_TONE_CLASS[tone]}`}>
+        <Icon size={14} />
+      </div>
+      <div className="leading-none">
+        <div className="text-sm font-black tracking-wide text-white">{value}</div>
+        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+function StatBox({ label, value, sub, highlight = false }: StatBoxProps) {
+  return (
+    <article
+      className={`rounded-xl border p-4 transition-all ${
+        highlight
+          ? "border-cyan-500/30 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.12)]"
+          : "border-white/10 bg-[#0f1118]"
+      }`}
+    >
+      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
+      <div className={`mt-1 text-xl font-black ${highlight ? "text-cyan-300" : "text-white"}`}>{value}</div>
+      <div className="mt-1 text-[10px] font-mono text-slate-500">{sub}</div>
+    </article>
+  );
 }
 
 export function EvolutionPage() {
-  const { authUser, globalStats, openAuthPanel } = useOutletContext<AppShellContextValue>();
-  const evolutionQuery = useQuery<EvolutionData>({
+  const { authUser, openAuthPanel } = useOutletContext<AppShellContextValue>();
+  const [showArenaAnswer, setShowArenaAnswer] = useState(false);
+  const [arenaStatus, setArenaStatus] = useState<"idle" | "revealed" | "skipped">("idle");
+  const [isHeatmapExpanded, setIsHeatmapExpanded] = useState(false);
+
+  const evolutionQuery = useQuery<EvolutionQueryData>({
     queryKey: ["evolution-state", authUser?.id ?? "guest"],
     enabled: Boolean(authUser),
     queryFn: async () => {
-      const today = new Date();
-      const from = new Date(today);
-      from.setDate(today.getDate() - HEATMAP_DAYS + 1);
-      const dateFrom = dateKey(from);
-      const dateTo = dateKey(today);
-
-      const [appState, weekly, monthly, achievements, sessions] = await Promise.all([
+      const range = makeRecentDateRange(HEATMAP_DAYS);
+      const [state, weekly, monthly, achievements, sessions] = await Promise.all([
         getMeState(),
         getWeeklyReport(),
-        getMonthlyReport(REPORT_MONTHS),
+        getMonthlyReport(12),
         listAchievements(),
-        loadRecentSessions(dateFrom, dateTo),
+        loadRecentSessions(range.from, range.to),
       ]);
-
       return {
+        state,
         weekly,
         monthly,
         achievements,
         sessions,
-        dailyTargetMinutes: Math.max(10, Number(appState.settings?.dailyTargetMinutes ?? 60)),
-        progression: appState.progression ?? null,
       };
     },
   });
 
-  const data = authUser ? (evolutionQuery.data ?? null) : null;
-  const loading = authUser ? evolutionQuery.isFetching : false;
-  const error = authUser && evolutionQuery.error ? toErrorMessage(evolutionQuery.error) : null;
+  const errorMessage = authUser && evolutionQuery.error ? toEvolutionErrorMessage(evolutionQuery.error) : null;
 
-  const loadEvolution = async () => {
-    if (!authUser) {
-      return;
-    }
+  const state = evolutionQuery.data?.state ?? null;
+  const weekly = evolutionQuery.data?.weekly ?? null;
+  const monthly = evolutionQuery.data?.monthly ?? null;
+  const achievements = evolutionQuery.data?.achievements ?? [];
+  const sessions = evolutionQuery.data?.sessions ?? [];
+
+  const dailyTargetMinutes = Math.max(1, Number(state?.settings?.dailyTargetMinutes ?? 60));
+  const weeklyTotalMinutes = roundPositive(Number(weekly?.totalMinutes ?? 0));
+  const weeklyTargetMinutes = Math.max(1, dailyTargetMinutes * 7);
+  const weeklyPercent = clampPercent((weeklyTotalMinutes / weeklyTargetMinutes) * 100);
+  const weeklyLine = `Semana ${weeklyPercent}% (${weeklyTotalMinutes}/${weeklyTargetMinutes} min)`;
+
+  const quests = useMemo(() => {
+    const daily = (state?.dailyQuests ?? []).map((quest) => toQuestVm(quest, "daily"));
+    const weeklyQuests = (state?.weeklyQuests ?? []).map((quest) => toQuestVm(quest, "weekly"));
+    return [...daily, ...weeklyQuests].sort((left, right) => {
+      if (left.completed !== right.completed) {
+        return left.completed ? 1 : -1;
+      }
+      return right.progressRatio - left.progressRatio;
+    });
+  }, [state?.dailyQuests, state?.weeklyQuests]);
+
+  const activeQuest = useMemo(() => pickActiveQuest(quests), [quests]);
+  const dungeonProgressPercent = clampPercent((activeQuest?.progressRatio ?? 0) * 100);
+
+  const raidHistory = useMemo(() => {
+    const range = makeRecentDateRange(HEATMAP_DAYS);
+    return buildRaidHistory(range.keys, sessions, dailyTargetMinutes);
+  }, [sessions, dailyTargetMinutes]);
+
+  const activeRaidDays = raidHistory.filter((cell) => cell.active).length;
+  const raidConsistency = clampPercent((activeRaidDays / Math.max(1, raidHistory.length)) * 100);
+
+  const unlockedAchievements = achievements.filter((item) => item.unlocked).length;
+  const achievementsLabel = `${unlockedAchievements}/${Math.max(achievements.length, 0)} desbloqueadas`;
+
+  const arenaPrompt = resolveArenaPrompt(activeQuest);
+
+  useEffect(() => {
+    setShowArenaAnswer(false);
+    setArenaStatus("idle");
+  }, [activeQuest?.id]);
+
+  const refreshEvolution = async () => {
     await evolutionQuery.refetch();
   };
 
-  const currentProgression = data?.progression;
-  const currentLevel = Math.max(1, Number(currentProgression?.level ?? globalStats.level ?? 1));
-  const currentRank = String(currentProgression?.rank ?? globalStats.rank ?? "F");
-  const currentXp = Math.max(0, Number(currentProgression?.xp ?? globalStats.xp ?? 0));
-  const currentMaxXp = Math.max(1, Number(currentProgression?.maxXp ?? globalStats.maxXp ?? 1));
-  const currentGold = Math.max(0, Number(currentProgression?.gold ?? globalStats.gold ?? 0));
-
-  const weeklyTargetMinutes = useMemo(() => {
-    return Math.max(1, (data?.dailyTargetMinutes ?? 60) * 7);
-  }, [data?.dailyTargetMinutes]);
-
-  const attributes = useMemo<AttributeCard[]>(() => {
-    const weekMinutes = data?.weekly.totalMinutes ?? 0;
-    const streakDays = data?.weekly.streakDays ?? globalStats.streak;
-    const xpPercent = (currentXp / Math.max(1, currentMaxXp)) * 100;
-    const unlockedCount = data?.achievements.filter((achievement) => achievement.unlocked).length ?? 0;
-
-    return [
-      {
-        label: "INT",
-        value: clampPercent(currentLevel * 8 + xpPercent * 0.4),
-        desc: `Nivel ${currentLevel} e XP ${currentXp}/${currentMaxXp}`,
-        color: "text-blue-400",
-      },
-      {
-        label: "AGI",
-        value: clampPercent((data?.sessions.length ?? 0) * 3.5),
-        desc: `${data?.sessions.length ?? 0} sessoes nos ultimos ${HEATMAP_DAYS} dias`,
-        color: "text-yellow-400",
-      },
-      {
-        label: "STR",
-        value: clampPercent((weekMinutes / weeklyTargetMinutes) * 100),
-        desc: `${weekMinutes} min nesta semana`,
-        color: "text-red-400",
-      },
-      {
-        label: "VIT",
-        value: clampPercent(streakDays * 14 + unlockedCount * 2),
-        desc: `${streakDays} dias de sequencia`,
-        color: "text-green-400",
-      },
-    ];
-  }, [currentLevel, currentMaxXp, currentXp, data, globalStats.streak, weeklyTargetMinutes]);
-
-  const heatmap = useMemo<HeatmapCell[]>(() => {
-    const byDay = new Map<string, number>();
-    for (const session of data?.sessions ?? []) {
-      byDay.set(session.date, (byDay.get(session.date) ?? 0) + Math.max(0, Number(session.minutes) || 0));
-    }
-
-    const dailyTargetMinutes = data?.dailyTargetMinutes ?? 60;
-    const cells: HeatmapCell[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let offset = HEATMAP_DAYS - 1; offset >= 0; offset -= 1) {
-      const day = new Date(today);
-      day.setDate(today.getDate() - offset);
-      const key = dateKey(day);
-      const minutes = byDay.get(key) ?? 0;
-      cells.push({
-        key,
-        date: key,
-        minutes,
-        level: toHeatLevel(minutes, dailyTargetMinutes),
-      });
-    }
-
-    return cells;
-  }, [data?.dailyTargetMinutes, data?.sessions]);
-
-  const monthlySeries = useMemo(() => {
-    const rows = [...(data?.monthly.months ?? [])].slice(0, 6).reverse();
-    const maxMinutes = Math.max(1, ...rows.map((row) => Math.max(0, row.minutes)));
-    return rows.map((row) => ({
-      ...row,
-      ratio: clampPercent((row.minutes / maxMinutes) * 100),
-      label: formatMonthLabel(row.month),
-    }));
-  }, [data?.monthly.months]);
-
-  const unlockedAchievements = data?.achievements.filter((achievement) => achievement.unlocked).length ?? 0;
-  const totalAchievements = data?.achievements.length ?? 0;
-  const weeklyPercent = clampPercent(((data?.weekly.totalMinutes ?? 0) / weeklyTargetMinutes) * 100);
+  const monthlyRows = monthly?.months ?? [];
+  const recentMonths = monthlyRows.slice(0, 3);
+  const monthlySessions = recentMonths.reduce((sum, row) => sum + Math.max(0, Number(row.sessions ?? 0)), 0);
+  const monthlyMinutes = recentMonths.reduce((sum, row) => sum + Math.max(0, Number(row.minutes ?? 0)), 0);
+  const monthlyXp = recentMonths.reduce((sum, row) => sum + Math.max(0, Number(row.xp ?? 0)), 0);
+  const xpPerHour = monthlyMinutes > 0 ? Math.round(monthlyXp / (monthlyMinutes / 60)) : 0;
+  const comboBase = Math.max(0, Number(state?.streakDays ?? 0));
 
   if (!authUser) {
     return (
-      <div className="animate-in fade-in space-y-6 duration-500">
-        <div className="rounded-[36px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
+      <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+        <section className="rounded-2xl border border-slate-800 bg-[#0b0e12]/90 p-8">
           <h2 className="text-3xl font-black uppercase italic tracking-tight text-white">Status de Evolucao</h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate-400">
-            Faca login para carregar evolucao real: sequencia, minutos estudados, conquistas e historico de consistencia.
+          <p className="mt-3 text-sm text-slate-400">
+            Faca login para carregar evolucao real, sequencia, minutos estudados e conquistas.
           </p>
           <button
-            onClick={openAuthPanel}
             type="button"
-            className="mt-8 rounded-2xl bg-[hsl(var(--accent))] px-6 py-3 text-xs font-black uppercase tracking-[0.2em] text-black transition-all hover:brightness-110"
+            onClick={openAuthPanel}
             data-testid="evolution-login-button"
+            className="mt-6 rounded-xl bg-cyan-500 px-6 py-3 text-xs font-black uppercase tracking-[0.2em] text-black transition-colors hover:bg-cyan-400"
           >
-            Conectar Conta
+            Conectar conta
           </button>
-        </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="animate-in zoom-in grid grid-cols-1 gap-10 duration-700 lg:grid-cols-12 lg:items-start">
-      <div className="relative flex flex-col overflow-hidden rounded-[48px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl lg:col-span-6 lg:self-start">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05),transparent)]" />
-        <div className="relative z-10 mb-8 flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-[0.35em] text-slate-500">Atributos Operacionais</h3>
+    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-6 lg:p-8">
+      <style>{`
+        @keyframes evo-slide-up {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .evo-slide-up {
+          animation: evo-slide-up 0.45s ease-out both;
+        }
+      `}</style>
+
+      {errorMessage && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300">
+          <span className="flex items-center gap-2">
+            <AlertCircle size={15} />
+            {errorMessage}
+          </span>
           <button
             type="button"
-            onClick={() => void loadEvolution()}
-            disabled={loading}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/70 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all hover:border-[hsl(var(--accent)/0.5)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-            data-testid="evolution-refresh"
+            onClick={() => void refreshEvolution()}
+            className="rounded-lg border border-red-500/40 px-3 py-1 text-[10px] uppercase tracking-wider hover:bg-red-500/20"
           >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
-            Atualizar
+            Tentar de novo
           </button>
         </div>
+      )}
 
-        <div className="relative z-10 mb-8 rounded-3xl border border-slate-800/80 bg-slate-950/70 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Badge color="border-cyan-500/20 bg-cyan-500/10 text-cyan-500">Rank {currentRank}</Badge>
-            <Badge color="border-yellow-500/20 bg-yellow-500/10 text-yellow-500">Nivel {currentLevel}</Badge>
-          </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">XP</div>
-              <div className="text-xl font-black text-white">{currentXp}</div>
-            </div>
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Gold</div>
-              <div className="text-xl font-black text-white">{currentGold}</div>
-            </div>
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Streak</div>
-              <div className="text-xl font-black text-white">{data?.weekly.streakDays ?? globalStats.streak}</div>
-            </div>
-          </div>
+      <header className="group relative evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6 md:p-8">
+        <div className="pointer-events-none absolute right-4 top-4 opacity-20">
+          <LayoutGrid size={96} className="text-cyan-500" strokeWidth={0.75} />
+        </div>
+        <div className="absolute left-0 top-0 flex items-center gap-2 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-950/80 to-transparent px-4 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
+          System online v3.0
         </div>
 
-        {error && (
-          <div className="relative z-10 mb-6 flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300">
-            <AlertTriangle size={15} />
-            {error}
+        <div className="mt-6 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div>
+            <h1 className="text-5xl font-black italic tracking-tighter text-white md:text-6xl">
+              REVI<span className="text-cyan-400">SOES</span>
+            </h1>
+            <p className="mt-2 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.28em] text-cyan-500/70">
+              <span className="h-px w-8 bg-cyan-500/70" />
+              Sincronizacao mental necessaria
+            </p>
+            <p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-400">{weeklyLine}</p>
           </div>
-        )}
 
-        <div className="relative z-10 grid w-full grid-cols-2 gap-4" data-testid="evolution-attributes">
-          {attributes.map((attribute) => (
-            <div
-              key={attribute.label}
-              className="group rounded-[24px] border border-slate-800 bg-slate-950 p-5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)]"
+          <div className="flex flex-wrap items-center gap-3">
+            <StatBadge icon={Timer} value={`${weeklyTotalMinutes} min`} label="Tempo em combate" tone="cyan" />
+            <StatBadge icon={Skull} value={`${sessions.length}`} label="Inimigos abatidos" tone="red" />
+            <button
+              type="button"
+              data-testid="evolution-refresh"
+              onClick={() => void refreshEvolution()}
+              disabled={evolutionQuery.isFetching}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-900/80 px-4 text-[11px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:border-cyan-500/50 hover:text-cyan-300 disabled:cursor-wait disabled:opacity-70"
             >
-              <div className="mb-1 flex items-center justify-between">
-                <span className={`text-xs font-black uppercase tracking-widest ${attribute.color}`}>
-                  {attribute.label}
-                </span>
-                <span className="text-lg font-black text-white">{attribute.value}</span>
-              </div>
-              <div className="text-[10px] font-bold uppercase text-slate-400">{attribute.desc}</div>
-            </div>
-          ))}
+              {evolutionQuery.isFetching ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              Atualizar
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="space-y-10 lg:col-span-6 lg:self-start">
-        <div className="group relative h-fit overflow-hidden rounded-[48px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.05),transparent)]" />
-          <div className="relative z-10 mb-8 flex items-center justify-between">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Consistencia Recente</h3>
-            <Badge color="border-emerald-500/20 bg-emerald-500/10 text-emerald-500">
-              Semana {weeklyPercent}% ({data?.weekly.totalMinutes ?? 0}/{weeklyTargetMinutes} min)
-            </Badge>
-          </div>
-
-          <div
-            className="relative z-10 grid gap-2"
-            data-testid="evolution-heatmap"
-            style={{ gridTemplateColumns: "repeat(17, minmax(0, 1fr))" }}
-          >
-            {heatmap.map((cell) => {
-              const levelClass =
-                cell.level === 3
-                  ? "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.75)]"
-                  : cell.level === 2
-                    ? "border border-emerald-700/30 bg-emerald-700/60"
-                    : cell.level === 1
-                      ? "border border-emerald-800/40 bg-emerald-900/50"
-                      : "border border-slate-800 bg-slate-900";
-              return (
-                <div
-                  key={cell.key}
-                  className={`h-4 w-4 rounded-[4px] transition-transform hover:scale-125 ${levelClass}`}
-                  title={`${cell.date}: ${cell.minutes} min`}
-                />
-              );
-            })}
-          </div>
-
-          <div className="relative z-10 mt-10 grid grid-cols-1 gap-3 border-t border-slate-800/50 pt-6 md:grid-cols-2">
-            {monthlySeries.map((row) => (
-              <div key={row.month}>
-                <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  <span>{row.label}</span>
-                  <span>{row.minutes} min</span>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          <section className="evo-slide-up relative h-[290px] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-[#0a0f1c] to-black p-8">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.16),transparent_65%)]" />
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div className="flex items-start justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                    <Sword size={12} /> Rank {activeQuest?.rank ?? "F"} - Dungeon
+                  </div>
+                  <h2 className="text-4xl font-black italic tracking-tight text-white">CATEDRAL {activeQuest?.subject.toUpperCase() ?? "SQL"}</h2>
+                  <p className="max-w-xl text-sm text-slate-400">
+                    {activeQuest?.objective ??
+                      "Uma dungeon focada em consultas estruturadas. Inimigos do tipo JOIN e INDEX aguardam."}
+                  </p>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full border border-slate-800 bg-slate-900">
+                <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-black">
+                  <span className="text-3xl font-black text-white">{activeQuest?.rank ?? "F"}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-6 text-sm text-slate-300">
+                  <span className="flex items-center gap-2">
+                    <Clock3 size={16} className="text-cyan-400" />
+                    {Math.max(5, activeQuest?.targetMinutes ?? 15)} min est.
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Brain size={16} className="text-purple-400" />
+                    {Math.max(4, quests.length)} missoes
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-yellow-400" />
+                    {activeQuest?.rewardLabel ?? "+0 XP / +0 G"}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full border border-cyan-500/20 bg-black/40">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 shadow-[0_0_10px_rgba(34,211,238,0.4)]"
-                    style={{ width: `${row.ratio}%` }}
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-700 via-cyan-500 to-blue-400 transition-all duration-500"
+                    style={{ width: `${dungeonProgressPercent}%` }}
                   />
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="group relative overflow-hidden rounded-[48px] border border-slate-800 bg-[#0a0a0b]/80 p-10 shadow-2xl">
-          <div className="absolute right-0 top-0 p-8 opacity-5 transition-transform duration-1000 group-hover:scale-110">
-            <Trophy size={150} />
-          </div>
-          <div className="mb-8 flex items-center justify-between">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Conquistas de Classe</h3>
-            <Badge color="border-yellow-500/20 bg-yellow-500/10 text-yellow-500">
-              {unlockedAchievements}/{totalAchievements || 0} desbloqueadas
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3" data-testid="evolution-achievements">
-            {(data?.achievements ?? []).map((achievement) => {
-              const Icon = achievementIcon(achievement.icon);
-              return (
-                <div
-                  key={achievement.key}
-                  className={`rounded-2xl border p-4 transition-all ${achievement.unlocked
-                    ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-500 shadow-lg"
-                    : "border-slate-800 bg-slate-900 text-slate-700"
-                    }`}
-                  title={achievement.description}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <Icon size={18} />
-                    {achievement.unlocked ? <Shield size={14} /> : <Target size={14} />}
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-wider">{achievement.name}</div>
+                <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <span>{activeQuest ? activeQuest.progressLabel : "0/0 min"}</span>
+                  <span>{dungeonProgressPercent}%</span>
                 </div>
-              );
-            })}
-          </div>
-
-          {(data?.achievements.length ?? 0) === 0 && !loading && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-xs text-slate-400">
-              Nenhuma conquista encontrada ainda.
+              </div>
             </div>
-          )}
+          </section>
+
+          <section className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg border border-cyan-500/25 bg-cyan-950/30 p-2">
+                  <Zap size={18} className="text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-white">Frequencia de Raids</h3>
+                  <p className="text-[10px] font-mono uppercase text-slate-500">Sincronizacao dos ultimos 28 dias</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-black text-white">{raidConsistency}%</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Consistencia</div>
+              </div>
+            </div>
+            <div className="mb-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsHeatmapExpanded((current) => !current)}
+                className="rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:border-cyan-500/50 hover:text-cyan-300"
+              >
+                {isHeatmapExpanded ? "Ocultar detalhes" : "Expandir"}
+              </button>
+            </div>
+            <div
+              data-testid="evolution-heatmap"
+              className={`grid w-fit ${
+                isHeatmapExpanded
+                  ? "grid-cols-[repeat(14,1rem)] gap-1.5 sm:grid-cols-[repeat(14,1.1rem)]"
+                  : "grid-cols-[repeat(7,0.8rem)] gap-1 sm:grid-cols-[repeat(7,0.9rem)]"
+              }`}
+            >
+              {raidHistory.map((cell) => (
+                <div
+                  key={cell.date}
+                  className={`rounded border transition-transform hover:scale-105 ${
+                    isHeatmapExpanded ? "h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" : "h-[0.8rem] w-[0.8rem] sm:h-[0.9rem] sm:w-[0.9rem]"
+                  } ${HEATMAP_INTENSITY_CLASS[cell.intensity]}`}
+                  title={cell.tooltip}
+                  aria-label={cell.tooltip}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="evo-slide-up relative min-h-[310px] rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-1">
+            <div className="absolute -top-3 left-6 rounded border border-cyan-500/30 bg-[#050505] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
+              <span className="flex items-center gap-2">
+                <Target size={12} />
+                Arena de Combate
+              </span>
+            </div>
+            <div className="relative h-full overflow-hidden rounded-xl bg-[#08080a]">
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
+              <div className="relative z-10 flex h-full min-h-[308px] flex-col items-center justify-center p-8 text-center">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-cyan-500/25 bg-cyan-950/30">
+                  <Brain size={32} className="text-cyan-400" />
+                </div>
+                <div className="mb-8 max-w-xl space-y-3">
+                  <div className="text-xs font-mono text-cyan-600">[SISTEMA] Pergunta Gerada:</div>
+                  <h4 className="text-xl font-medium leading-relaxed text-white">
+                    {showArenaAnswer ? arenaPrompt.answer : arenaPrompt.question}
+                  </h4>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    STATUS: {arenaStatus === "revealed" ? "RESPOSTA EXIBIDA" : arenaStatus === "skipped" ? "PULADA" : "ATIVO"}
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowArenaAnswer(true);
+                      setArenaStatus("revealed");
+                    }}
+                    className="rounded bg-white px-8 py-3 text-sm font-bold uppercase tracking-wider text-black transition-colors hover:bg-cyan-50"
+                  >
+                    Mostrar Resposta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowArenaAnswer(false);
+                      setArenaStatus("skipped");
+                    }}
+                    className="rounded border border-white/20 px-8 py-3 text-sm font-bold uppercase tracking-wider text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    Pular
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
+
+        <aside className="space-y-6 lg:col-span-4">
+          <section className="evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80">
+            <div className="border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent p-6">
+              <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
+                <AlertCircle size={16} className="text-orange-400" />
+                Missoes Ativas
+              </h3>
+            </div>
+            <div className="space-y-3 p-4">
+              {quests.length ? (
+                quests.slice(0, 6).map((quest) => (
+                  <article
+                    key={quest.id}
+                    className={`relative rounded-xl border p-4 ${
+                      quest.completed
+                        ? "border-slate-800/60 bg-slate-900/30 opacity-70"
+                        : "border-white/10 bg-[#0f1118] hover:border-orange-500/35"
+                    }`}
+                  >
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${QUEST_TYPE_CLASS[quest.typeKey]}`}>
+                        {quest.typeLabel}
+                      </span>
+                      {quest.completed ? <CheckCircle2 size={16} className="text-green-500" /> : <ChevronRight size={16} className="text-slate-500" />}
+                    </div>
+                    <h4 className={`text-xs font-bold ${quest.completed ? "text-slate-500" : "text-white"}`}>{quest.title}</h4>
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">
+                      {quest.progressLabel} • {quest.difficulty}
+                    </p>
+                    <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-[10px] font-mono text-slate-300">
+                      Recompensa: <span className="font-bold text-yellow-400">{quest.rewardLabel}</span>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-700 bg-black/20 p-4 text-xs text-slate-500">
+                  Nenhuma missao ativa no momento.
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
+            <h3 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
+              <Trophy size={16} className="text-yellow-500" />
+              Performance do Jogador
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <StatBox label="Total Cartas" value={`${monthlySessions || sessions.length}`} sub={`+${sessions.length} janela 28d`} />
+              <StatBox label="Taxa de Acerto" value={`${raidConsistency}%`} sub={`${activeRaidDays}/${HEATMAP_DAYS} dias ativos`} highlight />
+              <StatBox label="Combo Atual" value={`x${Math.max(0, comboBase)}`} sub={`Streak ${Math.max(0, comboBase)} dias`} />
+              <StatBox label="XP Hora" value={`${xpPerHour}`} sub={`${monthlyXp} XP em ${monthlyMinutes} min`} />
+            </div>
+          </section>
+
+          <section data-testid="evolution-achievements" className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-wider text-white">Conquistas</h3>
+              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-yellow-300">
+                {achievementsLabel}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {achievements.length ? (
+                achievements.map((achievement) => (
+                  <article
+                    key={achievement.key}
+                    className={`rounded-lg border px-3 py-2 ${
+                      achievement.unlocked
+                        ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
+                        : "border-slate-700 bg-slate-900/50 text-slate-400"
+                    }`}
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wider">{achievement.name}</div>
+                    <div className="mt-1 text-[10px] text-slate-400">{achievement.description}</div>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-xs text-slate-500">
+                  Nenhuma conquista registrada.
+                </div>
+              )}
+            </div>
+          </section>
+        </aside>
       </div>
-
-      {loading && (
-        <div className="lg:col-span-12">
-          <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 py-4 text-sm text-slate-400">
-            <Loader2 size={16} className="animate-spin" />
-            Atualizando dados de evolucao...
-          </div>
-        </div>
-      )}
-
-      {!loading && data && (
-        <div className="lg:col-span-12">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-cyan-400">
-                <Zap size={16} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Semana</span>
-              </div>
-              <div className="text-2xl font-black text-white">{data.weekly.totalMinutes} min</div>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-orange-400">
-                <Swords size={16} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Sessoes</span>
-              </div>
-              <div className="text-2xl font-black text-white">{data.sessions.length}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-emerald-400">
-                <Flame size={16} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Sequencia</span>
-              </div>
-              <div className="text-2xl font-black text-white">{data.weekly.streakDays} dias</div>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-yellow-400">
-                <Trophy size={16} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Conquistas</span>
-              </div>
-              <div className="text-2xl font-black text-white">{unlockedAchievements}</div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

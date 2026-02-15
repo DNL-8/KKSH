@@ -301,7 +301,7 @@ test("evolucao: login e atualizacao dinamica de heatmap e conquistas", async ({ 
   await expect(page.getByTestId("shell-auth-panel")).toHaveCount(0);
 
   await expect(page.getByTestId("evolution-heatmap")).toBeVisible();
-  await expect(page.locator('[data-testid="evolution-heatmap"] > div')).toHaveCount(119);
+  await expect(page.locator('[data-testid="evolution-heatmap"] > div')).toHaveCount(28);
   await expect(page.getByTestId("evolution-achievements")).toContainText("Primeira Sessao");
   await expect(page.getByText(/Semana 60% \(294\/490 min\)/)).toBeVisible();
   await expect(page.getByText("2/4 desbloqueadas")).toBeVisible();

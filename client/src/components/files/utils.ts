@@ -290,5 +290,5 @@ export interface FolderSection {
     lessons: StoredVideo[];
 }
 
-export type OrderMode = "newest" | "oldest";
+export type OrderMode = "newest" | "oldest" | "name_asc" | "name_desc" | "size_desc" | "size_asc";
 export type TabMode = "overview" | "metadata";
