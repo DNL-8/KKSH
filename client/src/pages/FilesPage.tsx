@@ -1,30 +1,4 @@
 import {
-  Activity,
-  AlertTriangle,
-  ArrowUpDown,
-  CheckCircle2,
-  ChevronRight,
-  Coins,
-  FileVideo,
-  Film,
-  FolderOpen,
-  LayoutGrid,
-  List,
-  Loader2,
-  Maximize2,
-  MonitorPlay,
-  MoreVertical,
-  Search,
-  Settings,
-  Shield,
-  Trophy,
-  Trash2,
-  Upload,
-  Volume2,
-  Zap,
-} from "lucide-react";
-import {
-  type ComponentType,
   useCallback,
   useEffect,
   useMemo,
@@ -32,6 +6,8 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
+
+import { Icon } from "../components/common/Icon";
 
 import {
   ApiRequestError,
@@ -84,7 +60,7 @@ interface FilesStatCardProps {
   label: string;
   value: string;
   subtext: string;
-  icon: ComponentType<{ size?: string | number; className?: string }>;
+  icon: string;
 }
 
 const ORDER_LABELS: Record<OrderMode, string> = {
@@ -230,13 +206,13 @@ function HudProgressBar({ value, max, tone, label, textValue }: HudProgressBarPr
   );
 }
 
-function FilesStatCard({ label, value, subtext, icon: Icon }: FilesStatCardProps) {
+function FilesStatCard({ label, value, subtext, icon }: FilesStatCardProps) {
   return (
     <div className="group relative overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/60 p-4 backdrop-blur-md transition-all duration-300 hover:border-cyan-500/40">
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
       <div className="relative flex items-center gap-4">
         <div className="rounded-lg border border-slate-700 bg-slate-800/80 p-3 shadow-inner transition-transform duration-300 group-hover:scale-105">
-          <Icon className="text-cyan-400" size={22} />
+          <Icon name={icon} className="text-cyan-400 text-[22px]" />
         </div>
         <div>
           <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</h4>
@@ -830,12 +806,12 @@ export function FilesPage() {
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="min-w-0">
                 <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                  <Activity size={12} className="animate-pulse" />
+                  <Icon name="activity" className="animate-pulse text-[12px]" />
                   System Ready
                 </div>
                 <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
                   <span>UPLINK_ON</span>
-                  <ChevronRight size={12} />
+                  <Icon name="angle-right" className="text-[12px]" />
                   <span>Arquivos de Sincronia</span>
                 </div>
                 <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
@@ -861,10 +837,10 @@ export function FilesPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <FilesStatCard label="Nivel Atual" value={String(globalStats.level)} subtext="Iniciado" icon={Shield} />
-            <FilesStatCard label="Rank" value={globalStats.rank} subtext="Sistema" icon={Trophy} />
-            <FilesStatCard label="Experiencia" value={`${globalStats.xp}/${globalStats.maxXp}`} subtext="XP total" icon={Zap} />
-            <FilesStatCard label="Gold" value={String(globalStats.gold)} subtext="Creditos" icon={Coins} />
+            <FilesStatCard label="Nivel Atual" value={String(globalStats.level)} subtext="Iniciado" icon="shield-check" />
+            <FilesStatCard label="Rank" value={globalStats.rank} subtext="Sistema" icon="trophy" />
+            <FilesStatCard label="Experiencia" value={`${globalStats.xp}/${globalStats.maxXp}`} subtext="XP total" icon="bolt" />
+            <FilesStatCard label="Gold" value={String(globalStats.gold)} subtext="Creditos" icon="coins" />
           </div>
 
           <div className="space-y-3 border-t border-slate-800 pt-4" data-testid="files-toolbar">
@@ -876,7 +852,7 @@ export function FilesPage() {
                 onClick={handleOpenPicker}
                 type="button"
               >
-                {saving ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
+                {saving ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="upload" className="text-[14px]" />}
                 Upload
               </button>
               <button
@@ -886,7 +862,7 @@ export function FilesPage() {
                 onClick={handleOpenFolderPicker}
                 type="button"
               >
-                <FolderOpen size={14} />
+                <Icon name="folder-open" className="text-[14px]" />
                 {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
               </button>
               {directoryHandleSupported && (
@@ -898,7 +874,7 @@ export function FilesPage() {
                   title="Conecta uma pasta sem copiar todos os blobs para o IndexedDB."
                   type="button"
                 >
-                  <FolderOpen size={14} />
+                  <Icon name="folder-open" className="text-[14px]" />
                   Conectar pasta (alto volume)
                 </button>
               )}
@@ -906,7 +882,7 @@ export function FilesPage() {
                 className="hidden items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 md:flex"
                 data-testid="files-sort-select"
               >
-                <ArrowUpDown size={14} />
+                <Icon name="sort-alt" className="text-[14px]" />
                 <select
                   className="max-w-[210px] appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   data-testid="toggle-order"
@@ -929,7 +905,7 @@ export function FilesPage() {
                 onClick={() => void handleClearAll()}
                 type="button"
               >
-                <Trash2 size={14} />
+                <Icon name="trash" className="text-[14px]" />
                 Limpar biblioteca
               </button>
               <button
@@ -940,7 +916,7 @@ export function FilesPage() {
                 onClick={() => setIsSidebarMobileOpen(true)}
                 type="button"
               >
-                <List size={14} />
+                <Icon name="list" className="text-[14px]" />
                 Conteudo
               </button>
               <button
@@ -948,13 +924,13 @@ export function FilesPage() {
                 title="Configuracoes visuais"
                 type="button"
               >
-                <Settings size={14} />
+                <Icon name="settings" className="text-[14px]" />
               </button>
             </div>
 
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div className="relative w-full md:max-w-xl">
-                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
                 <input
                   className="w-full rounded-xl border border-slate-700 bg-[#06080f] py-2.5 pl-9 pr-3 text-xs font-medium text-slate-200 placeholder-slate-500 outline-none transition-colors focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/30"
                   data-testid="files-search-input"
@@ -967,12 +943,12 @@ export function FilesPage() {
               <div className="rounded-xl border border-slate-800 bg-[#0b0d12] px-3 py-2 text-xs font-semibold text-slate-400">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1">
-                    <LayoutGrid size={13} />
+                    <Icon name="apps" className="text-[13px]" />
                     {completedVideoRefs.size}/{visibleVideos.length} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
                   </span>
                   {loadingCompletions && (
                     <span className="flex items-center gap-1 text-cyan-300">
-                      <Loader2 size={12} className="animate-spin" />
+                      <Icon name="spinner" className="animate-spin text-[12px]" />
                       sincronizando
                     </span>
                   )}
@@ -1036,7 +1012,7 @@ export function FilesPage() {
 
         {error && (
           <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-300">
-            <AlertTriangle size={14} />
+            <Icon name="exclamation" className="text-[14px]" />
             {error}
           </div>
         )}
@@ -1045,14 +1021,14 @@ export function FilesPage() {
       {loading ? (
         <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-800 bg-[#0a0a0b]/60">
           <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
-            <Loader2 className="animate-spin text-[hsl(var(--accent))]" size={20} />
+            <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
             Carregando biblioteca local...
           </div>
         </div>
       ) : visibleVideos.length === 0 ? (
         <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center">
           <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
-            <Film className="text-[hsl(var(--accent))]" size={36} />
+            <Icon name="film" className="text-[hsl(var(--accent))] text-[36px]" />
           </div>
           <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
           <p className="mt-2 max-w-xl text-sm text-slate-500">
@@ -1063,7 +1039,7 @@ export function FilesPage() {
             onClick={handleOpenPicker}
             type="button"
           >
-            <Upload size={16} />
+            <Icon name="upload" className="text-[16px]" />
             Selecionar videos
           </button>
           <button
@@ -1071,7 +1047,7 @@ export function FilesPage() {
             onClick={handleOpenFolderPicker}
             type="button"
           >
-            <FolderOpen size={16} />
+            <Icon name="folder-open" className="text-[16px]" />
             {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD})`}
           </button>
           {directoryHandleSupported && (
@@ -1081,7 +1057,7 @@ export function FilesPage() {
               onClick={() => void handleOpenDirectoryPicker()}
               type="button"
             >
-              <FolderOpen size={16} />
+              <Icon name="folder-open" className="text-[16px]" />
               Conectar pasta (alto volume)
             </button>
           )}
@@ -1105,9 +1081,9 @@ export function FilesPage() {
                 Gravacao
               </div>
               <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2 rounded-md border border-slate-700/70 bg-black/50 px-2 py-1 text-slate-300">
-                <MonitorPlay size={14} />
-                <Volume2 size={14} />
-                <Maximize2 size={14} />
+                <Icon name="screen" className="text-[14px]" />
+                <Icon name="volume" className="text-[14px]" />
+                <Icon name="expand" className="text-[14px]" />
               </div>
               <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
                 {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
@@ -1150,23 +1126,23 @@ export function FilesPage() {
                     onClick={() => void handleCompleteLesson()}
                     type="button"
                   >
-                    {completingLesson ? <Loader2 className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}
+                    {completingLesson ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="check-circle" className="text-[14px]" />}
                     {!authUser
                       ? "Faca login para concluir"
                       : loadingCompletions
                         ? "Sincronizando..."
-                      : selectedVideoCompleted
-                        ? "Ja concluida"
-                        : completingLesson
-                          ? "Concluindo..."
-                          : "Concluir aula (+XP)"}
+                        : selectedVideoCompleted
+                          ? "Ja concluida"
+                          : completingLesson
+                            ? "Concluindo..."
+                            : "Concluir aula (+XP)"}
                   </button>
                   <button
                     className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
                     title="Mais acoes"
                     type="button"
                   >
-                    <MoreVertical size={14} />
+                    <Icon name="menu-dots-vertical" className="text-[14px]" />
                   </button>
                 </div>
               </div>
@@ -1201,7 +1177,7 @@ export function FilesPage() {
               <div className="cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 transition-all hover:border-cyan-500/30 hover:bg-slate-800/50">
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
-                    <FileVideo size={20} />
+                    <Icon name="file-video" className="text-[20px]" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>

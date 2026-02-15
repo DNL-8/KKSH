@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { Icon } from "./Icon";
 
 interface DetailedQuestProps {
   title: string;
@@ -22,8 +22,8 @@ export function DetailedQuest({
   return (
     <div
       className={`rounded-3xl border p-5 transition-all duration-300 ${completed
-          ? "border-emerald-900/20 bg-emerald-950/5 opacity-60"
-          : "group border-slate-800 bg-[#0f1116] shadow-lg hover:border-slate-700"
+        ? "border-emerald-900/20 bg-emerald-950/5 opacity-60"
+        : "group border-slate-800 bg-[#0f1116] shadow-lg hover:border-slate-700"
         }`}
     >
       <div className="mb-3 flex items-start justify-between">
@@ -45,7 +45,7 @@ export function DetailedQuest({
           </h4>
         </div>
         {completed ? (
-          <CheckCircle2 size={18} className="text-emerald-500" />
+          <Icon name="check-circle" className="text-emerald-500 text-[18px]" />
         ) : (
           <div className="h-4 w-4 rounded-full border border-slate-700" />
         )}

@@ -10,3 +10,4 @@ export { StatPill } from "./StatPill";
 export { ThemeOption } from "./ThemeOption";
 export { Tooltip } from "./Tooltip";
 export { ToastProvider, useToast } from "./Toast";
+export { HoldButton } from "./HoldButton";

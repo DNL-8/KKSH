@@ -1,6 +1,5 @@
-﻿import { FileVideo, FolderTree, Trash2 } from "lucide-react";
-
-import { DEFAULT_RELATIVE_PATH, type StoredVideo } from "../../lib/localVideosStore";
+﻿import { DEFAULT_RELATIVE_PATH, type StoredVideo } from "../../lib/localVideosStore";
+import { Icon } from "../common/Icon";
 
 interface LocalVideoCardProps {
   video: StoredVideo;
@@ -46,12 +45,12 @@ export function LocalVideoCard({ video, src, onDelete }: LocalVideoCardProps) {
             <h3 className="truncate text-sm font-black tracking-tight text-white">{video.name}</h3>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{video.type || "video/*"}</p>
             <p className="inline-flex max-w-full items-center gap-1 truncate text-[10px] font-bold tracking-wider text-slate-400" title={relativePath}>
-              <FolderTree size={11} className="shrink-0" />
+              <Icon name="folder-tree" className="shrink-0 text-[11px]" />
               {relativePath}
             </p>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-cyan-400">
-            <FileVideo size={12} />
+            <Icon name="file-video" className="text-[12px]" />
             local
           </span>
         </div>
@@ -73,7 +72,7 @@ export function LocalVideoCard({ video, src, onDelete }: LocalVideoCardProps) {
           type="button"
           aria-label={`Remover video ${video.name}`}
         >
-          <Trash2 size={14} />
+          <Icon name="trash" className="text-[14px]" />
           Remover
         </button>
       </div>

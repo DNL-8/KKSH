@@ -1,19 +1,6 @@
-import {
-  Captions,
-  ChevronRight,
-  Info,
-  Maximize,
-  Minimize,
-  Minimize2,
-  Pause,
-  PictureInPicture2,
-  Play,
-  Settings,
-  Volume1,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { Icon } from "../common/Icon";
 
 import { StoredVideo } from "../../lib/localVideosStore";
 
@@ -345,7 +332,7 @@ export function VideoPlayer({
       {!playing && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/55 backdrop-blur-sm">
-            <Play className="ml-1 text-white" fill="white" size={32} />
+            <Icon name="play" className="ml-1 text-white text-[32px]" />
           </div>
         </div>
       )}
@@ -355,7 +342,7 @@ export function VideoPlayer({
         title="Atalhos: K/espaco, F, M, setas esquerda/direita"
         type="button"
       >
-        <Info size={18} />
+        <Icon name="info" className="text-[18px]" />
       </button>
 
       <button
@@ -364,7 +351,7 @@ export function VideoPlayer({
         title="Mini player"
         type="button"
       >
-        <Minimize2 size={18} />
+        <Icon name="compress" className="text-[18px]" />
       </button>
 
       <div
@@ -386,14 +373,14 @@ export function VideoPlayer({
                 onClick={togglePlay}
                 type="button"
               >
-                {playing ? <Pause fill="currentColor" size={20} /> : <Play className="ml-0.5" fill="currentColor" size={20} />}
+                {playing ? <Icon name="pause" className="text-[20px]" /> : <Icon name="play" className="ml-0.5 text-[20px]" />}
               </button>
               <button
                 className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
                 onClick={toggleMute}
                 type="button"
               >
-                {muted || volume === 0 ? <VolumeX size={19} /> : volume < 0.5 ? <Volume1 size={19} /> : <Volume2 size={19} />}
+                {muted || volume === 0 ? <Icon name="volume-mute" className="text-[19px]" /> : volume < 0.5 ? <Icon name="volume-down" className="text-[19px]" /> : <Icon name="volume" className="text-[19px]" />}
               </button>
               <input
                 className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/35 accent-white transition-all group-hover:w-20"
@@ -415,7 +402,7 @@ export function VideoPlayer({
               type="button"
             >
               {chapterLabel}
-              <ChevronRight size={18} />
+              <Icon name="angle-right" className="text-[18px]" />
             </button>
           </div>
 
@@ -425,7 +412,7 @@ export function VideoPlayer({
               title="Legenda"
               type="button"
             >
-              <Captions size={19} />
+              <Icon name="closed-captioning" className="text-[19px]" />
             </button>
 
             <div className="relative">
@@ -435,7 +422,7 @@ export function VideoPlayer({
                 title="Velocidade e configuracoes"
                 type="button"
               >
-                <Settings size={19} />
+                <Icon name="settings" className="text-[19px]" />
               </button>
               {settingsOpen && (
                 <div className="absolute bottom-full right-0 mb-2 w-32 overflow-hidden rounded-xl border border-white/10 bg-black/85 p-1 text-xs text-white backdrop-blur-md">
@@ -461,7 +448,7 @@ export function VideoPlayer({
                 title="Picture in Picture"
                 type="button"
               >
-                <PictureInPicture2 size={19} />
+                <Icon name="picture" className="text-[19px]" />
               </button>
             )}
 
@@ -471,7 +458,7 @@ export function VideoPlayer({
               title="Tela cheia"
               type="button"
             >
-              {fullscreen ? <Minimize size={19} /> : <Maximize size={19} />}
+              {fullscreen ? <Icon name="compress" className="text-[19px]" /> : <Icon name="expand" className="text-[19px]" />}
             </button>
           </div>
         </div>

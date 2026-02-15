@@ -1,5 +1,5 @@
-import { CheckCircle2, ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Icon } from "../common/Icon";
 
 import type { StoredVideo } from "../../lib/localVideosStore";
 import {
@@ -137,7 +137,7 @@ export function LessonSidebar({
 
         <div className="mt-3 flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
             <input
               className="w-full rounded-lg border border-cyan-900/40 bg-[#071327] py-2 pl-9 pr-8 text-xs font-medium text-slate-200 placeholder-slate-600 focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -151,7 +151,7 @@ export function LessonSidebar({
                 onClick={() => setSearchQuery("")}
                 type="button"
               >
-                <X size={12} />
+                <Icon name="cross" className="text-[12px]" />
               </button>
             )}
           </div>
@@ -200,7 +200,7 @@ export function LessonSidebar({
                   onClick={() => onToggleFolder(section.path)}
                   type="button"
                 >
-                  {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                  {collapsed ? <Icon name="angle-right" className="text-[14px]" /> : <Icon name="angle-down" className="text-[14px]" />}
                 </button>
               </div>
 
@@ -215,27 +215,25 @@ export function LessonSidebar({
                     return (
                       <button
                         key={lesson.id}
-                        className={`group flex w-full items-start gap-3 px-3 py-3 text-left transition-all ${
-                          active
+                        className={`group flex w-full items-start gap-3 px-3 py-3 text-left transition-all ${active
                             ? "bg-gradient-to-r from-cyan-500/10 to-transparent"
                             : "hover:bg-slate-900/60"
-                        }`}
+                          }`}
                         data-active={active ? "true" : "false"}
                         data-testid={`lesson-item-${section.pathId}-${index}`}
                         onClick={() => onSelectLesson(lesson.id)}
                         type="button"
                       >
                         <div
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${
-                            lessonCompleted
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${lessonCompleted
                               ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-400"
                               : active
                                 ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
                                 : "border-slate-700 bg-slate-900 text-slate-500"
-                          }`}
+                            }`}
                         >
                           {lessonCompleted ? (
-                            <CheckCircle2 size={12} />
+                            <Icon name="check-circle" className="text-[12px]" />
                           ) : active ? (
                             <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
                           ) : (
@@ -245,9 +243,8 @@ export function LessonSidebar({
 
                         <div className="min-w-0 flex-1">
                           <p
-                            className={`truncate text-sm font-medium leading-tight transition-colors ${
-                              active ? "text-cyan-300" : "text-slate-300 group-hover:text-cyan-300"
-                            }`}
+                            className={`truncate text-sm font-medium leading-tight transition-colors ${active ? "text-cyan-300" : "text-slate-300 group-hover:text-cyan-300"
+                              }`}
                           >
                             {itemNumber}. {lesson.name}
                           </p>

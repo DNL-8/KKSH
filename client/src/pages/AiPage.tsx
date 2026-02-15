@@ -1,6 +1,6 @@
-import { Activity, Cpu, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Icon } from "../components/common/Icon";
 import { ApiRequestError, postHunterMessage } from "../lib/api";
 
 interface TerminalMessage {
@@ -62,7 +62,7 @@ export function AiPage() {
       <div className="z-10 flex items-center justify-between border-b border-[hsl(var(--accent)/0.15)] bg-[#0c0e12]/90 p-8 shadow-xl backdrop-blur-md">
         <div className="flex items-center gap-5">
           <div className="rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] p-3 shadow-[0_0_15px_rgba(var(--glow),0.1)]">
-            <Cpu size={28} className="animate-pulse text-[hsl(var(--accent))]" />
+            <Icon name="microchip" className="animate-pulse text-[hsl(var(--accent))] text-[28px]" />
           </div>
           <div>
             <h2 className="mb-2 text-xl font-black uppercase italic leading-none tracking-[0.4em] text-[hsl(var(--accent))]">
@@ -97,18 +97,18 @@ export function AiPage() {
           >
             <div
               className={`relative max-w-[85%] rounded-3xl border px-6 py-4 shadow-2xl ${log.type === "user"
-                  ? "rounded-br-none border-slate-700 bg-[#12141c] text-white"
-                  : log.type === "error"
-                    ? "rounded-bl-none border-red-900/40 bg-red-950/20 text-red-200"
-                    : "rounded-bl-none border-[hsl(var(--accent)/0.15)] bg-[hsl(var(--accent)/0.05)] text-[hsl(var(--accent-light))]"
+                ? "rounded-br-none border-slate-700 bg-[#12141c] text-white"
+                : log.type === "error"
+                  ? "rounded-bl-none border-red-900/40 bg-red-950/20 text-red-200"
+                  : "rounded-bl-none border-[hsl(var(--accent)/0.15)] bg-[hsl(var(--accent)/0.05)] text-[hsl(var(--accent-light))]"
                 }`}
             >
               <div
                 className={`mb-2 text-[9px] font-black uppercase tracking-[0.3em] ${log.type === "user"
-                    ? "text-slate-500"
-                    : log.type === "error"
-                      ? "text-red-400"
-                      : "text-[hsl(var(--accent)/0.5)]"
+                  ? "text-slate-500"
+                  : log.type === "error"
+                    ? "text-red-400"
+                    : "text-[hsl(var(--accent)/0.5)]"
                   }`}
               >
                 {log.type === "user" ? ">> Hunter #9284-AX" : log.type === "error" ? "> System Error" : "> System Output"}
@@ -119,7 +119,7 @@ export function AiPage() {
         ))}
         {loading && (
           <div className="ml-2 flex items-center gap-4 animate-pulse text-[hsl(var(--accent)/0.3)]">
-            <Activity size={18} className="animate-spin" />
+            <Icon name="spinner" className="animate-spin text-[18px]" />
             <span className="text-xs font-black uppercase tracking-[0.5em]">Processando diretrizes táticas...</span>
           </div>
         )}
@@ -150,7 +150,7 @@ export function AiPage() {
             className="absolute right-3 flex items-center justify-center rounded-2xl bg-[hsl(var(--accent))] p-3.5 text-black shadow-[0_0_20px_rgba(var(--glow),0.4)] transition-all hover:brightness-110 active:scale-90 disabled:opacity-20"
             type="button"
           >
-            <Send size={22} />
+            <Icon name="paper-plane" className="text-[22px]" />
           </button>
         </div>
       </div>

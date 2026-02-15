@@ -1,24 +1,8 @@
-import {
-  AlertCircle,
-  Brain,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  LayoutGrid,
-  Loader2,
-  RefreshCw,
-  Skull,
-  Sparkles,
-  Sword,
-  Target,
-  Timer,
-  Trophy,
-  Zap,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useOutletContext } from "react-router-dom";
+
+import { Icon } from "../components/common/Icon";
 
 import {
   ApiRequestError,
@@ -75,7 +59,7 @@ interface RaidCellVM {
 type StatBadgeTone = "cyan" | "red";
 
 interface StatBadgeProps {
-  icon: LucideIcon;
+  icon: string;
   value: string;
   label: string;
   tone?: StatBadgeTone;
@@ -276,11 +260,11 @@ async function loadRecentSessions(dateFrom: string, dateTo: string): Promise<Ses
   return sessions;
 }
 
-function StatBadge({ icon: Icon, value, label, tone = "cyan" }: StatBadgeProps) {
+function StatBadge({ icon, value, label, tone = "cyan" }: StatBadgeProps) {
   return (
     <div className="flex min-w-[170px] items-center gap-3 rounded-lg border border-white/10 bg-[#0a0a0b] px-4 py-2 shadow-lg">
       <div className={`rounded border px-2 py-1 ${BADGE_TONE_CLASS[tone]}`}>
-        <Icon size={14} />
+        <Icon name={icon} className="text-[14px]" />
       </div>
       <div className="leading-none">
         <div className="text-sm font-black tracking-wide text-white">{value}</div>
@@ -293,11 +277,10 @@ function StatBadge({ icon: Icon, value, label, tone = "cyan" }: StatBadgeProps) 
 function StatBox({ label, value, sub, highlight = false }: StatBoxProps) {
   return (
     <article
-      className={`rounded-xl border p-4 transition-all ${
-        highlight
-          ? "border-cyan-500/30 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.12)]"
-          : "border-white/10 bg-[#0f1118]"
-      }`}
+      className={`rounded-xl border p-4 transition-all ${highlight
+        ? "border-cyan-500/30 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.12)]"
+        : "border-white/10 bg-[#0f1118]"
+        }`}
     >
       <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
       <div className={`mt-1 text-xl font-black ${highlight ? "text-cyan-300" : "text-white"}`}>{value}</div>
@@ -428,7 +411,7 @@ export function EvolutionPage() {
       {errorMessage && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold text-red-300">
           <span className="flex items-center gap-2">
-            <AlertCircle size={15} />
+            <Icon name="exclamation" className="text-[15px]" />
             {errorMessage}
           </span>
           <button
@@ -443,7 +426,7 @@ export function EvolutionPage() {
 
       <header className="group relative evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6 md:p-8">
         <div className="pointer-events-none absolute right-4 top-4 opacity-20">
-          <LayoutGrid size={96} className="text-cyan-500" strokeWidth={0.75} />
+          <Icon name="apps" className="text-cyan-500 text-[96px]" />
         </div>
         <div className="absolute left-0 top-0 flex items-center gap-2 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-950/80 to-transparent px-4 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
@@ -463,8 +446,8 @@ export function EvolutionPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <StatBadge icon={Timer} value={`${weeklyTotalMinutes} min`} label="Tempo em combate" tone="cyan" />
-            <StatBadge icon={Skull} value={`${sessions.length}`} label="Inimigos abatidos" tone="red" />
+            <StatBadge icon="clock" value={`${weeklyTotalMinutes} min`} label="Tempo em combate" tone="cyan" />
+            <StatBadge icon="skull" value={`${sessions.length}`} label="Inimigos abatidos" tone="red" />
             <button
               type="button"
               data-testid="evolution-refresh"
@@ -472,7 +455,7 @@ export function EvolutionPage() {
               disabled={evolutionQuery.isFetching}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-900/80 px-4 text-[11px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:border-cyan-500/50 hover:text-cyan-300 disabled:cursor-wait disabled:opacity-70"
             >
-              {evolutionQuery.isFetching ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              {evolutionQuery.isFetching ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="refresh" className="text-[14px]" />}
               Atualizar
             </button>
           </div>
@@ -488,7 +471,7 @@ export function EvolutionPage() {
               <div className="flex items-start justify-between gap-6">
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                    <Sword size={12} /> Rank {activeQuest?.rank ?? "F"} - Dungeon
+                    <Icon name="sword" className="text-[12px]" /> Rank {activeQuest?.rank ?? "F"} - Dungeon
                   </div>
                   <h2 className="text-4xl font-black italic tracking-tight text-white">CATEDRAL {activeQuest?.subject.toUpperCase() ?? "SQL"}</h2>
                   <p className="max-w-xl text-sm text-slate-400">
@@ -504,15 +487,15 @@ export function EvolutionPage() {
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-6 text-sm text-slate-300">
                   <span className="flex items-center gap-2">
-                    <Clock3 size={16} className="text-cyan-400" />
+                    <Icon name="clock" className="text-cyan-400 text-[16px]" />
                     {Math.max(5, activeQuest?.targetMinutes ?? 15)} min est.
                   </span>
                   <span className="flex items-center gap-2">
-                    <Brain size={16} className="text-purple-400" />
+                    <Icon name="brain" className="text-purple-400 text-[16px]" />
                     {Math.max(4, quests.length)} missoes
                   </span>
                   <span className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-yellow-400" />
+                    <Icon name="sparkles" className="text-yellow-400 text-[16px]" />
                     {activeQuest?.rewardLabel ?? "+0 XP / +0 G"}
                   </span>
                 </div>
@@ -534,7 +517,7 @@ export function EvolutionPage() {
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg border border-cyan-500/25 bg-cyan-950/30 p-2">
-                  <Zap size={18} className="text-cyan-400" />
+                  <Icon name="bolt" className="text-cyan-400 text-[18px]" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-white">Frequencia de Raids</h3>
@@ -557,18 +540,16 @@ export function EvolutionPage() {
             </div>
             <div
               data-testid="evolution-heatmap"
-              className={`grid w-fit ${
-                isHeatmapExpanded
-                  ? "grid-cols-[repeat(14,1rem)] gap-1.5 sm:grid-cols-[repeat(14,1.1rem)]"
-                  : "grid-cols-[repeat(7,0.8rem)] gap-1 sm:grid-cols-[repeat(7,0.9rem)]"
-              }`}
+              className={`grid w-fit ${isHeatmapExpanded
+                ? "grid-cols-[repeat(14,1rem)] gap-1.5 sm:grid-cols-[repeat(14,1.1rem)]"
+                : "grid-cols-[repeat(7,0.8rem)] gap-1 sm:grid-cols-[repeat(7,0.9rem)]"
+                }`}
             >
               {raidHistory.map((cell) => (
                 <div
                   key={cell.date}
-                  className={`rounded border transition-transform hover:scale-105 ${
-                    isHeatmapExpanded ? "h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" : "h-[0.8rem] w-[0.8rem] sm:h-[0.9rem] sm:w-[0.9rem]"
-                  } ${HEATMAP_INTENSITY_CLASS[cell.intensity]}`}
+                  className={`rounded border transition-transform hover:scale-105 ${isHeatmapExpanded ? "h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" : "h-[0.8rem] w-[0.8rem] sm:h-[0.9rem] sm:w-[0.9rem]"
+                    } ${HEATMAP_INTENSITY_CLASS[cell.intensity]}`}
                   title={cell.tooltip}
                   aria-label={cell.tooltip}
                 />
@@ -579,7 +560,7 @@ export function EvolutionPage() {
           <section className="evo-slide-up relative min-h-[310px] rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-1">
             <div className="absolute -top-3 left-6 rounded border border-cyan-500/30 bg-[#050505] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
               <span className="flex items-center gap-2">
-                <Target size={12} />
+                <Icon name="crosshairs" className="text-[12px]" />
                 Arena de Combate
               </span>
             </div>
@@ -587,7 +568,7 @@ export function EvolutionPage() {
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
               <div className="relative z-10 flex h-full min-h-[308px] flex-col items-center justify-center p-8 text-center">
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-cyan-500/25 bg-cyan-950/30">
-                  <Brain size={32} className="text-cyan-400" />
+                  <Icon name="brain" className="text-cyan-400 text-[32px]" />
                 </div>
                 <div className="mb-8 max-w-xl space-y-3">
                   <div className="text-xs font-mono text-cyan-600">[SISTEMA] Pergunta Gerada:</div>
@@ -629,7 +610,7 @@ export function EvolutionPage() {
           <section className="evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80">
             <div className="border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent p-6">
               <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                <AlertCircle size={16} className="text-orange-400" />
+                <Icon name="exclamation" className="text-orange-400 text-[16px]" />
                 Missoes Ativas
               </h3>
             </div>
@@ -638,17 +619,16 @@ export function EvolutionPage() {
                 quests.slice(0, 6).map((quest) => (
                   <article
                     key={quest.id}
-                    className={`relative rounded-xl border p-4 ${
-                      quest.completed
-                        ? "border-slate-800/60 bg-slate-900/30 opacity-70"
-                        : "border-white/10 bg-[#0f1118] hover:border-orange-500/35"
-                    }`}
+                    className={`relative rounded-xl border p-4 ${quest.completed
+                      ? "border-slate-800/60 bg-slate-900/30 opacity-70"
+                      : "border-white/10 bg-[#0f1118] hover:border-orange-500/35"
+                      }`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${QUEST_TYPE_CLASS[quest.typeKey]}`}>
                         {quest.typeLabel}
                       </span>
-                      {quest.completed ? <CheckCircle2 size={16} className="text-green-500" /> : <ChevronRight size={16} className="text-slate-500" />}
+                      {quest.completed ? <Icon name="check-circle" className="text-green-500 text-[16px]" /> : <Icon name="angle-right" className="text-slate-500 text-[16px]" />}
                     </div>
                     <h4 className={`text-xs font-bold ${quest.completed ? "text-slate-500" : "text-white"}`}>{quest.title}</h4>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">
@@ -669,7 +649,7 @@ export function EvolutionPage() {
 
           <section className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
             <h3 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <Trophy size={16} className="text-yellow-500" />
+              <Icon name="trophy" className="text-yellow-500 text-[16px]" />
               Performance do Jogador
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -692,11 +672,10 @@ export function EvolutionPage() {
                 achievements.map((achievement) => (
                   <article
                     key={achievement.key}
-                    className={`rounded-lg border px-3 py-2 ${
-                      achievement.unlocked
-                        ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
-                        : "border-slate-700 bg-slate-900/50 text-slate-400"
-                    }`}
+                    className={`rounded-lg border px-3 py-2 ${achievement.unlocked
+                      ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
+                      : "border-slate-700 bg-slate-900/50 text-slate-400"
+                      }`}
                   >
                     <div className="text-xs font-bold uppercase tracking-wider">{achievement.name}</div>
                     <div className="mt-1 text-[10px] text-slate-400">{achievement.description}</div>
