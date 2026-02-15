@@ -3,6 +3,12 @@
   command = "npm run build"
 
 [[redirects]]
+  from = "/api/*"
+  to = "YOUR_BACKEND_URL_HERE/api/:splat" # Ex: https://my-api.render.com/api/:splat
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
