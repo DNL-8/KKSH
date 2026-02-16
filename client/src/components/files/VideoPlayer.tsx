@@ -35,6 +35,25 @@ function chapterLabelFromName(name: string): string {
   return `${raw.slice(0, 14)}...`;
 }
 
+function describeMediaError(error: MediaError | null): string {
+  if (!error) {
+    return "Nao foi possivel reproduzir este arquivo de video.";
+  }
+
+  switch (error.code) {
+    case MediaError.MEDIA_ERR_ABORTED:
+      return "Reproducao interrompida antes do fim do arquivo.";
+    case MediaError.MEDIA_ERR_NETWORK:
+      return "Falha de rede ao carregar o video.";
+    case MediaError.MEDIA_ERR_DECODE:
+      return "Falha ao decodificar o video. Arquivo pode estar corrompido.";
+    case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+      return "Formato/codec nao suportado neste navegador. Tente MP4 (H264/AAC) ou WebM (VP9/Opus).";
+    default:
+      return "Nao foi possivel reproduzir este arquivo de video.";
+  }
+}
+
 export function VideoPlayer({
   video,
   videoUrl,
@@ -57,6 +76,14 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showHotkeys, setShowHotkeys] = useState(false);
+  const [playerError, setPlayerError] = useState<string | null>(null);
+  const hasSource = videoUrl.trim().length > 0;
+
+  const updateDuration = useCallback((value: number) => {
+    const safeDuration = Number.isFinite(value) && value > 0 ? value : 0;
+    setDuration(safeDuration);
+    onDurationChange(safeDuration);
+  }, [onDurationChange]);
 
   const progressPercent = duration > 0 ? Math.max(0, Math.min(100, (currentTime / duration) * 100)) : 0;
   const controlsVisible = showControls || !playing || settingsOpen;
@@ -105,6 +132,16 @@ export function VideoPlayer({
     return () => window.clearTimeout(timer);
   }, [showHotkeys]);
 
+  useEffect(() => {
+    if (!video || hasSource) {
+      return;
+    }
+    setPlaying(false);
+    setCurrentTime(0);
+    setPlayerError(null);
+    updateDuration(0);
+  }, [hasSource, updateDuration, video]);
+
   // Restore saved progress and speed.
   useEffect(() => {
     const player = videoRef.current;
@@ -114,6 +151,7 @@ export function VideoPlayer({
     setShowControls(true);
     setSettingsOpen(false);
     setShowHotkeys(false);
+    setPlayerError(null);
 
     const savedTime = localStorage.getItem(`${STORAGE_PREFIX}${video.id}`);
     if (savedTime) {
@@ -168,7 +206,7 @@ export function VideoPlayer({
 
   const togglePlay = useCallback(() => {
     const player = videoRef.current;
-    if (!player) return;
+    if (!player || playerError || !hasSource) return;
     if (playing) {
       player.pause();
     } else {
@@ -177,7 +215,7 @@ export function VideoPlayer({
       });
     }
     revealControls();
-  }, [playing, revealControls]);
+  }, [hasSource, playerError, playing, revealControls]);
 
   const toggleMute = useCallback(() => {
     if (soundLocked) {
@@ -250,11 +288,12 @@ export function VideoPlayer({
   }, [duration, revealControls]);
 
   const onProgressClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!hasSource) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / Math.max(1, rect.width);
     if (!Number.isFinite(pos)) return;
     seekTo(pos * duration);
-  }, [duration, seekTo]);
+  }, [duration, hasSource, seekTo]);
 
   const handleSpeedChange = (speed: number) => {
     if (videoRef.current) {
@@ -338,9 +377,9 @@ export function VideoPlayer({
         autoPlay={autoPlay}
         className="relative z-10 h-full w-full object-contain"
         onClick={togglePlay}
+        onCanPlay={() => setPlayerError(null)}
         onDurationChange={(event) => {
-          setDuration(event.currentTarget.duration);
-          onDurationChange(event.currentTarget.duration);
+          updateDuration(event.currentTarget.duration);
         }}
         onEnded={() => {
           setPlaying(false);
@@ -348,21 +387,49 @@ export function VideoPlayer({
           onEnded?.();
         }}
         onLoadedMetadata={(event) => {
-          setDuration(event.currentTarget.duration);
-          onDurationChange(event.currentTarget.duration);
+          setPlayerError(null);
+          updateDuration(event.currentTarget.duration);
+        }}
+        onError={(event) => {
+          if (!hasSource) {
+            return;
+          }
+          setPlayerError(describeMediaError(event.currentTarget.error));
+          setPlaying(false);
+          updateDuration(0);
         }}
         onPause={() => setPlaying(false)}
         onPlay={() => setPlaying(true)}
         onRateChange={(event) => setPlaybackRate(event.currentTarget.playbackRate)}
         onTimeUpdate={onTimeUpdate}
         playsInline
-        src={videoUrl}
+        src={hasSource ? videoUrl : undefined}
       />
 
-      {!playing && (
+      {!playing && !playerError && hasSource && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/55 backdrop-blur-sm">
             <Icon name="play" className="ml-1 text-white text-[32px]" />
+          </div>
+        </div>
+      )}
+
+      {!playerError && !hasSource && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
+          <div className="rounded-2xl border border-slate-500/30 bg-black/70 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-200 backdrop-blur-md">
+            Carregando fonte do video...
+          </div>
+        </div>
+      )}
+
+      {playerError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
+          <div className="max-w-xl rounded-2xl border border-red-500/40 bg-black/75 p-4 text-center text-sm text-red-200 backdrop-blur-md">
+            <div className="mb-2 flex items-center justify-center gap-2 text-red-300">
+              <Icon name="exclamation" className="text-[16px]" />
+              <span className="font-black uppercase tracking-wider">Erro no player</span>
+            </div>
+            <p>{playerError}</p>
           </div>
         </div>
       )}
@@ -390,7 +457,8 @@ export function VideoPlayer({
       )}
 
       <button
-        className="absolute right-4 top-1/2 z-30 -translate-y-1/2 rounded-md bg-black/40 p-2 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60"
+        className="absolute right-4 top-1/2 z-30 -translate-y-1/2 rounded-md bg-black/40 p-2 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60 disabled:cursor-not-allowed disabled:opacity-45"
+        disabled={!hasSource}
         onClick={() => void togglePictureInPicture()}
         title="Mini player"
         type="button"
@@ -411,7 +479,8 @@ export function VideoPlayer({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
+                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={!hasSource}
                 onClick={togglePlay}
                 type="button"
               >
@@ -420,7 +489,7 @@ export function VideoPlayer({
               <button
                 className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
                 onClick={toggleMute}
-                disabled={soundLocked}
+                disabled={soundLocked || !hasSource}
                 title={soundLocked ? "Efeitos sonoros desativados em Configuracoes" : "Som"}
                 type="button"
               >
@@ -428,7 +497,7 @@ export function VideoPlayer({
               </button>
               <input
                 className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/35 accent-white transition-all group-hover:w-20"
-                disabled={soundLocked}
+                disabled={soundLocked || !hasSource}
                 max="1"
                 min="0"
                 step="0.05"
@@ -460,7 +529,8 @@ export function VideoPlayer({
 
             <div className="relative">
               <button
-                className={`rounded-full p-2 text-white transition-colors hover:bg-white/10 ${settingsOpen ? "bg-white/10" : ""}`}
+                className={`rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45 ${settingsOpen ? "bg-white/10" : ""}`}
+                disabled={!hasSource}
                 onClick={() => setSettingsOpen((current) => !current)}
                 title="Velocidade e configuracoes"
                 type="button"
@@ -486,7 +556,8 @@ export function VideoPlayer({
 
             {pipSupported && (
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
+                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={!hasSource}
                 onClick={() => void togglePictureInPicture()}
                 title="Picture in Picture"
                 type="button"

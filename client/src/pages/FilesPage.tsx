@@ -230,13 +230,24 @@ function FilesStatCard({ label, value, subtext, icon }: FilesStatCardProps) {
 }
 
 function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): number {
+  const compareNameNatural = (a: StoredVideo, b: StoredVideo) => {
+    const primary = a.name.localeCompare(b.name, "pt-BR", {
+      sensitivity: "base",
+      numeric: true,
+    });
+    if (primary !== 0) {
+      return primary;
+    }
+    return a.name.localeCompare(b.name, "pt-BR", {
+      sensitivity: "variant",
+      numeric: true,
+    });
+  };
+
   const leftPath = left.relativePath || DEFAULT_RELATIVE_PATH;
   const rightPath = right.relativePath || DEFAULT_RELATIVE_PATH;
   const bySourcePath = sortGroupPaths(leftPath, rightPath);
-  const bySourceName = left.name.localeCompare(right.name, "pt-BR", {
-    sensitivity: "base",
-    numeric: true,
-  });
+  const bySourceName = compareNameNatural(left, right);
 
   switch (mode) {
     case "source":
@@ -247,17 +258,17 @@ function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): 
         left.createdAt - right.createdAt
       );
     case "newest":
-      return right.createdAt - left.createdAt || left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" });
+      return right.createdAt - left.createdAt || compareNameNatural(left, right);
     case "oldest":
-      return left.createdAt - right.createdAt || left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" });
+      return left.createdAt - right.createdAt || compareNameNatural(left, right);
     case "name_asc":
-      return left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" }) || right.createdAt - left.createdAt;
+      return compareNameNatural(left, right) || right.createdAt - left.createdAt;
     case "name_desc":
-      return right.name.localeCompare(left.name, "pt-BR", { sensitivity: "base" }) || right.createdAt - left.createdAt;
+      return compareNameNatural(right, left) || right.createdAt - left.createdAt;
     case "size_desc":
-      return right.size - left.size || right.createdAt - left.createdAt;
+      return right.size - left.size || compareNameNatural(left, right) || right.createdAt - left.createdAt;
     case "size_asc":
-      return left.size - right.size || right.createdAt - left.createdAt;
+      return left.size - right.size || compareNameNatural(left, right) || right.createdAt - left.createdAt;
     default:
       return right.createdAt - left.createdAt;
   }

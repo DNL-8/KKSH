@@ -34,7 +34,11 @@ export function sortGroupPaths(a: string, b: string): number {
     if (b === DEFAULT_RELATIVE_PATH) {
         return 1;
     }
-    return a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+    const naturalOrder = a.localeCompare(b, "pt-BR", { sensitivity: "base", numeric: true });
+    if (naturalOrder !== 0) {
+        return naturalOrder;
+    }
+    return a.localeCompare(b, "pt-BR", { sensitivity: "variant" });
 }
 
 export function subjectFromRelativePath(path: string): string {
