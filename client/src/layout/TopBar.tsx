@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 
 import { HistoryPopover } from "../components/topbar/HistoryPopover";
 import { useAuth } from "../contexts/AuthContext";
+import { usePreferences } from "../contexts/PreferencesContext";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
 import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
 import { widthPercentClass } from "../lib/percentClasses";
@@ -21,6 +22,7 @@ interface TopBarProps {
 
 export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const { globalStats, authUser, openAuthPanel } = useAuth();
+    const { preferences } = usePreferences();
     const location = useLocation();
     const historyPopoverRef = useRef<HTMLDivElement | null>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -38,6 +40,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const animHp = useAnimatedNumber(hpPercent, 600);
     const animMana = useAnimatedNumber(manaPercent, 600);
     const animXp = useAnimatedNumber(xpPercent, 600);
+    const presenceLabel = preferences.stealthMode ? "Stealth" : "Online";
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -187,8 +190,10 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             data-testid="top-status-rank"
                         >
                             <div className="flex items-center gap-2 border-r border-[hsl(var(--accent)/0.2)] pr-3">
-                                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
-                                <span className="text-sm font-black uppercase tracking-[0.15em] text-white">Online</span>
+                                <span
+                                    className={`h-2 w-2 rounded-full ${preferences.stealthMode ? "bg-slate-500 shadow-[0_0_8px_#64748b]" : "bg-green-500 shadow-[0_0_8px_#22c55e]"}`}
+                                />
+                                <span className="text-sm font-black uppercase tracking-[0.15em] text-white">{presenceLabel}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Rank</span>

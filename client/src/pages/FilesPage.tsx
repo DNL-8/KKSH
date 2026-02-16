@@ -260,6 +260,7 @@ export function FilesPage() {
       queryClient.invalidateQueries({ queryKey: ["auth", "progress"] }),
       queryClient.invalidateQueries({ queryKey: ["hub-state"] }),
       queryClient.invalidateQueries({ queryKey: ["evolution-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["top-history-activity"] }),
     ]);
   }, [queryClient]);
 
@@ -817,9 +818,11 @@ export function FilesPage() {
       });
 
       setStatusMessage(
-        usedFallbackDuration
-          ? `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados (duracao minima aplicada).`
-          : `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados.`,
+        output.xpEarned <= 0 && output.goldEarned <= 0
+          ? "Essa aula ja havia sido concluida nesta conta. Nenhum novo XP ou historico foi gerado."
+          : usedFallbackDuration
+            ? `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados (duracao minima aplicada).`
+            : `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados.`,
       );
       await invalidateProgressCaches();
     } catch (completeError) {

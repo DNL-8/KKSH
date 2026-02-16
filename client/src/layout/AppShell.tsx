@@ -2,6 +2,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
+import { usePreferences } from "../contexts/PreferencesContext";
 import { RouteProgressBar } from "../components/common/RouteProgressBar";
 import { ThemeBackground } from "../components/common/ThemeBackground";
 import { ScrollToTop } from "../components/common/ScrollToTop";
@@ -43,6 +44,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const { globalStats, authUser, openAuthPanel } = useAuth();
+  const { preferences } = usePreferences();
 
 
   /* Boot splash */
@@ -101,7 +103,9 @@ export function AppShell() {
       <ScrollToTop />
       <RouteProgressBar />
       {/* CRT scanline overlay */}
-      <div className="pointer-events-none fixed inset-0 z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.01),rgba(0,0,255,0.01))] bg-[length:100%_2px,3px_100%] opacity-20" />
+      {preferences.glitchEffects && (
+        <div className="pointer-events-none fixed inset-0 z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.01),rgba(0,0,255,0.01))] bg-[length:100%_2px,3px_100%] opacity-20" />
+      )}
 
       <Sidebar isSidebarOpen={isSidebarOpen} onToggle={toggleSidebar} />
 

@@ -108,3 +108,29 @@ def test_reset_missions_scope_clears_quest_progress_without_deleting_sessions(cl
     assert row2["progressMinutes"] == 0
     assert row2["claimed"] is False
     assert state2["todayMinutes"] >= 20
+
+
+def test_reset_all_clears_xp_ledger_and_allows_video_recompletion(client, csrf_headers):
+    _signup(client, csrf_headers, email="reset-ledger@example.com")
+
+    payload = {
+        "subject": "Excel",
+        "minutes": 1,
+        "mode": "video_lesson",
+        "notes": "video_completion::v2:sha256:reset-ledger-ref",
+    }
+
+    first = client.post("/api/v1/sessions", json=payload, headers=csrf_headers())
+    assert first.status_code == 201
+    assert first.json()["xpEarned"] > 0
+
+    reset = client.post("/api/v1/me/reset", json={"scopes": ["all"]}, headers=csrf_headers())
+    assert reset.status_code == 200
+    assert reset.json()["summary"]["xpLedgerEventsDeleted"] >= 1
+
+    second = client.post("/api/v1/sessions", json=payload, headers=csrf_headers())
+    assert second.status_code == 201
+    assert second.json()["xpEarned"] > 0
+
+    sessions = client.get("/api/v1/sessions?mode=video_lesson", headers=csrf_headers()).json()
+    assert len(sessions["sessions"]) == 1

@@ -2,6 +2,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import { ToastProvider } from "./components/common/Toast";
 import { AuthProvider } from "./contexts/AuthContext";
+import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { initWebVitals } from "./lib/webVitals";
 import { AppRouter } from "./router";
@@ -13,11 +14,13 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
-        <AuthProvider>
-          <ToastProvider>
-            <AppRouter />
-          </ToastProvider>
-        </AuthProvider>
+        <PreferencesProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <AppRouter />
+            </ToastProvider>
+          </AuthProvider>
+        </PreferencesProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

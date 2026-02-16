@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "../common/Icon";
+import { usePreferences } from "../../contexts/PreferencesContext";
 import { widthPercentClass } from "../../lib/percentClasses";
 import type { StoredVideo } from "../../lib/localVideosStore";
 
@@ -41,6 +42,7 @@ export function VideoPlayer({
   onEnded,
   autoPlay = false,
 }: VideoPlayerProps) {
+  const { preferences } = usePreferences();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimerRef = useRef<number | null>(null);
@@ -59,6 +61,7 @@ export function VideoPlayer({
   const progressPercent = duration > 0 ? Math.max(0, Math.min(100, (currentTime / duration) * 100)) : 0;
   const controlsVisible = showControls || !playing || settingsOpen;
   const chapterLabel = useMemo(() => chapterLabelFromName(video?.name ?? ""), [video?.name]);
+  const soundLocked = !preferences.soundEffects;
 
   const pipSupported = useMemo(() => {
     if (typeof document === "undefined") return false;
@@ -142,6 +145,18 @@ export function VideoPlayer({
   }, [autoPlay, playing, videoUrl]);
 
   useEffect(() => {
+    const player = videoRef.current;
+    if (!player) {
+      return;
+    }
+    if (soundLocked) {
+      player.muted = true;
+      setMuted(true);
+      setVolume(0);
+    }
+  }, [soundLocked]);
+
+  useEffect(() => {
     const onFullscreenChange = () => {
       setFullscreen(Boolean(document.fullscreenElement));
     };
@@ -165,6 +180,9 @@ export function VideoPlayer({
   }, [playing, revealControls]);
 
   const toggleMute = useCallback(() => {
+    if (soundLocked) {
+      return;
+    }
     const player = videoRef.current;
     if (!player) return;
     const nextMuted = !muted;
@@ -177,7 +195,7 @@ export function VideoPlayer({
       player.volume = 1;
     }
     revealControls();
-  }, [muted, revealControls]);
+  }, [muted, revealControls, soundLocked]);
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number.parseFloat(event.target.value);
@@ -400,14 +418,17 @@ export function VideoPlayer({
                 {playing ? <Icon name="pause" className="text-[20px]" /> : <Icon name="play" className="ml-0.5 text-[20px]" />}
               </button>
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
+                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
                 onClick={toggleMute}
+                disabled={soundLocked}
+                title={soundLocked ? "Efeitos sonoros desativados em Configuracoes" : "Som"}
                 type="button"
               >
                 {muted || volume === 0 ? <Icon name="volume-mute" className="text-[19px]" /> : volume < 0.5 ? <Icon name="volume-down" className="text-[19px]" /> : <Icon name="volume" className="text-[19px]" />}
               </button>
               <input
                 className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/35 accent-white transition-all group-hover:w-20"
+                disabled={soundLocked}
                 max="1"
                 min="0"
                 step="0.05"

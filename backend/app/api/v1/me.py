@@ -17,6 +17,7 @@ from app.core.deps import (
     is_admin,
 )
 from app.core.rate_limit import Rule, rate_limit
+from app.core.secrets import decrypt_secret, encrypt_secret
 from app.models import (
     DailyQuest,
     DrillReview,
@@ -29,6 +30,7 @@ from app.models import (
     UserSettings,
     UserStats,
     WeeklyQuest,
+    XpLedgerEvent,
 )
 from app.schemas import (
     AppStateOut,
@@ -38,14 +40,13 @@ from app.schemas import (
     ResetStateIn,
     ResetStateOut,
     StudyBlockOut,
+    UpdateSettingsIn,
     UserOut,
     UserSettingsOut,
-    UpdateSettingsIn,
     UserUpdateIn,
     VitalsOut,
     WeeklyQuestOut,
 )
-from app.core.secrets import decrypt_secret, encrypt_secret
 from app.services.inventory import INVENTORY_CATALOG, list_inventory
 from app.services.quests import ensure_daily_quests, ensure_weekly_quests
 from app.services.utils import date_key, now_local, parse_goals, week_key
@@ -471,6 +472,13 @@ def reset_state(
             for row in history_rows:
                 session.delete(row)
             summary["systemWindowMessagesDeleted"] = len(history_rows)
+
+            ledger_rows = session.exec(
+                select(XpLedgerEvent).where(XpLedgerEvent.user_id == user.id)
+            ).all()
+            for row in ledger_rows:
+                session.delete(row)
+            summary["xpLedgerEventsDeleted"] = len(ledger_rows)
 
         session.commit()
     except Exception:

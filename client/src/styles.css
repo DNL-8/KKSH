@@ -346,6 +346,11 @@ body {
   animation: glitch-2 0.4s linear 0.05s infinite;
 }
 
+:root[data-glitch-effects="off"] .glitch-text::before,
+:root[data-glitch-effects="off"] .glitch-text::after {
+  display: none !important;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Animated gradient border                                          */
 /* ------------------------------------------------------------------ */

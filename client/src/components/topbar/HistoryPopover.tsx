@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -74,6 +74,10 @@ function toXpItem(event: XpHistoryEventOut): HistoryActivityItem {
   };
 }
 
+function isDuplicateSessionXpEvent(event: XpHistoryEventOut): boolean {
+  return event.eventType === "session.created";
+}
+
 export function HistoryPopover({
   open,
   onClose,
@@ -81,6 +85,7 @@ export function HistoryPopover({
   onOpenAuth,
   onMarkSeen,
 }: HistoryPopoverProps) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<HistoryTab>("changes");
 
   useEffect(() => {
@@ -90,6 +95,15 @@ export function HistoryPopover({
     setActiveTab("changes");
     onMarkSeen();
   }, [open, onMarkSeen]);
+
+  useEffect(() => {
+    if (!open || !authUser?.id) {
+      return;
+    }
+    void queryClient.invalidateQueries({
+      queryKey: ["top-history-activity", authUser.id],
+    });
+  }, [authUser?.id, open, queryClient]);
 
   const activityQuery = useQuery({
     queryKey: ["top-history-activity", authUser?.id ?? "guest"],
@@ -102,9 +116,13 @@ export function HistoryPopover({
         getXpHistory({ limit: 12 }),
       ]);
 
+      const xpItems = xpOut.events
+        .filter((event) => !isDuplicateSessionXpEvent(event))
+        .map(toXpItem);
+
       const merged = [
         ...sessionsOut.sessions.map(toSessionItem),
-        ...xpOut.events.map(toXpItem),
+        ...xpItems,
       ];
 
       return merged
@@ -170,7 +188,12 @@ export function HistoryPopover({
               : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
               }`}
             data-testid="history-tab-activity"
-            onClick={() => setActiveTab("activity")}
+            onClick={() => {
+              setActiveTab("activity");
+              if (authUser) {
+                void activityQuery.refetch();
+              }
+            }}
             role="tab"
             type="button"
           >

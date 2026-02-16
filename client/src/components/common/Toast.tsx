@@ -8,6 +8,7 @@ import {
     useState,
 } from "react";
 
+import { usePreferences } from "../../contexts/PreferencesContext";
 import { Icon } from "../common/Icon";
 
 /* ------------------------------------------------------------------ */
@@ -53,6 +54,7 @@ const TOAST_DURATION = 4000;
 export function ToastProvider({ children }: { children: ReactNode }) {
     const [toasts, setToasts] = useState<ToastItem[]>([]);
     const counterRef = useRef(0);
+    const { preferences } = usePreferences();
 
     const removeToast = useCallback((id: number) => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -60,12 +62,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
     const showToast = useCallback(
         (message: string, type: ToastType = "info") => {
+            if (!preferences.notifications && type !== "error") {
+                return;
+            }
             counterRef.current += 1;
             const id = counterRef.current;
             setToasts((prev) => [...prev, { id, message, type }]);
             setTimeout(() => removeToast(id), TOAST_DURATION);
         },
-        [removeToast],
+        [preferences.notifications, removeToast],
     );
 
     const value = useMemo(() => ({ showToast }), [showToast]);

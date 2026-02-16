@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -6,27 +6,10 @@ import { Badge, DetailedToggle, HoldButton, ThemeOption } from "../components/co
 import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
+import { usePreferences, type ClientPreferences } from "../contexts/PreferencesContext";
 import { useTheme, type ThemeId } from "../contexts/ThemeContext";
-import { updateProfile } from "../lib/api";
-
-// Definição local de preferências (client-side only por enquanto)
-interface ClientPreferences {
-  theme: string;
-  notifications: boolean;
-  soundEffects: boolean;
-  glitchEffects: boolean;
-  stealthMode: boolean;
-  difficulty: "casual" | "hardcore";
-}
-
-const DEFAULT_PREFERENCES: ClientPreferences = {
-  theme: "matrix",
-  notifications: true,
-  soundEffects: true,
-  glitchEffects: true,
-  stealthMode: false,
-  difficulty: "casual",
-};
+import { ApiRequestError, resetMeState, updateProfile } from "../lib/api";
+import { LOCAL_MEDIA_DB_NAME, clearVideos } from "../lib/localVideosStore";
 
 const THEME_PRESETS = [
   { id: "matrix", name: "Matrix", color: "bg-[#00ff41]" },
@@ -37,20 +20,30 @@ const THEME_PRESETS = [
   { id: "lotr", name: "Senhor dos Anéis", color: "bg-[#c0c0c0]" },
 ];
 
+function deleteLocalMediaDatabase(): Promise<void> {
+  if (typeof window === "undefined" || !window.indexedDB) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const request = window.indexedDB.deleteDatabase(LOCAL_MEDIA_DB_NAME);
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+      request.onblocked = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
 export function SettingsPage() {
   const { authUser: user, handleLogout: logout } = useAuth();
+  const { preferences, setPreference, resetPreferences } = usePreferences();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { themeId, setTheme } = useTheme();
-
-  // Load preferences from localStorage or defaults
-  const [preferences, setPreferences] = useState<ClientPreferences>(() => {
-    const stored = localStorage.getItem("cmd8_preferences");
-    const parsed = stored ? JSON.parse(stored) : DEFAULT_PREFERENCES;
-    // Ensure theme matches global context on mount
-    return { ...parsed, theme: themeId || parsed.theme };
-  });
 
   const [dangerBusy, setDangerBusy] = useState<"logout" | "reset" | null>(null);
 
@@ -59,24 +52,12 @@ export function SettingsPage() {
   const [tempName, setTempName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
 
-  // Sync state with global themeId if it changes externallly
-  useEffect(() => {
-    setPreferences(prev => ({ ...prev, theme: themeId }));
-  }, [themeId]);
-
-  // Update localStorage when preferences change
-  useEffect(() => {
-    localStorage.setItem("cmd8_preferences", JSON.stringify(preferences));
-    // Apply theme globally (example implementation)
-    document.documentElement.setAttribute("data-theme", preferences.theme);
-  }, [preferences]);
-
-  const updatePreference = <K extends keyof ClientPreferences>(key: K, value: ClientPreferences[K]) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
-    if (key === "theme") {
-      setTheme(value as ThemeId);
-    }
-  };
+  const updatePreference = useCallback(
+    <K extends keyof ClientPreferences>(key: K, value: ClientPreferences[K]) => {
+      setPreference(key, value);
+    },
+    [setPreference],
+  );
 
   const handleSave = useCallback(async () => {
     // Simular salvamento (já é salvo no effect)
@@ -87,17 +68,49 @@ export function SettingsPage() {
   const executeHardReset = useCallback(async () => {
     setDangerBusy("reset");
     try {
-      // Simulate heavy operation
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      let remoteResetError: string | null = null;
+
+      try {
+        await resetMeState(["all"]);
+      } catch (error) {
+        if (error instanceof ApiRequestError) {
+          if (error.status === 401) {
+            remoteResetError = "Sessao expirada. Entre novamente para resetar a conta.";
+          } else {
+            remoteResetError = error.message;
+          }
+        } else {
+          remoteResetError = "Falha ao resetar dados da conta no servidor.";
+        }
+      }
+
+      try {
+        await clearVideos();
+      } catch {
+        // Ignore local media clear failures and continue.
+      }
+      await deleteLocalMediaDatabase();
+
       localStorage.clear();
       sessionStorage.clear();
-      await queryClient.resetQueries();
-      showToast("Sistema reiniciado. Todos os dados locais foram limpos.", "success");
-      window.location.reload();
+      resetPreferences();
+      queryClient.clear();
+
+      if (remoteResetError) {
+        showToast(`Reset local concluido, mas houve falha no servidor: ${remoteResetError}`, "error");
+        setDangerBusy(null);
+        return;
+      }
+
+      showToast("Reset concluido. Recarregando terminal...", "success");
+      window.setTimeout(() => {
+        window.location.assign("/hub");
+      }, 180);
     } catch {
+      showToast("Nao foi possivel resetar os dados locais.", "error");
       setDangerBusy(null);
     }
-  }, [queryClient, showToast]);
+  }, [queryClient, resetPreferences, showToast]);
 
   const handleLogout = useCallback(async () => {
     setDangerBusy("logout");
@@ -302,12 +315,14 @@ export function SettingsPage() {
                 <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
                   <div>
                     <h3 className="font-bold text-white">Resetar Progresso Local</h3>
-                    <p className="text-sm text-red-200/60">Limpa cache e dados temporarios. Nao apaga conta.</p>
+                    <p className="text-sm text-red-200/60">Limpa dados locais e zera progresso da conta. Nao apaga o usuario.</p>
                   </div>
                   <HoldButton
                     label="SEGURE PARA DELETAR TUDO"
                     onComplete={() => void executeHardReset()}
                     loading={dangerBusy === "reset"}
+                    holdDuration={1000}
+                    progressLabel="CONFIRMANDO"
                     className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto md:px-8"
                   />
                 </div>
@@ -394,8 +409,8 @@ export function SettingsPage() {
                     testId={`theme-option-${preset.id}`}
                     label={preset.name}
                     color={preset.color}
-                    active={preferences.theme === preset.id}
-                    onClick={() => updatePreference("theme", preset.id)}
+                    active={themeId === preset.id}
+                    onClick={() => setTheme(preset.id as ThemeId)}
                   />
                 ))}
               </div>
