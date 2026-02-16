@@ -54,6 +54,7 @@ export function VideoPlayer({
   const [fullscreen, setFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showHotkeys, setShowHotkeys] = useState(false);
 
   const progressPercent = duration > 0 ? Math.max(0, Math.min(100, (currentTime / duration) * 100)) : 0;
   const controlsVisible = showControls || !playing || settingsOpen;
@@ -91,6 +92,16 @@ export function VideoPlayer({
     return () => clearHideTimer();
   }, [clearHideTimer]);
 
+  useEffect(() => {
+    if (!showHotkeys) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setShowHotkeys(false);
+    }, 3200);
+    return () => window.clearTimeout(timer);
+  }, [showHotkeys]);
+
   // Restore saved progress and speed.
   useEffect(() => {
     const player = videoRef.current;
@@ -99,6 +110,7 @@ export function VideoPlayer({
     clearHideTimer();
     setShowControls(true);
     setSettingsOpen(false);
+    setShowHotkeys(false);
 
     const savedTime = localStorage.getItem(`${STORAGE_PREFIX}${video.id}`);
     if (savedTime) {
@@ -339,11 +351,25 @@ export function VideoPlayer({
 
       <button
         className="absolute right-4 top-4 z-30 rounded-full bg-black/40 p-1.5 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60"
-        title="Atalhos: K/espaco, F, M, setas esquerda/direita"
+        onClick={() => {
+          setShowHotkeys((current) => !current);
+          revealControls();
+        }}
+        title={showHotkeys ? "Ocultar atalhos" : "Ver atalhos"}
         type="button"
       >
         <Icon name="info" className="text-[18px]" />
       </button>
+
+      {showHotkeys && (
+        <div className="absolute right-4 top-14 z-30 w-64 rounded-xl border border-white/10 bg-black/75 p-3 text-[11px] text-white backdrop-blur-md">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-300">Atalhos</p>
+          <p>K / espaco: play/pause</p>
+          <p>F: tela cheia</p>
+          <p>M: mutar</p>
+          <p>Seta esquerda/direita: -/+ 5s</p>
+        </div>
+      )}
 
       <button
         className="absolute right-4 top-1/2 z-30 -translate-y-1/2 rounded-md bg-black/40 p-2 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60"
@@ -395,19 +421,17 @@ export function VideoPlayer({
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
 
-            <button
-              className="flex items-center gap-1 rounded-full bg-white/35 px-4 py-2 text-xl font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/45"
-              type="button"
-            >
+            <div className="flex items-center gap-1 rounded-full bg-white/35 px-4 py-2 text-xl font-medium text-white backdrop-blur-sm">
               {chapterLabel}
               <Icon name="angle-right" className="text-[18px]" />
-            </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
             <button
-              className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
-              title="Legenda"
+              className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+              title="Legenda indisponivel para este arquivo"
+              disabled
               type="button"
             >
               <Icon name="closed-captioning" className="text-[19px]" />

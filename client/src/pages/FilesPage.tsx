@@ -5,7 +5,7 @@ import {
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 import { Icon } from "../components/common/Icon";
 
@@ -251,6 +251,7 @@ function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): 
 export function FilesPage() {
   const { globalStats, authUser, openAuthPanel } =
     useOutletContext<AppShellContextValue>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const invalidateProgressCaches = useCallback(async () => {
@@ -731,6 +732,14 @@ export function FilesPage() {
     }));
   };
 
+  const handleOpenVisualSettings = useCallback(() => {
+    navigate("/config");
+  }, [navigate]);
+
+  const handleToggleMetadataPanel = useCallback(() => {
+    setActiveTab((current) => (current === "overview" ? "metadata" : "overview"));
+  }, []);
+
   const handleClearAll = async () => {
     setError(null);
     setStatusMessage(null);
@@ -1007,6 +1016,8 @@ export function FilesPage() {
               <button
                 className="ml-auto hidden rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-cyan-300 md:inline-flex"
                 title="Configuracoes visuais"
+                data-testid="files-open-visual-settings"
+                onClick={handleOpenVisualSettings}
                 type="button"
               >
                 <Icon name="settings" className="text-[14px]" />
@@ -1226,7 +1237,9 @@ export function FilesPage() {
                   </button>
                   <button
                     className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
-                    title="Mais acoes"
+                    title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
+                    data-testid="files-toggle-metadata-panel"
+                    onClick={handleToggleMetadataPanel}
                     type="button"
                   >
                     <Icon name="menu-dots-vertical" className="text-[14px]" />
@@ -1262,7 +1275,12 @@ export function FilesPage() {
                 onExpandAllFolders={handleExpandAllFolders}
                 onClose={() => setIsSidebarMobileOpen(false)}
               />
-              <div className="cursor-pointer rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 transition-all hover:border-cyan-500/30 hover:bg-slate-800/50">
+              <button
+                className="w-full rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 text-left transition-all hover:border-cyan-500/30 hover:bg-slate-800/50"
+                data-testid="files-support-material-upload"
+                onClick={handleOpenFolderPicker}
+                type="button"
+              >
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
                     <Icon name="file-video" className="text-[20px]" />
@@ -1272,7 +1290,7 @@ export function FilesPage() {
                     <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
           </aside>
         </div>

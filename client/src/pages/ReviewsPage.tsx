@@ -123,7 +123,9 @@ export function ReviewsPage() {
               ))}
             </div>
             <button
+              onClick={() => navigate("/evolucao")}
               className="mt-10 w-full rounded-2xl border border-slate-800 bg-slate-900 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-slate-700 hover:text-white"
+              data-testid="reviews-open-all-missions"
               type="button"
             >
               Ver Todas as Missões
