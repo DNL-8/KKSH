@@ -1175,15 +1175,6 @@ export function FilesPage() {
                 video={selectedVideo}
                 videoUrl={selectedVideoUrl}
               />
-              <div className="pointer-events-none absolute left-4 top-4 z-20 inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-black/50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-red-300 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                Gravacao
-              </div>
-              <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2 rounded-md border border-slate-700/70 bg-black/50 px-2 py-1 text-slate-300">
-                <Icon name="screen" className="text-[14px]" />
-                <Icon name="volume" className="text-[14px]" />
-                <Icon name="expand" className="text-[14px]" />
-              </div>
               <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
                 {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
                   <span
