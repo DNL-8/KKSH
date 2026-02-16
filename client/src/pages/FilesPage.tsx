@@ -66,6 +66,7 @@ interface FilesStatCardProps {
 }
 
 const ORDER_LABELS: Record<OrderMode, string> = {
+  source: "Ordem: origem",
   newest: "Ordem: recentes",
   oldest: "Ordem: antigas",
   name_asc: "Ordem: nome A-Z",
@@ -84,7 +85,7 @@ interface FilesViewStateSnapshot {
   activeTab: TabMode;
 }
 
-const ORDER_MODES: OrderMode[] = ["newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];
+const ORDER_MODES: OrderMode[] = ["source", "newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];
 const TAB_MODES: TabMode[] = ["overview", "metadata"];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -229,7 +230,22 @@ function FilesStatCard({ label, value, subtext, icon }: FilesStatCardProps) {
 }
 
 function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): number {
+  const leftPath = left.relativePath || DEFAULT_RELATIVE_PATH;
+  const rightPath = right.relativePath || DEFAULT_RELATIVE_PATH;
+  const bySourcePath = sortGroupPaths(leftPath, rightPath);
+  const bySourceName = left.name.localeCompare(right.name, "pt-BR", {
+    sensitivity: "base",
+    numeric: true,
+  });
+
   switch (mode) {
+    case "source":
+      return (
+        bySourcePath ||
+        bySourceName ||
+        left.lastModified - right.lastModified ||
+        left.createdAt - right.createdAt
+      );
     case "newest":
       return right.createdAt - left.createdAt || left.name.localeCompare(right.name, "pt-BR", { sensitivity: "base" });
     case "oldest":
@@ -244,6 +260,35 @@ function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): 
       return left.size - right.size || right.createdAt - left.createdAt;
     default:
       return right.createdAt - left.createdAt;
+  }
+}
+
+interface FolderSectionWithMeta extends FolderSection {
+  totalSize: number;
+  newestCreatedAt: number;
+  oldestCreatedAt: number;
+}
+
+function compareFolderSections(left: FolderSectionWithMeta, right: FolderSectionWithMeta, mode: OrderMode): number {
+  const byNameAsc = sortGroupPaths(left.path, right.path);
+
+  switch (mode) {
+    case "source":
+      return byNameAsc;
+    case "newest":
+      return right.newestCreatedAt - left.newestCreatedAt || byNameAsc;
+    case "oldest":
+      return left.oldestCreatedAt - right.oldestCreatedAt || byNameAsc;
+    case "name_asc":
+      return byNameAsc;
+    case "name_desc":
+      return -byNameAsc;
+    case "size_desc":
+      return right.totalSize - left.totalSize || byNameAsc;
+    case "size_asc":
+      return left.totalSize - right.totalSize || byNameAsc;
+    default:
+      return byNameAsc;
   }
 }
 
@@ -372,16 +417,31 @@ export function FilesPage() {
       groups.set(path, current);
     }
 
-    return Array.from(groups.keys())
-      .sort(sortGroupPaths)
-      .map((path) => {
-        const sortedLessons = [...(groups.get(path) ?? [])].sort((a, b) => compareVideos(a, b, orderMode));
-        return {
-          path,
-          pathId: normalizePathForTestId(path),
-          lessons: sortedLessons,
-        };
-      });
+    const sections: FolderSectionWithMeta[] = Array.from(groups.entries()).map(([path, lessons]) => {
+      const sortedLessons = [...lessons].sort((a, b) => compareVideos(a, b, orderMode));
+      const totalSize = lessons.reduce((acc, lesson) => acc + Math.max(0, lesson.size), 0);
+      const newestCreatedAt = lessons.reduce(
+        (maxValue, lesson) => Math.max(maxValue, lesson.createdAt),
+        Number.NEGATIVE_INFINITY,
+      );
+      const oldestCreatedAt = lessons.reduce(
+        (minValue, lesson) => Math.min(minValue, lesson.createdAt),
+        Number.POSITIVE_INFINITY,
+      );
+
+      return {
+        path,
+        pathId: normalizePathForTestId(path),
+        lessons: sortedLessons,
+        totalSize,
+        newestCreatedAt,
+        oldestCreatedAt,
+      };
+    });
+
+    sections.sort((left, right) => compareFolderSections(left, right, orderMode));
+
+    return sections.map(({ totalSize: _totalSize, newestCreatedAt: _newest, oldestCreatedAt: _oldest, ...section }) => section);
   }, [orderMode, visibleVideos]);
 
   const filteredFolderSections = useMemo<FolderSection[]>(() => {
@@ -987,6 +1047,7 @@ export function FilesPage() {
                   onChange={(event) => setOrderMode(event.target.value as OrderMode)}
                   value={orderMode}
                 >
+                  <option value="source">{ORDER_LABELS.source}</option>
                   <option value="newest">{ORDER_LABELS.newest}</option>
                   <option value="oldest">{ORDER_LABELS.oldest}</option>
                   <option value="name_asc">{ORDER_LABELS.name_asc}</option>
