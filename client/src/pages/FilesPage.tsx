@@ -132,6 +132,7 @@ export function FilesPage() {
     handleFilesSelected,
     handleFolderSelected,
     setError: setLibraryError,
+    isPersisted,
   } = useVideoLibrary();
 
 
@@ -457,12 +458,21 @@ export function FilesPage() {
           )}
 
           {/* Local Bridge Indicator */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ml-auto ${isBridgeConnected
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ${isBridgeConnected
             ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
             : "border-slate-800 bg-slate-900/50 text-slate-500"
             }`}>
             <div className={`w-2 h-2 rounded-full ${isBridgeConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-700"}`} />
             {isBridgeConnected ? "Bridge: Online" : "Bridge: Offline"}
+          </div>
+
+          {/* Persistence Indicator */}
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ${isPersisted
+            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+            : "border-orange-500/30 bg-orange-500/10 text-orange-400 cursor-help"
+            }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporário (Pode ser limpo pelo navegador)"}>
+            <div className={`w-2 h-2 rounded-full ${isPersisted ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-orange-500"}`} />
+            {isPersisted ? "HD: Persistente" : "HD: Temporário"}
           </div>
         </div>
 

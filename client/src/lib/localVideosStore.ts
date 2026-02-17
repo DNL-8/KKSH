@@ -657,3 +657,17 @@ export async function importMetadata(json: string): Promise<SaveResult> {
 
   return saveStoredVideos(cleanVideos);
 }
+
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.persist) {
+    return await navigator.storage.persist();
+  }
+  return false;
+}
+
+export async function checkPersistence(): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.persisted) {
+    return await navigator.storage.persisted();
+  }
+  return false;
+}

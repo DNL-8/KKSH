@@ -1,11 +1,12 @@
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    checkPersistence,
     clearVideos,
     exportMetadata,
     importMetadata,
     listVideos,
     MAX_LIBRARY_VIDEOS,
+    requestPersistentStorage,
     type StoredVideo,
 } from "../lib/localVideosStore";
 import { toErrorMessage } from "../components/files/utils";
@@ -20,6 +21,7 @@ export function useVideoLibrary() {
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [storageUnavailable, setStorageUnavailable] = useState(false);
     const [exporting, setExporting] = useState(false);
+    const [isPersisted, setIsPersisted] = useState(false);
 
     // Bridge Integration
     const { isConnected: isBridgeConnected, getLibrary: getBridgeLibrary, checkConnection } = useLocalBridge();
@@ -32,6 +34,14 @@ export function useVideoLibrary() {
         setError(null);
 
         try {
+            // 0. Check/Request Persistence
+            const persisted = await checkPersistence();
+            setIsPersisted(persisted);
+            if (!persisted) {
+                // Try to request it once on load (silently)
+                requestPersistentStorage().then(setIsPersisted).catch(() => { });
+            }
+
             // 1. Load from IndexedDB
             let localRows: StoredVideo[] = [];
             try {
@@ -101,7 +111,6 @@ export function useVideoLibrary() {
     // ^ Note: checkConnection is stable, but loadVideos depends on isBridgeConnected
     // We want to reload when 'isBridgeConnected' changes, which is inside loadVideos dependency
 
-
     const mergeRuntimeVideos = useCallback((incoming: StoredVideo[]) => {
         // ... (Keep existing runtime merge logic if needed, or deprecate)
         // For now, simplify: we don't use runtimeVideos for persistent storage anymore in this mode
@@ -148,6 +157,8 @@ export function useVideoLibrary() {
         // ... existing ...
     };
 
+    const importInputRef = useRef<HTMLInputElement>(null);
+
     return {
         videos,
         runtimeVideos,
@@ -157,10 +168,11 @@ export function useVideoLibrary() {
         statusMessage,
         storageUnavailable,
         exporting,
+        isPersisted, // New prop
         handleClearAll,
         handleExportMetadata, // These might need updates to support Bridge export
         handleImportMetadata,
-        importInputRef: importer.importInputRef,
+        importInputRef,
         fileInputRef: importer.fileInputRef,
         folderInputRef: importer.folderInputRef,
         setError,
