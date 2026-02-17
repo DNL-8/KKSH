@@ -7,8 +7,9 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml* ./
 COPY client ./client
 COPY tsconfig.json tsconfig.node.json vite.config.ts tailwind.config.cjs postcss.config.cjs ./
+COPY CHANGELOG.md ./
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 RUN pnpm build
 
 
