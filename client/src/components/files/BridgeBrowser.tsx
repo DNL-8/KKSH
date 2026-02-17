@@ -9,22 +9,69 @@ interface BridgeBrowserProps {
 }
 
 export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
-    const { listDrives, listPath, getStreamUrl, scanFolder } = useLocalBridge();
+    const { listDrives, listPath, getStreamUrl, scanFolder, drives } = useLocalBridge();
     const [currentPath, setCurrentPath] = useState<string>("");
-    // ... existing state ...
+    const [items, setItems] = useState<BridgeItem[]>([]);
+    const [loading, setLoading] = useState(false);
     const [scanning, setScanning] = useState(false);
 
-    // ... existing loadDrives ...
+    // Load drives on mount
+    useEffect(() => {
+        loadDrives();
+    }, []);
+
+    const loadDrives = async () => {
+        setLoading(true);
+        await listDrives();
+        setLoading(false);
+    };
+
+    const browse = async (path: string) => {
+        setLoading(true);
+        try {
+            const result = await listPath(path);
+            setItems(result);
+            setCurrentPath(path);
+        } catch {
+            setItems([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const goBack = () => {
+        if (!currentPath) return;
+        const parts = currentPath.split(/[/\\]/);
+        parts.pop(); // Remove current folder
+
+        // Handle root
+        if (parts.length === 0 || (parts.length === 1 && parts[0] === "")) {
+            setCurrentPath("");
+            setItems([]);
+            return;
+        }
+
+        const newPath = parts.join("/");
+        // If we were at a drive root (e.g. C:), going back goes to drive list
+        if (drives.includes(currentPath) || currentPath.match(/^[A-Z]:\/?$/i)) {
+            setCurrentPath("");
+            setItems([]);
+            return;
+        }
+
+        browse(newPath);
+    };
+
+    const isVideo = (name: string) => {
+        return /\.(mp4|mkv|avi|mov|webm)$/i.test(name);
+    };
 
     const handleScan = async () => {
         if (!currentPath) return;
         setScanning(true);
         await scanFolder(currentPath);
         setScanning(false);
-        // Maybe show toast? For now just visual feedback on button
     };
-
-    // ... existing browse ...
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">

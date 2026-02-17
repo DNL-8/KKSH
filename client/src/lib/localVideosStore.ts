@@ -9,7 +9,7 @@ const SAVE_CHUNK_SIZE = 250;
 const FILE_CHUNK_SIZE = 50 * 1024 * 1024; // 50MB chunks
 
 export type VideoSourceKind = "folder" | "file";
-export type VideoStorageKind = "blob" | "handle" | "chunks";
+export type VideoStorageKind = "blob" | "handle" | "chunks" | "bridge";
 export type VideoImportSource = "input_file" | "input_folder" | "directory_handle";
 
 export interface StoredVideo {

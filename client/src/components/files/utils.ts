@@ -76,6 +76,9 @@ export function formatDate(timestamp: number): string {
 }
 
 export function formatStorageKind(video: StoredVideo): string {
+    if (video.storageKind === "bridge") {
+        return "Bridge (Local)";
+    }
     if (video.storageKind === "chunks") {
         return `Local (Chunks: ${video.chunkCount ?? "?"})`;
     }

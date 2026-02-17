@@ -63,6 +63,30 @@ export function useLocalBridge() {
         return () => clearInterval(interval);
     }, [checkConnection]);
 
+    const scanFolder = useCallback(async (path: string) => {
+        try {
+            const res = await fetch(`${BRIDGE_URL}/library/scan`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path })
+            });
+            return res.ok;
+        } catch {
+            return false;
+        }
+    }, []);
+
+    const getLibrary = useCallback(async () => {
+        try {
+            const res = await fetch(`${BRIDGE_URL}/library/videos`);
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.videos;
+        } catch {
+            return [];
+        }
+    }, []);
+
     return {
         isConnected,
         checkConnection,
@@ -70,40 +94,8 @@ export function useLocalBridge() {
         listDrives,
         listPath,
         getStreamUrl,
-
-        const scanFolder = useCallback(async (path: string) => {
-            try {
-                const res = await fetch(`${BRIDGE_URL}/library/scan`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ path })
-                });
-                return res.ok;
-            } catch {
-                return false;
-            }
-        }, []);
-
-        const getLibrary = useCallback(async () => {
-            try {
-                const res = await fetch(`${BRIDGE_URL}/library/videos`);
-                if (!res.ok) return [];
-                const data = await res.json();
-                return data.videos;
-            } catch {
-                return [];
-            }
-        }, []);
-
-        return {
-            isConnected,
-            checkConnection,
-            drives,
-            listDrives,
-            listPath,
-            getStreamUrl,
-            scanFolder,
-            getLibrary,
-            bridgeUrl: BRIDGE_URL
-        };
-    }
+        scanFolder,
+        getLibrary,
+        bridgeUrl: BRIDGE_URL
+    };
+}

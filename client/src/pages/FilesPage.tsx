@@ -73,7 +73,7 @@ export function FilesPage() {
       lastModified: Date.now(),
       createdAt: Date.now(),
       sourceKind: "file",
-      storageKind: "blob",
+      storageKind: "bridge",
       importSource: "input_file",
     };
     setBridgeVideo({ video: mockVideo, url });
