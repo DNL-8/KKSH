@@ -1,25 +1,26 @@
-# Commenting And Docstring Guidelines
+# Diretrizes de Comentários e Docstrings
 
-Purpose: keep code comments useful, short, and consistent across frontend/backend.
+Propósito: manter comentários de código úteis, curtos e consistentes entre frontend/backend.
 
-Rules:
-- Prefer self-explanatory code over comments whenever possible.
-- Add comments only when code intent is not obvious from names/structure.
-- Describe *why* and constraints/tradeoffs, not obvious *what* statements.
-- Keep comments in English for consistency in mixed-language teams.
-- Keep comments near the relevant block and update/remove stale comments quickly.
+Regras:
+- Prefira código autoexplicativo a comentários sempre que possível.
+- Adicione comentários apenas quando a intenção do código não for óbvia pelos nomes/estrutura.
+- Descreva o *porquê* e restrições/compensações (tradeoffs), não declarações óbvias de *o quê*.
+- Mantenha comentários em Inglês para consistência em times multilíngues (exceto documentação externa se solicitado).
+- Mantenha comentários próximos ao bloco relevante e atualize/remova comentários obsoletos rapidamente.
 
-Python docstrings:
-- Use concise one-line summary first.
-- Add Args/Returns only when behavior is not obvious.
-- Document side effects and failure modes for service functions.
+Docstrings Python:
+- Use resumo conciso de uma linha primeiro.
+- Adicione Args/Returns apenas quando o comportamento não for óbvio.
+- Documente efeitos colaterais e modos de falha para funções de serviço.
 
-TypeScript/React comments:
-- Avoid inline noise for trivial assignments.
-- For hooks/effects, comment only when dependency choices are non-obvious.
-- For accessibility behavior, document ARIA/keyboard rationale once per component.
+Comentários TypeScript/React:
+- Evite ruído inline para atribuições triviais.
+- Para hooks/efeitos, comente apenas quando as escolhas de dependência não forem óbvias.
+- Para comportamento de acessibilidade, documente a lógica ARIA/teclado uma vez por componente.
 
-Review checklist:
-- Does the comment explain intent/constraint?
-- Is it still true after this change?
-- Can the code be renamed/refactored to remove the comment?
+Checklist de revisão:
+- O comentário explica intenção/restrição?
+- Ainda é verdadeiro após esta mudança?
+- O código pode ser renomeado/refatorado para remover o comentário?
+
