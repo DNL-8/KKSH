@@ -2,11 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 
 import type { StoredVideo } from "../../lib/localVideosStore";
+import type { FolderSection } from "./types";
 import {
   buildVideoRef,
   formatBytes,
   formatStorageKind,
-  type FolderSection,
+
 } from "./utils";
 
 /* ------------------------------------------------------------------ */
@@ -230,8 +231,8 @@ export function LessonSidebar({
                       <button
                         key={lesson.id}
                         className={`group flex w-full items-start gap-3 px-3 py-3 text-left transition-all ${active
-                            ? "bg-gradient-to-r from-cyan-500/10 to-transparent"
-                            : "hover:bg-slate-900/60"
+                          ? "bg-gradient-to-r from-cyan-500/10 to-transparent"
+                          : "hover:bg-slate-900/60"
                           }`}
                         data-active={active ? "true" : "false"}
                         data-testid={`lesson-item-${section.pathId}-${index}`}
@@ -240,10 +241,10 @@ export function LessonSidebar({
                       >
                         <div
                           className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${lessonCompleted
-                              ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-400"
-                              : active
-                                ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
-                                : "border-slate-700 bg-slate-900 text-slate-500"
+                            ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-400"
+                            : active
+                              ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
+                              : "border-slate-700 bg-slate-900 text-slate-500"
                             }`}
                         >
                           {lessonCompleted ? (

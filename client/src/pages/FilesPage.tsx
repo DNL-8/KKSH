@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,301 +9,38 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 
 import { Icon } from "../components/common/Icon";
 
-import {
-  ApiRequestError,
-  createSession,
-  listVideoSessions,
-} from "../lib/api";
-import {
-  DEFAULT_RELATIVE_PATH,
-  HIGH_VOLUME_FOLDER_THRESHOLD,
-  MAX_LIBRARY_VIDEOS,
-  clearVideos,
-  listVideos,
-  type StoredVideo,
-  exportMetadata,
-  importMetadata,
-} from "../lib/localVideosStore";
+
 import type { AppShellContextValue } from "../layout/types";
 import { VideoPlayer } from "../components/files/VideoPlayer";
 import { VideoMetadata } from "../components/files/VideoMetadata";
 import { LessonSidebar, LESSONS_VISIBLE_DEFAULT, LESSONS_VISIBLE_INCREMENT } from "../components/files/LessonSidebar";
-import { heightPercentClass, widthPercentClass } from "../lib/percentClasses";
+import { heightPercentClass } from "../lib/percentClasses";
 import {
-  type FolderSection,
-  type OrderMode,
-  type TabMode,
-  VIDEO_COMPLETION_PREFIX,
-  buildVideoRef,
-  extractVideoRefFromNotes,
   formatStorageKind,
   normalizePathForTestId,
-  resolvePlayableFile,
-  resolveVideoCompletionRef,
-  sortGroupPaths,
-  subjectFromRelativePath,
   summarizeNames,
-  toErrorMessage,
 } from "../components/files/utils";
-import { useFileImporter } from "../hooks/useFileImporter";
+import { type FolderSectionWithMeta, compareFolderSections, compareVideos } from "../components/files/sorting";
+import { useFilesViewState } from "../hooks/useFilesViewState";
+import type { FolderSection } from "../components/files/types";
 
-const MAX_SESSION_PAGES = 300;
-const FILES_VIEW_STATE_STORAGE_PREFIX = "cmd8_files_view_state_v1";
+import {
+  DEFAULT_RELATIVE_PATH,
+  HIGH_VOLUME_FOLDER_THRESHOLD,
+  MAX_LIBRARY_VIDEOS,
+  type StoredVideo,
+} from "../lib/localVideosStore";
+import { useVideoLibrary } from "../hooks/useVideoLibrary";
+import { useVideoSelection } from "../hooks/useVideoSelection";
 
-type HudTone = "red" | "blue" | "yellow" | "green" | "purple";
-
-interface HudProgressBarProps {
-  value: number;
-  max: number;
-  tone: HudTone;
-  label: string;
-  textValue: string;
-}
-
-interface FilesStatCardProps {
-  label: string;
-  value: string;
-  subtext: string;
-  icon: string;
-}
-
-const ORDER_LABELS: Record<OrderMode, string> = {
-  source: "Ordem: origem",
-  newest: "Ordem: recentes",
-  oldest: "Ordem: antigas",
-  name_asc: "Ordem: nome A-Z",
-  name_desc: "Ordem: nome Z-A",
-  size_desc: "Ordem: maior arquivo",
-  size_asc: "Ordem: menor arquivo",
-};
 
 const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
 
-interface FilesViewStateSnapshot {
-  selectedLessonId: string | null;
-  collapsedFolders: Record<string, boolean>;
-  visibleCountByFolder: Record<string, number>;
-  orderMode: OrderMode;
-  activeTab: TabMode;
-}
+import { FilesHeader } from "../components/files/FilesHeader";
+import { FilesToolbar } from "../components/files/FilesToolbar";
+import { ErrorBanner } from "../components/common/ErrorBanner";
 
-const ORDER_MODES: OrderMode[] = ["source", "newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];
-const TAB_MODES: TabMode[] = ["overview", "metadata"];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isOrderMode(value: string): value is OrderMode {
-  return ORDER_MODES.includes(value as OrderMode);
-}
-
-function isTabMode(value: string): value is TabMode {
-  return TAB_MODES.includes(value as TabMode);
-}
-
-function viewStateStorageKey(scope: string): string {
-  return `${FILES_VIEW_STATE_STORAGE_PREFIX}:${scope}`;
-}
-
-function sanitizeBooleanMap(value: unknown): Record<string, boolean> {
-  if (!isRecord(value)) {
-    return {};
-  }
-  const next: Record<string, boolean> = {};
-  for (const [key, item] of Object.entries(value)) {
-    if (typeof item === "boolean") {
-      next[key] = item;
-    }
-  }
-  return next;
-}
-
-function sanitizeNumberMap(value: unknown): Record<string, number> {
-  if (!isRecord(value)) {
-    return {};
-  }
-  const next: Record<string, number> = {};
-  for (const [key, item] of Object.entries(value)) {
-    const parsed = Number(item);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      next[key] = Math.round(parsed);
-    }
-  }
-  return next;
-}
-
-function readFilesViewState(scope: string): FilesViewStateSnapshot | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(viewStateStorageKey(scope));
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as unknown;
-    if (!isRecord(parsed)) {
-      return null;
-    }
-
-    const selectedLessonId =
-      typeof parsed.selectedLessonId === "string"
-        ? parsed.selectedLessonId
-        : parsed.selectedLessonId === null
-          ? null
-          : null;
-
-    const orderMode =
-      typeof parsed.orderMode === "string" && isOrderMode(parsed.orderMode)
-        ? parsed.orderMode
-        : "newest";
-
-    const activeTab =
-      typeof parsed.activeTab === "string" && isTabMode(parsed.activeTab)
-        ? parsed.activeTab
-        : "overview";
-
-    return {
-      selectedLessonId,
-      collapsedFolders: sanitizeBooleanMap(parsed.collapsedFolders),
-      visibleCountByFolder: sanitizeNumberMap(parsed.visibleCountByFolder),
-      orderMode,
-      activeTab,
-    };
-  } catch {
-    return null;
-  }
-}
-
-const HUD_BAR_TONE_CLASS: Record<HudTone, string> = {
-  red: "bg-gradient-to-r from-red-600 to-rose-400 shadow-[0_0_10px_rgba(225,29,72,0.5)]",
-  blue: "bg-gradient-to-r from-blue-600 to-cyan-400 shadow-[0_0_10px_rgba(37,99,235,0.5)]",
-  yellow: "bg-gradient-to-r from-yellow-500 to-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]",
-  green: "bg-gradient-to-r from-emerald-600 to-green-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]",
-  purple: "bg-gradient-to-r from-violet-600 to-fuchsia-400 shadow-[0_0_10px_rgba(139,92,246,0.5)]",
-};
-
-const HUD_TEXT_TONE_CLASS: Record<HudTone, string> = {
-  red: "text-red-400",
-  blue: "text-blue-400",
-  yellow: "text-yellow-400",
-  green: "text-emerald-400",
-  purple: "text-violet-400",
-};
-
-function HudProgressBar({ value, max, tone, label, textValue }: HudProgressBarProps) {
-  const safeMax = Math.max(1, max);
-  const percentage = Math.min(100, Math.max(0, (value / safeMax) * 100));
-
-  return (
-    <div className="w-36">
-      <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-        <span>{label}</span>
-        <span className={HUD_TEXT_TONE_CLASS[tone]}>{textValue}</span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full border border-slate-700/40 bg-slate-800/50">
-        <div className={`h-full rounded-full transition-all duration-700 ${HUD_BAR_TONE_CLASS[tone]} ${widthPercentClass(percentage)}`} />
-      </div>
-    </div>
-  );
-}
-
-function FilesStatCard({ label, value, subtext, icon }: FilesStatCardProps) {
-  return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/60 p-4 backdrop-blur-md transition-all duration-300 hover:border-cyan-500/40">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-      <div className="relative flex items-center gap-4">
-        <div className="rounded-lg border border-slate-700 bg-slate-800/80 p-3 shadow-inner transition-transform duration-300 group-hover:scale-105">
-          <Icon name={icon} className="text-cyan-400 text-[22px]" />
-        </div>
-        <div>
-          <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</h4>
-          <div className="mt-0.5 flex items-baseline gap-2">
-            <span className="text-2xl font-black tracking-tight text-white transition-colors group-hover:text-cyan-300">{value}</span>
-            <span className="text-[10px] font-mono text-slate-500">{subtext}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function compareVideos(left: StoredVideo, right: StoredVideo, mode: OrderMode): number {
-  const compareNameNatural = (a: StoredVideo, b: StoredVideo) => {
-    const primary = a.name.localeCompare(b.name, "pt-BR", {
-      sensitivity: "base",
-      numeric: true,
-    });
-    if (primary !== 0) {
-      return primary;
-    }
-    return a.name.localeCompare(b.name, "pt-BR", {
-      sensitivity: "variant",
-      numeric: true,
-    });
-  };
-
-  const leftPath = left.relativePath || DEFAULT_RELATIVE_PATH;
-  const rightPath = right.relativePath || DEFAULT_RELATIVE_PATH;
-  const bySourcePath = sortGroupPaths(leftPath, rightPath);
-  const bySourceName = compareNameNatural(left, right);
-
-  switch (mode) {
-    case "source":
-      return (
-        bySourcePath ||
-        bySourceName ||
-        left.lastModified - right.lastModified ||
-        left.createdAt - right.createdAt
-      );
-    case "newest":
-      return right.createdAt - left.createdAt || compareNameNatural(left, right);
-    case "oldest":
-      return left.createdAt - right.createdAt || compareNameNatural(left, right);
-    case "name_asc":
-      return compareNameNatural(left, right) || right.createdAt - left.createdAt;
-    case "name_desc":
-      return compareNameNatural(right, left) || right.createdAt - left.createdAt;
-    case "size_desc":
-      return right.size - left.size || compareNameNatural(left, right) || right.createdAt - left.createdAt;
-    case "size_asc":
-      return left.size - right.size || compareNameNatural(left, right) || right.createdAt - left.createdAt;
-    default:
-      return right.createdAt - left.createdAt;
-  }
-}
-
-interface FolderSectionWithMeta extends FolderSection {
-  totalSize: number;
-  newestCreatedAt: number;
-  oldestCreatedAt: number;
-}
-
-function compareFolderSections(left: FolderSectionWithMeta, right: FolderSectionWithMeta, mode: OrderMode): number {
-  const byNameAsc = sortGroupPaths(left.path, right.path);
-
-  switch (mode) {
-    case "source":
-      return byNameAsc;
-    case "newest":
-      return right.newestCreatedAt - left.newestCreatedAt || byNameAsc;
-    case "oldest":
-      return left.oldestCreatedAt - right.oldestCreatedAt || byNameAsc;
-    case "name_asc":
-      return byNameAsc;
-    case "name_desc":
-      return -byNameAsc;
-    case "size_desc":
-      return right.totalSize - left.totalSize || byNameAsc;
-    case "size_asc":
-      return left.totalSize - right.totalSize || byNameAsc;
-    default:
-      return byNameAsc;
-  }
-}
 
 
 export function FilesPage() {
@@ -323,86 +59,36 @@ export function FilesPage() {
     ]);
   }, [queryClient]);
 
-  const [videos, setVideos] = useState<StoredVideo[]>([]);
-  const [runtimeVideos, setRuntimeVideos] = useState<StoredVideo[]>([]);
-  const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [storageUnavailable, setStorageUnavailable] = useState(false);
-
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
-  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
-  const [visibleCountByFolder, setVisibleCountByFolder] = useState<Record<string, number>>({});
-  const [orderMode, setOrderMode] = useState<OrderMode>("newest");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<TabMode>("overview");
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
-  const [selectedDurationSec, setSelectedDurationSec] = useState<number | null>(null);
-
-  const [completedVideoRefs, setCompletedVideoRefs] = useState<Set<string>>(new Set());
-  const [resolvedVideoRefsById, setResolvedVideoRefsById] = useState<Record<string, string>>({});
-  const [selectedVideoRef, setSelectedVideoRef] = useState<string | null>(null);
-  const [resolvingSelectedVideoRef, setResolvingSelectedVideoRef] = useState(false);
-  const [loadingCompletions, setLoadingCompletions] = useState(false);
-  const [completingLesson, setCompletingLesson] = useState(false);
-  const [viewStateReadyKey, setViewStateReadyKey] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const authUserId = authUser?.id ?? null;
-  const viewStateScope = authUserId ?? "guest";
-  const currentViewStateKey = viewStateStorageKey(viewStateScope);
-  const visibleVideos = storageUnavailable ? runtimeVideos : videos;
-
-  const loadVideos = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const rows = await listVideos();
-      setVideos(rows);
-      setStorageUnavailable(false);
-    } catch (loadError) {
-      setVideos([]);
-      setStorageUnavailable(true);
-      setError(toErrorMessage(loadError, "Nao foi possivel carregar a biblioteca local."));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const mergeRuntimeVideos = useCallback((incoming: StoredVideo[]) => {
-    let addedCount = 0;
-    let ignoredCount = 0;
-    let skippedByLimitCount = 0;
-
-    setRuntimeVideos((current) => {
-      const ids = new Set(current.map((video) => video.id));
-      const added: StoredVideo[] = [];
-      for (const video of incoming) {
-        if (ids.has(video.id)) {
-          ignoredCount += 1;
-          continue;
-        }
-        if (ids.size >= MAX_LIBRARY_VIDEOS) {
-          skippedByLimitCount += 1;
-          continue;
-        }
-        ids.add(video.id);
-        added.push(video);
-      }
-      addedCount = added.length;
-      return [...added, ...current].sort((a, b) => b.createdAt - a.createdAt);
-    });
-
-    return { addedCount, ignoredCount, skippedByLimitCount };
-  }, []);
+  const {
+    selectedLessonId,
+    setSelectedLessonId,
+    collapsedFolders,
+    setCollapsedFolders,
+    visibleCountByFolder,
+    setVisibleCountByFolder,
+    orderMode,
+    setOrderMode,
+    activeTab,
+    setActiveTab,
+  } = useFilesViewState(authUserId);
 
   const {
+    visibleVideos,
+    loading: libraryLoading,
+    error: libraryError,
+    statusMessage: libraryStatusMessage,
+    storageUnavailable,
+    exporting,
+    handleClearAll,
+    handleExportMetadata,
+    handleImportMetadata,
     fileInputRef,
     folderInputRef,
+    importInputRef,
     saving,
     rejectedFiles,
     directoryHandleSupported,
@@ -414,14 +100,12 @@ export function FilesPage() {
     handleOpenDirectoryPicker,
     handleFilesSelected,
     handleFolderSelected,
-  } = useFileImporter({
-    onReload: loadVideos,
-    mergeRuntimeVideos,
-    setError,
-    setStatusMessage,
-    setStorageUnavailable,
-    storageUnavailable,
-  });
+    setError: setLibraryError,
+  } = useVideoLibrary();
+
+
+
+
 
   const folderSections = useMemo<FolderSection[]>(() => {
     const groups = new Map<string, StoredVideo[]>();
@@ -485,174 +169,50 @@ export function FilesPage() {
     [filteredFolderSections],
   );
 
-  const selectedVideo = useMemo<StoredVideo | null>(() => {
-    if (!selectedLessonId) {
-      return null;
-    }
-    return visibleVideos.find((video) => video.id === selectedLessonId) ?? null;
-  }, [selectedLessonId, visibleVideos]);
-
-  const isVideoCompleted = useCallback(
-    (video: StoredVideo | null): boolean => {
-      if (!video) {
-        return false;
-      }
-      const legacyRef = buildVideoRef(video);
-      if (completedVideoRefs.has(legacyRef)) {
-        return true;
-      }
-      const resolvedRef = resolvedVideoRefsById[video.id];
-      return Boolean(resolvedRef && completedVideoRefs.has(resolvedRef));
-    },
-    [completedVideoRefs, resolvedVideoRefsById],
-  );
+  const {
+    selectedVideo,
+    selectedVideoUrl,
+    selectedDurationSec,
+    setSelectedDurationSec,
+    completedVideoRefs,
+    loadingCompletions,
+    handleCompleteLesson,
+    handleVideoEnded,
+    isVideoCompleted,
+    resolvingSelectedVideoRef,
+    completingLesson,
+    selectedVideoRef,
+    resolvedVideoRefsById,
+    error: selectionError,
+    statusMessage: selectionStatusMessage,
+    setError: setSelectionError,
+  } = useVideoSelection({
+    visibleVideos,
+    folderSections,
+    selectedLessonId,
+    setSelectedLessonId,
+    authUser,
+    openAuthPanel,
+    invalidateProgressCaches,
+  });
 
   const selectedVideoCompleted = isVideoCompleted(selectedVideo);
   const estimatedMinutes =
     selectedDurationSec && Number.isFinite(selectedDurationSec)
       ? Math.max(1, Math.ceil(selectedDurationSec / 60))
       : null;
+  const error = libraryError ?? selectionError;
+  const statusMessage = libraryStatusMessage ?? selectionStatusMessage;
+  const loading = libraryLoading;
 
-  useEffect(() => {
-    if (!selectedVideo) {
-      setSelectedVideoRef(null);
-      setResolvingSelectedVideoRef(false);
-      return;
-    }
+  const handleClearError = useCallback(() => {
+    setLibraryError(null);
+    setSelectionError(null);
+  }, [setLibraryError, setSelectionError]);
 
-    const legacyRef = buildVideoRef(selectedVideo);
-    const selectedId = selectedVideo.id;
-    let cancelled = false;
 
-    setSelectedVideoRef(legacyRef);
-    setResolvedVideoRefsById((current) =>
-      current[selectedId] === legacyRef ? current : { ...current, [selectedId]: legacyRef },
-    );
-    setResolvingSelectedVideoRef(true);
 
-    const resolveRef = async () => {
-      try {
-        const stableRef = await resolveVideoCompletionRef(selectedVideo);
-        if (cancelled) {
-          return;
-        }
-        setSelectedVideoRef(stableRef);
-        setResolvedVideoRefsById((current) =>
-          current[selectedId] === stableRef ? current : { ...current, [selectedId]: stableRef },
-        );
-      } catch {
-        if (cancelled) {
-          return;
-        }
-        setSelectedVideoRef(legacyRef);
-      } finally {
-        if (!cancelled) {
-          setResolvingSelectedVideoRef(false);
-        }
-      }
-    };
 
-    void resolveRef();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedVideo]);
-
-  const loadCompletedVideoRefs = useCallback(async () => {
-    if (!authUserId) {
-      setCompletedVideoRefs(new Set());
-      setLoadingCompletions(false);
-      return;
-    }
-
-    setLoadingCompletions(true);
-    try {
-      const refs = new Set<string>();
-      let cursor: string | undefined;
-      let pageIndex = 0;
-      while (pageIndex < MAX_SESSION_PAGES) {
-        const payload = await listVideoSessions(cursor);
-
-        for (const row of payload.sessions) {
-          const ref = extractVideoRefFromNotes(row.notes);
-          if (ref) {
-            refs.add(ref);
-          }
-        }
-
-        pageIndex += 1;
-        if (!payload.nextCursor) {
-          cursor = undefined;
-          break;
-        }
-        cursor = payload.nextCursor;
-      }
-
-      setCompletedVideoRefs(refs);
-      if (cursor) {
-        setStatusMessage(
-          `Sincronizacao parcial de aulas concluidas: limite de ${MAX_SESSION_PAGES} paginas atingido.`,
-        );
-      }
-    } catch (loadError) {
-      setError(toErrorMessage(loadError, "Nao foi possivel sincronizar o progresso das aulas."));
-    } finally {
-      setLoadingCompletions(false);
-    }
-  }, [authUserId]);
-
-  useEffect(() => {
-    void loadVideos();
-  }, [loadVideos]);
-
-  useEffect(() => {
-    void loadCompletedVideoRefs();
-  }, [loadCompletedVideoRefs]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    setViewStateReadyKey(null);
-    const snapshot = readFilesViewState(viewStateScope);
-    if (snapshot) {
-      setSelectedLessonId(snapshot.selectedLessonId);
-      setCollapsedFolders(snapshot.collapsedFolders);
-      setVisibleCountByFolder(snapshot.visibleCountByFolder);
-      setOrderMode(snapshot.orderMode);
-      setActiveTab(snapshot.activeTab);
-    }
-    setViewStateReadyKey(currentViewStateKey);
-  }, [currentViewStateKey, viewStateScope]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || viewStateReadyKey !== currentViewStateKey) {
-      return;
-    }
-
-    const snapshot: FilesViewStateSnapshot = {
-      selectedLessonId,
-      collapsedFolders,
-      visibleCountByFolder,
-      orderMode,
-      activeTab,
-    };
-    try {
-      window.localStorage.setItem(currentViewStateKey, JSON.stringify(snapshot));
-    } catch {
-      // Ignore storage write failures.
-    }
-  }, [
-    activeTab,
-    collapsedFolders,
-    currentViewStateKey,
-    orderMode,
-    selectedLessonId,
-    viewStateReadyKey,
-    visibleCountByFolder,
-  ]);
 
   useEffect(() => {
     const folderInput = folderInputRef.current;
@@ -663,41 +223,7 @@ export function FilesPage() {
     folderInput.setAttribute("directory", "");
   }, [folderInputRef]);
 
-  useEffect(() => {
-    setSelectedVideoUrl("");
-    if (!selectedVideo) {
-      return;
-    }
 
-    let closed = false;
-    let objectUrl: string | null = null;
-
-    const loadPlayableSource = async () => {
-      try {
-        const playableFile = await resolvePlayableFile(selectedVideo);
-        if (closed) {
-          return;
-        }
-        objectUrl = URL.createObjectURL(playableFile);
-        setSelectedVideoUrl(objectUrl);
-      } catch (loadError) {
-        if (closed) {
-          return;
-        }
-        setSelectedVideoUrl("");
-        setError(toErrorMessage(loadError, "Nao foi possivel abrir o video selecionado."));
-      }
-    };
-
-    void loadPlayableSource();
-
-    return () => {
-      closed = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [selectedVideo]);
 
   useEffect(() => {
     if (loading) {
@@ -766,9 +292,7 @@ export function FilesPage() {
     });
   }, [folderSections]);
 
-  useEffect(() => {
-    setSelectedDurationSec(null);
-  }, [selectedVideo?.id]);
+
 
   const handleToggleFolder = (path: string) => {
     setCollapsedFolders((current) => ({
@@ -817,173 +341,7 @@ export function FilesPage() {
     setActiveTab((current) => (current === "overview" ? "metadata" : "overview"));
   }, []);
 
-  const handleClearAll = async () => {
-    setError(null);
-    setStatusMessage(null);
 
-    if (storageUnavailable) {
-      setRuntimeVideos([]);
-      setStatusMessage("Biblioteca temporaria limpa.");
-      return;
-    }
-
-    try {
-      await clearVideos();
-      await loadVideos();
-      setStatusMessage("Biblioteca local limpa.");
-    } catch (clearError) {
-      setError(toErrorMessage(clearError, "Falha ao limpar biblioteca local."));
-    }
-  };
-
-  const handleExportMetadata = async () => {
-    setExporting(true);
-    setStatusMessage(null);
-    setError(null);
-    try {
-      const json = await exportMetadata();
-      const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const date = new Date().toISOString().slice(0, 10);
-      a.href = url;
-      a.download = `cmd8-library-backup-${date}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setStatusMessage("Backup dos metadados (JSON) exportado com sucesso.");
-    } catch (e) {
-      setError(toErrorMessage(e, "Falha ao exportar metadados."));
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleImportMetadata = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    event.target.value = "";
-
-    setLoading(true);
-    setError(null);
-    setStatusMessage(null);
-    try {
-      const text = await file.text();
-      const result = await importMetadata(text);
-      await loadVideos();
-      setStatusMessage(
-        `Importacao de metadados concluida: ${result.added.length} itens restaurados (arquivos precisam ser realocados se movidos).`
-      );
-    } catch (e) {
-      setError(toErrorMessage(e, "Falha ao importar metadados. Verifique se o arquivo eh valido."));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCompleteLesson = useCallback(async () => {
-    if (!selectedVideo) {
-      return;
-    }
-
-    if (resolvingSelectedVideoRef || !selectedVideoRef) {
-      setStatusMessage("Preparando identificador estavel da aula para dedupe.");
-      return;
-    }
-
-    if (!authUser) {
-      setStatusMessage("Faca login no topo para contabilizar XP e nivel.");
-      openAuthPanel();
-      return;
-    }
-
-    if (loadingCompletions) {
-      setStatusMessage("Sincronizando progresso de aulas concluidas. Tente novamente em instantes.");
-      return;
-    }
-
-    if (selectedVideoCompleted) {
-      setStatusMessage("Essa aula ja foi concluida e ja gerou XP nesta conta.");
-      return;
-    }
-
-    // Duration is now tracked via onDurationChange in VideoPlayer
-    let durationSec = selectedDurationSec;
-    let usedFallbackDuration = false;
-
-    // Fallback if no duration detected (e.g. error or very short video)
-    if (typeof durationSec !== "number" || !Number.isFinite(durationSec) || durationSec <= 0) {
-      durationSec = 60;
-      usedFallbackDuration = true;
-    }
-
-    const minutes = Math.max(1, Math.ceil(durationSec / 60));
-    const subject = subjectFromRelativePath(selectedVideo.relativePath || DEFAULT_RELATIVE_PATH);
-
-    setCompletingLesson(true);
-    setError(null);
-    setStatusMessage(null);
-    try {
-      const output = await createSession({
-        subject,
-        minutes,
-        mode: "video_lesson",
-        notes: `${VIDEO_COMPLETION_PREFIX}${selectedVideoRef}`,
-      });
-
-      setCompletedVideoRefs((current) => {
-        const next = new Set(current);
-        next.add(selectedVideoRef);
-        next.add(buildVideoRef(selectedVideo));
-        return next;
-      });
-
-      setStatusMessage(
-        output.xpEarned <= 0 && output.goldEarned <= 0
-          ? "Essa aula ja havia sido concluida nesta conta. Nenhum novo XP ou historico foi gerado."
-          : usedFallbackDuration
-            ? `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados (duracao minima aplicada).`
-            : `Aula concluida: +${output.xpEarned} XP | ${minutes} min contabilizados.`,
-      );
-      await invalidateProgressCaches();
-    } catch (completeError) {
-      if (completeError instanceof ApiRequestError && completeError.status === 401) {
-        setError("Sessao expirada. Faca login novamente.");
-        await invalidateProgressCaches();
-      }
-      setError(toErrorMessage(completeError, "Falha ao registrar conclusao da aula."));
-    } finally {
-      setCompletingLesson(false);
-    }
-  }, [
-    authUser,
-    invalidateProgressCaches,
-    loadingCompletions,
-    openAuthPanel,
-    resolvingSelectedVideoRef,
-    selectedDurationSec,
-    selectedVideo,
-    selectedVideoCompleted,
-    selectedVideoRef,
-  ]);
-
-  const handleVideoEnded = useCallback(() => {
-    if (!selectedLessonId) return;
-
-    // Find current video in sections to determine next
-    for (const section of folderSections) {
-      const idx = section.lessons.findIndex((l) => l.id === selectedLessonId);
-      if (idx !== -1) {
-        // Check if there is a next video in this section
-        if (idx < section.lessons.length - 1) {
-          const nextLesson = section.lessons[idx + 1];
-          handleSelectLesson(nextLesson.id);
-        }
-        break;
-      }
-    }
-  }, [selectedLessonId, folderSections]);
 
   const completedLessonCount = useMemo(
     () => visibleVideos.reduce((acc, video) => (isVideoCompleted(video) ? acc + 1 : acc), 0),
@@ -992,6 +350,8 @@ export function FilesPage() {
   const completionRate = visibleVideos.length > 0
     ? Math.round((completedLessonCount / visibleVideos.length) * 100)
     : 0;
+
+
   const currentFolderCount = filteredFolderSections.length;
 
   return (
@@ -1028,187 +388,31 @@ export function FilesPage() {
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.04)_1px,transparent_1px)] bg-[size:36px_36px]" />
 
         <div className="relative z-10 space-y-4">
-          <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 p-4 backdrop-blur-md">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="min-w-0">
-                <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                  <Icon name="activity" className="animate-pulse text-[12px]" />
-                  System Ready
-                </div>
-                <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-                  <span>UPLINK_ON</span>
-                  <Icon name="angle-right" className="text-[12px]" />
-                  <span>Arquivos de Sincronia</span>
-                </div>
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-                  Biblioteca de <span className="text-cyan-400">Aulas</span>
-                </h2>
-                <p className="mt-1 text-xs font-medium text-slate-500">
-                  Player local com progresso RPG, playlist por pasta e conclusao com XP.
-                </p>
-              </div>
+          <FilesHeader globalStats={globalStats} />
 
-              <div className="ml-auto flex flex-wrap items-center gap-5 rounded-2xl border border-slate-800 bg-black/40 px-4 py-3 shadow-lg">
-                <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
-                <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
-                <HudProgressBar
-                  value={globalStats.xp}
-                  max={globalStats.maxXp}
-                  tone="yellow"
-                  label="EXP"
-                  textValue={`LVL ${globalStats.level}`}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <FilesStatCard label="Nivel Atual" value={String(globalStats.level)} subtext="Iniciado" icon="shield-check" />
-            <FilesStatCard label="Rank" value={globalStats.rank} subtext="Sistema" icon="trophy" />
-            <FilesStatCard label="Experiencia" value={`${globalStats.xp}/${globalStats.maxXp}`} subtext="XP total" icon="bolt" />
-            <FilesStatCard label="Gold" value={String(globalStats.gold)} subtext="Creditos" icon="coins" />
-          </div>
-
-          <div className="space-y-3 border-t border-slate-800 pt-4" data-testid="files-toolbar">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                className="flex items-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-cyan-900/20 transition-all hover:bg-cyan-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                data-testid="files-upload-button"
-                disabled={saving}
-                onClick={handleOpenPicker}
-                type="button"
-              >
-                {saving ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="upload" className="text-[14px]" />}
-                Upload
-              </button>
-              <button
-                className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                data-testid="files-folder-button"
-                disabled={saving}
-                onClick={handleOpenFolderPicker}
-                type="button"
-              >
-                <Icon name="folder-open" className="text-[14px]" />
-                {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
-              </button>
-              {directoryHandleSupported && (
-                <button
-                  className="flex items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-violet-900/20 transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                  data-testid="connect-directory-handle"
-                  disabled={saving}
-                  onClick={() => void handleOpenDirectoryPicker()}
-                  title="Conecta uma pasta sem copiar todos os blobs para o IndexedDB."
-                  type="button"
-                >
-                  <Icon name="folder-open" className="text-[14px]" />
-                  Conectar pasta (alto volume)
-                </button>
-              )}
-
-              <div className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 p-0.5">
-                <button
-                  className="rounded-lg px-3 py-1.5 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-50"
-                  disabled={loading || saving || visibleVideos.length === 0}
-                  onClick={handleExportMetadata}
-                  title="Exportar lista de videos (backup leve)"
-                  type="button"
-                >
-                  {exporting ? <Icon name="spinner" className="animate-spin text-[12px]" /> : <Icon name="download" className="text-[12px]" />}
-                  <span className="ml-1 hidden sm:inline">Backup</span>
-                </button>
-                <div className="h-4 w-px bg-slate-800" />
-                <button
-                  className="rounded-lg px-3 py-1.5 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-50"
-                  disabled={loading || saving}
-                  onClick={() => importInputRef.current?.click()}
-                  title="Restaurar lista de videos"
-                  type="button"
-                >
-                  <Icon name="upload" className="text-[12px]" />
-                  <span className="ml-1 hidden sm:inline">Restaurar</span>
-                </button>
-              </div>
-              <div
-                className="hidden items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 md:flex"
-                data-testid="files-sort-select"
-              >
-                <Icon name="sort-alt" className="text-[14px]" />
-                <select
-                  className="max-w-[210px] appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-300 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  data-testid="toggle-order"
-                  disabled={visibleVideos.length === 0 || loading}
-                  onChange={(event) => setOrderMode(event.target.value as OrderMode)}
-                  value={orderMode}
-                >
-                  <option value="source">{ORDER_LABELS.source}</option>
-                  <option value="newest">{ORDER_LABELS.newest}</option>
-                  <option value="oldest">{ORDER_LABELS.oldest}</option>
-                  <option value="name_asc">{ORDER_LABELS.name_asc}</option>
-                  <option value="name_desc">{ORDER_LABELS.name_desc}</option>
-                  <option value="size_desc">{ORDER_LABELS.size_desc}</option>
-                  <option value="size_asc">{ORDER_LABELS.size_asc}</option>
-                </select>
-              </div>
-              <button
-                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-red-500/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-                data-testid="clear-library"
-                disabled={visibleVideos.length === 0 || loading || saving}
-                onClick={() => void handleClearAll()}
-                type="button"
-              >
-                <Icon name="trash" className="text-[14px]" />
-                Limpar biblioteca
-              </button>
-              <button
-                aria-label="Abrir conteudo"
-                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 lg:hidden"
-                data-testid="sidebar-mobile-toggle"
-                disabled={visibleVideos.length === 0}
-                onClick={() => setIsSidebarMobileOpen(true)}
-                type="button"
-              >
-                <Icon name="list" className="text-[14px]" />
-                Conteudo
-              </button>
-              <button
-                className="ml-auto hidden rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-cyan-300 md:inline-flex"
-                title="Configuracoes visuais"
-                data-testid="files-open-visual-settings"
-                onClick={handleOpenVisualSettings}
-                type="button"
-              >
-                <Icon name="settings" className="text-[14px]" />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div className="relative w-full md:max-w-xl">
-                <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
-                <input
-                  className="w-full rounded-xl border border-slate-700 bg-[#06080f] py-2.5 pl-9 pr-3 text-xs font-medium text-slate-200 placeholder-slate-500 outline-none transition-colors focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/30"
-                  data-testid="files-search-input"
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Pesquisar por nome ou pasta..."
-                  type="text"
-                  value={searchTerm}
-                />
-              </div>
-              <div className="rounded-xl border border-slate-800 bg-[#0b0d12] px-3 py-2 text-xs font-semibold text-slate-400">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1">
-                    <Icon name="apps" className="text-[13px]" />
-                    {completedLessonCount}/{visibleVideos.length} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
-                  </span>
-                  {loadingCompletions && (
-                    <span className="flex items-center gap-1 text-cyan-300">
-                      <Icon name="spinner" className="animate-spin text-[12px]" />
-                      sincronizando
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <FilesToolbar
+            saving={saving}
+            loading={loading}
+            exporting={exporting}
+            visibleVideosCount={visibleVideos.length}
+            directoryHandleSupported={directoryHandleSupported}
+            orderMode={orderMode}
+            onOrderModeChange={setOrderMode}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            completedLessonCount={completedLessonCount}
+            filteredLessonCount={filteredLessonCount}
+            completionRate={completionRate}
+            loadingCompletions={loadingCompletions}
+            onOpenPicker={handleOpenPicker}
+            onOpenFolderPicker={handleOpenFolderPicker}
+            onOpenDirectoryPicker={handleOpenDirectoryPicker}
+            onExportMetadata={handleExportMetadata}
+            onImportMetadataClick={() => importInputRef.current?.click()}
+            onClearLibrary={handleClearAll}
+            onOpenVisualSettings={handleOpenVisualSettings}
+            onToggleMobileSidebar={() => setIsSidebarMobileOpen(true)}
+          />
         </div>
 
         {storageUnavailable && (
@@ -1294,14 +498,9 @@ export function FilesPage() {
           )
         }
 
-        {
-          error && (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-300">
-              <Icon name="exclamation" className="text-[14px]" />
-              {error}
-            </div>
-          )
-        }
+        <div className="mt-3">
+          <ErrorBanner message={error} onClose={handleClearError} />
+        </div>
       </div >
 
       {
