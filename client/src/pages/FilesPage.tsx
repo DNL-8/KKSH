@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,8 @@ import {
   clearVideos,
   listVideos,
   type StoredVideo,
+  exportMetadata,
+  importMetadata,
 } from "../lib/localVideosStore";
 import type { AppShellContextValue } from "../layout/types";
 import { VideoPlayer } from "../components/files/VideoPlayer";
@@ -345,6 +348,8 @@ export function FilesPage() {
   const [loadingCompletions, setLoadingCompletions] = useState(false);
   const [completingLesson, setCompletingLesson] = useState(false);
   const [viewStateReadyKey, setViewStateReadyKey] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const authUserId = authUser?.id ?? null;
   const viewStateScope = authUserId ?? "guest";
@@ -831,6 +836,52 @@ export function FilesPage() {
     }
   };
 
+  const handleExportMetadata = async () => {
+    setExporting(true);
+    setStatusMessage(null);
+    setError(null);
+    try {
+      const json = await exportMetadata();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `cmd8-library-backup-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatusMessage("Backup dos metadados (JSON) exportado com sucesso.");
+    } catch (e) {
+      setError(toErrorMessage(e, "Falha ao exportar metadados."));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportMetadata = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = "";
+
+    setLoading(true);
+    setError(null);
+    setStatusMessage(null);
+    try {
+      const text = await file.text();
+      const result = await importMetadata(text);
+      await loadVideos();
+      setStatusMessage(
+        `Importacao de metadados concluida: ${result.added.length} itens restaurados (arquivos precisam ser realocados se movidos).`
+      );
+    } catch (e) {
+      setError(toErrorMessage(e, "Falha ao importar metadados. Verifique se o arquivo eh valido."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCompleteLesson = useCallback(async () => {
     if (!selectedVideo) {
       return;
@@ -963,6 +1014,13 @@ export function FilesPage() {
         onChange={handleFolderSelected}
         type="file"
       />
+      <input
+        ref={importInputRef}
+        accept=".json"
+        className="hidden"
+        onChange={(e) => void handleImportMetadata(e)}
+        type="file"
+      />
 
       <div className="relative overflow-hidden rounded-[30px] border border-slate-800 bg-[#090b10]/90 p-4 md:p-6" data-testid="files-header">
         <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-cyan-900/10 blur-[120px]" />
@@ -1046,6 +1104,30 @@ export function FilesPage() {
                   Conectar pasta (alto volume)
                 </button>
               )}
+
+              <div className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 p-0.5">
+                <button
+                  className="rounded-lg px-3 py-1.5 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-50"
+                  disabled={loading || saving || visibleVideos.length === 0}
+                  onClick={handleExportMetadata}
+                  title="Exportar lista de videos (backup leve)"
+                  type="button"
+                >
+                  {exporting ? <Icon name="spinner" className="animate-spin text-[12px]" /> : <Icon name="download" className="text-[12px]" />}
+                  <span className="ml-1 hidden sm:inline">Backup</span>
+                </button>
+                <div className="h-4 w-px bg-slate-800" />
+                <button
+                  className="rounded-lg px-3 py-1.5 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-cyan-300 disabled:opacity-50"
+                  disabled={loading || saving}
+                  onClick={() => importInputRef.current?.click()}
+                  title="Restaurar lista de videos"
+                  type="button"
+                >
+                  <Icon name="upload" className="text-[12px]" />
+                  <span className="ml-1 hidden sm:inline">Restaurar</span>
+                </button>
+              </div>
               <div
                 className="hidden items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-[10px] font-black uppercase text-slate-300 transition-all hover:border-cyan-500/30 hover:text-cyan-300 md:flex"
                 data-testid="files-sort-select"
@@ -1135,198 +1217,277 @@ export function FilesPage() {
           </div>
         )}
 
-        {highVolumeHint && directoryHandleSupported && (
-          <div
-            className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs font-semibold text-cyan-200"
-            data-testid="high-volume-banner"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>{highVolumeHint}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  className="rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-100 transition-colors hover:bg-cyan-500/30"
-                  data-testid="switch-to-directory-handle"
-                  onClick={() => void triggerDirectoryConnect()}
-                  type="button"
-                >
-                  Conectar pasta agora
-                </button>
-                <button
-                  className="rounded-lg border border-slate-600/60 bg-slate-900/60 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
-                  onClick={clearHighVolumeHint}
-                  type="button"
-                >
-                  Fechar
-                </button>
+        {
+          !directoryHandleSupported && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs font-medium text-orange-200">
+              <Icon name="exclamation" className="text-orange-400 text-[18px]" />
+              <div>
+                <p className="font-bold text-orange-300 uppercase tracking-wide text-[10px] mb-1">Compatibilidade Limitada</p>
+                Seu navegador nao suporta a API de Acesso ao Sistema de Arquivos (padrao em Chrome/Edge).
+                A opcao <strong>Carregar pasta</strong> copiara os arquivos para o navegador, o que pode lotar o armazenamento rapido.
+                Recomendamos importar poucas pastas por vez.
               </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
-        {visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
-          <div className="mt-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs font-semibold text-indigo-200">
-            Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
-          </div>
-        )}
-
-        {statusMessage && (
-          <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300">
-            {statusMessage}
-          </div>
-        )}
-
-        {rejectedFiles.length > 0 && (
-          <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs font-semibold text-amber-200">
-            Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
-          </div>
-        )}
-
-        {error && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-300">
-            <Icon name="exclamation" className="text-[14px]" />
-            {error}
-          </div>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-800 bg-[#0a0a0b]/60">
-          <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
-            <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
-            Carregando biblioteca local...
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs font-medium text-blue-200">
+          <Icon name="device-hdd" className="text-blue-400 text-[18px]" />
+          <div>
+            <p className="font-bold text-blue-300 uppercase tracking-wide text-[10px] mb-1">Persistencia de Dados</p>
+            A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site ou o cache, a biblioteca sera apagada.
+            Use o botao <strong>Backup</strong> acima para salvar seus metadados regularmente.
           </div>
         </div>
-      ) : visibleVideos.length === 0 ? (
-        <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center">
-          <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
-            <Icon name="film" className="text-[hsl(var(--accent))] text-[36px]" />
+
+        {
+          highVolumeHint && directoryHandleSupported && (
+            <div
+              className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs font-semibold text-cyan-200"
+              data-testid="high-volume-banner"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span>{highVolumeHint}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-100 transition-colors hover:bg-cyan-500/30"
+                    data-testid="switch-to-directory-handle"
+                    onClick={() => void triggerDirectoryConnect()}
+                    type="button"
+                  >
+                    Conectar pasta agora
+                  </button>
+                  <button
+                    className="rounded-lg border border-slate-600/60 bg-slate-900/60 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
+                    onClick={clearHighVolumeHint}
+                    type="button"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
+            <div className="mt-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs font-semibold text-indigo-200">
+              Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
+            </div>
+          )
+        }
+
+        {
+          statusMessage && (
+            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300">
+              {statusMessage}
+            </div>
+          )
+        }
+
+        {
+          rejectedFiles.length > 0 && (
+            <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs font-semibold text-amber-200">
+              Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
+            </div>
+          )
+        }
+
+        {
+          error && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-300">
+              <Icon name="exclamation" className="text-[14px]" />
+              {error}
+            </div>
+          )
+        }
+      </div >
+
+      {
+        loading ? (
+          <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-800 bg-[#0a0a0b]/60" >
+            <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
+              <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
+              Carregando biblioteca local...
+            </div>
           </div>
-          <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
-          <p className="mt-2 max-w-xl text-sm text-slate-500">
-            Selecione videos ou pasta para montar sua trilha de estudos em /arquivos.
-          </p>
-          <button
-            className="mt-8 flex items-center gap-2 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95"
-            onClick={handleOpenPicker}
-            type="button"
-          >
-            <Icon name="upload" className="text-[16px]" />
-            Selecionar videos
-          </button>
-          <button
-            className="mt-3 flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-indigo-500 active:scale-95"
-            onClick={handleOpenFolderPicker}
-            type="button"
-          >
-            <Icon name="folder-open" className="text-[16px]" />
-            {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD})`}
-          </button>
-          {directoryHandleSupported && (
+        ) : visibleVideos.length === 0 ? (
+          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center">
+            <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
+              <Icon name="film" className="text-[hsl(var(--accent))] text-[36px]" />
+            </div>
+            <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">
+              Selecione videos ou pasta para montar sua trilha de estudos em /arquivos.
+            </p>
             <button
-              className="mt-3 flex items-center gap-2 rounded-2xl border border-violet-500/30 bg-violet-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={saving}
-              onClick={() => void handleOpenDirectoryPicker()}
+              className="mt-8 flex items-center gap-2 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95"
+              onClick={handleOpenPicker}
+              type="button"
+            >
+              <Icon name="upload" className="text-[16px]" />
+              Selecionar videos
+            </button>
+            <button
+              className="mt-3 flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-indigo-500 active:scale-95"
+              onClick={handleOpenFolderPicker}
               type="button"
             >
               <Icon name="folder-open" className="text-[16px]" />
-              Conectar pasta (alto volume)
+              {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD})`}
             </button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <section className="space-y-5" data-testid="files-player">
-            <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]" data-testid="course-player">
-              <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-2 border-r-2 border-cyan-500/70" />
-              <VideoPlayer
-                onDurationChange={setSelectedDurationSec}
-                onEnded={handleVideoEnded}
-                video={selectedVideo}
-                videoUrl={selectedVideoUrl}
+            {directoryHandleSupported && (
+              <button
+                className="mt-3 flex items-center gap-2 rounded-2xl border border-violet-500/30 bg-violet-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={saving}
+                onClick={() => void handleOpenDirectoryPicker()}
+                type="button"
+              >
+                <Icon name="folder-open" className="text-[16px]" />
+                Conectar pasta (alto volume)
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <section className="space-y-5" data-testid="files-player">
+              <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]" data-testid="course-player">
+                <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
+                <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
+                <div className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-2 border-r-2 border-cyan-500/70" />
+                <VideoPlayer
+                  onDurationChange={setSelectedDurationSec}
+                  onEnded={handleVideoEnded}
+                  video={selectedVideo}
+                  videoUrl={selectedVideoUrl}
+                />
+                <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
+                  {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
+                    <span
+                      key={`wf-${index}`}
+                      className={`flex-1 rounded-full ${index <= 18 ? "bg-cyan-500/80" : "bg-slate-700/70"} ${heightPercentClass(value)}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black tracking-tight text-white">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Pasta: {selectedVideo?.relativePath ?? "-"}
+                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Armazenamento: {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
+                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Duracao detectada: {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando metadados"}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2" data-testid="files-complete-button">
+                    <button
+                      className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                        : "border-cyan-500/40 bg-cyan-600 text-white hover:bg-cyan-500"
+                        } disabled:cursor-not-allowed disabled:opacity-60`}
+                      data-testid="complete-lesson-button"
+                      disabled={
+                        !selectedVideo ||
+                        selectedVideoCompleted ||
+                        completingLesson ||
+                        resolvingSelectedVideoRef
+                      }
+                      onClick={() => void handleCompleteLesson()}
+                      type="button"
+                    >
+                      {completingLesson ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="check-circle" className="text-[14px]" />}
+                      {!authUser
+                        ? "Faca login para concluir"
+                        : loadingCompletions
+                          ? "Sincronizando..."
+                          : resolvingSelectedVideoRef
+                            ? "Preparando dedupe..."
+                            : selectedVideoCompleted
+                              ? "Ja concluida"
+                              : completingLesson
+                                ? "Concluindo..."
+                                : "Concluir aula (+XP)"}
+                    </button>
+                    <button
+                      className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
+                      title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
+                      data-testid="files-toggle-metadata-panel"
+                      onClick={handleToggleMetadataPanel}
+                      type="button"
+                    >
+                      <Icon name="menu-dots-vertical" className="text-[14px]" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <VideoMetadata
+                selectedVideo={selectedVideo}
+                selectedVideoRef={selectedVideoRef}
+                videoCount={visibleVideos.length}
+                folderCount={folderSections.length}
+                completed={selectedVideoCompleted}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
               />
-              <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
-                {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
-                  <span
-                    key={`wf-${index}`}
-                    className={`flex-1 rounded-full ${index <= 18 ? "bg-cyan-500/80" : "bg-slate-700/70"} ${heightPercentClass(value)}`}
-                  />
-                ))}
+            </section>
+
+            <aside className="hidden lg:block" data-testid="files-playlist">
+              <div className="space-y-4">
+                <LessonSidebar
+                  folderSections={filteredFolderSections}
+                  selectedLessonId={selectedLessonId}
+                  completedVideoRefs={completedVideoRefs}
+                  resolvedVideoRefsById={resolvedVideoRefsById}
+                  collapsedFolders={collapsedFolders}
+                  visibleCountByFolder={visibleCountByFolder}
+                  onToggleFolder={handleToggleFolder}
+                  onSelectLesson={handleSelectLesson}
+                  onShowMore={handleShowMoreLessons}
+                  onCollapseAllFolders={handleCollapseAllFolders}
+                  onExpandAllFolders={handleExpandAllFolders}
+                  onClose={() => setIsSidebarMobileOpen(false)}
+                />
+                <button
+                  className="w-full rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 text-left transition-all hover:border-cyan-500/30 hover:bg-slate-800/50"
+                  data-testid="files-support-material-upload"
+                  onClick={handleOpenFolderPicker}
+                  type="button"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
+                      <Icon name="file-video" className="text-[20px]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>
+                      <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
+                    </div>
+                  </div>
+                </button>
               </div>
-            </div>
+            </aside>
+          </div>
+        )
+      }
 
-            <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black tracking-tight text-white">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Pasta: {selectedVideo?.relativePath ?? "-"}
-                  </p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Armazenamento: {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
-                  </p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Duracao detectada: {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando metadados"}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2" data-testid="files-complete-button">
-                  <button
-                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      : "border-cyan-500/40 bg-cyan-600 text-white hover:bg-cyan-500"
-                      } disabled:cursor-not-allowed disabled:opacity-60`}
-                    data-testid="complete-lesson-button"
-                    disabled={
-                      !selectedVideo ||
-                      selectedVideoCompleted ||
-                      completingLesson ||
-                      resolvingSelectedVideoRef
-                    }
-                    onClick={() => void handleCompleteLesson()}
-                    type="button"
-                  >
-                    {completingLesson ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="check-circle" className="text-[14px]" />}
-                    {!authUser
-                      ? "Faca login para concluir"
-                      : loadingCompletions
-                        ? "Sincronizando..."
-                        : resolvingSelectedVideoRef
-                          ? "Preparando dedupe..."
-                        : selectedVideoCompleted
-                          ? "Ja concluida"
-                          : completingLesson
-                            ? "Concluindo..."
-                            : "Concluir aula (+XP)"}
-                  </button>
-                  <button
-                    className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
-                    title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
-                    data-testid="files-toggle-metadata-panel"
-                    onClick={handleToggleMetadataPanel}
-                    type="button"
-                  >
-                    <Icon name="menu-dots-vertical" className="text-[14px]" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <VideoMetadata
-              selectedVideo={selectedVideo}
-              selectedVideoRef={selectedVideoRef}
-              videoCount={visibleVideos.length}
-              folderCount={folderSections.length}
-              completed={selectedVideoCompleted}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
+      {
+        isSidebarMobileOpen && visibleVideos.length > 0 && (
+          <div className="fixed inset-0 z-[120] lg:hidden" role="dialog" aria-modal="true">
+            <button
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setIsSidebarMobileOpen(false)}
+              type="button"
             />
-          </section>
-
-          <aside className="hidden lg:block" data-testid="files-playlist">
-            <div className="space-y-4">
+            <div className="absolute bottom-0 right-0 top-0">
               <LessonSidebar
                 folderSections={filteredFolderSections}
                 selectedLessonId={selectedLessonId}
@@ -1334,6 +1495,7 @@ export function FilesPage() {
                 resolvedVideoRefsById={resolvedVideoRefsById}
                 collapsedFolders={collapsedFolders}
                 visibleCountByFolder={visibleCountByFolder}
+                mobile={true}
                 onToggleFolder={handleToggleFolder}
                 onSelectLesson={handleSelectLesson}
                 onShowMore={handleShowMoreLessons}
@@ -1341,53 +1503,10 @@ export function FilesPage() {
                 onExpandAllFolders={handleExpandAllFolders}
                 onClose={() => setIsSidebarMobileOpen(false)}
               />
-              <button
-                className="w-full rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 text-left transition-all hover:border-cyan-500/30 hover:bg-slate-800/50"
-                data-testid="files-support-material-upload"
-                onClick={handleOpenFolderPicker}
-                type="button"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
-                    <Icon name="file-video" className="text-[20px]" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>
-                    <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
-                  </div>
-                </div>
-              </button>
             </div>
-          </aside>
-        </div>
-      )}
-
-      {isSidebarMobileOpen && visibleVideos.length > 0 && (
-        <div className="fixed inset-0 z-[120] lg:hidden" role="dialog" aria-modal="true">
-          <button
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setIsSidebarMobileOpen(false)}
-            type="button"
-          />
-          <div className="absolute bottom-0 right-0 top-0">
-            <LessonSidebar
-              folderSections={filteredFolderSections}
-              selectedLessonId={selectedLessonId}
-              completedVideoRefs={completedVideoRefs}
-              resolvedVideoRefsById={resolvedVideoRefsById}
-              collapsedFolders={collapsedFolders}
-              visibleCountByFolder={visibleCountByFolder}
-              mobile={true}
-              onToggleFolder={handleToggleFolder}
-              onSelectLesson={handleSelectLesson}
-              onShowMore={handleShowMoreLessons}
-              onCollapseAllFolders={handleCollapseAllFolders}
-              onExpandAllFolders={handleExpandAllFolders}
-              onClose={() => setIsSidebarMobileOpen(false)}
-            />
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

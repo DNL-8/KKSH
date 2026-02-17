@@ -597,6 +597,7 @@ export async function deleteVideo(id: string): Promise<void> {
   }
 }
 
+
 export async function clearVideos(): Promise<void> {
   const db = await initDb();
   try {
@@ -620,4 +621,39 @@ export async function clearVideos(): Promise<void> {
   } finally {
     db.close();
   }
+}
+
+export async function exportMetadata(): Promise<string> {
+  const videos = await listVideos();
+  const metadata = videos.map((v) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { file, fileHandle, chunkCount, ...meta } = v;
+    return meta;
+  });
+  return JSON.stringify(metadata, null, 2);
+}
+
+export async function importMetadata(json: string): Promise<SaveResult> {
+  let metadata: StoredVideo[];
+  try {
+    metadata = JSON.parse(json) as StoredVideo[];
+  } catch {
+    throw new Error("Formato JSON invalido.");
+  }
+
+  if (!Array.isArray(metadata)) {
+    throw new Error("Estrutura de metadados invalida.");
+  }
+
+  const cleanVideos = metadata.map((m) => ({
+    ...m,
+    // Reset storage specifics to avoid inconsistencies, 
+    // keeping it as a 'blob' type entry but without the blob (ghost/offline entry)
+    storageKind: "blob" as VideoStorageKind,
+    file: undefined,
+    fileHandle: undefined,
+    chunkCount: undefined,
+  }));
+
+  return saveStoredVideos(cleanVideos);
 }
