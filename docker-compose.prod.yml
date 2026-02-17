@@ -1,9 +1,9 @@
 services:
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -19,7 +19,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,26 +32,20 @@ services:
       dockerfile: Dockerfile
     environment:
       ENV: prod
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
+      JWT_SECRET: ${JWT_SECRET}
       ACCESS_TOKEN_EXPIRE_MIN: ${ACCESS_TOKEN_EXPIRE_MIN:-30}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-30}
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/study_leveling
       TZ: America/Sao_Paulo
-      AUTO_CREATE_DB: "true"
+      AUTO_CREATE_DB: "false"
       SEED_DEV_DATA: "false"
       REDIS_URL: redis://redis:6379/0
       SERVE_FRONTEND: "false"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-preview-09-2025}
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')",
-        ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -67,7 +61,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["python", "scripts/run_webhook_worker.py"]
+    command: [ "python", "scripts/run_webhook_worker.py" ]
     environment:
       ENV: prod
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
@@ -78,12 +72,7 @@ services:
       WEBHOOK_OUTBOX_ENABLED: "true"
       WEBHOOK_OUTBOX_SEND_ENABLED: "true"
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "scripts/webhook_worker_healthcheck.py",
-        ]
+      test: [ "CMD", "python", "scripts/webhook_worker_healthcheck.py" ]
       interval: 15s
       timeout: 5s
       retries: 5

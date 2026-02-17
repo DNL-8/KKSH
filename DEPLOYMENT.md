@@ -18,6 +18,18 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
 
 ---
 
+## 1.1 Geração de Segredos (Importante)
+
+Para garantir a segurança em produção, gere hashes fortes para as variáveis `JWT_SECRET` e `WEBHOOK_SECRET_ENC_KEY`.
+
+Execute no seu terminal (Linux/Mac/WSL):
+```bash
+openssl rand -hex 32
+```
+Copie a saída e use como valor para as variáveis de ambiente.
+
+---
+
 ## 2. Backend (Render)
 
 1. Crie uma conta no [Render](https://render.com/).
@@ -50,9 +62,19 @@ Este guia cobre a implantação do backend (FastAPI) no Render com banco de dado
    | `WEBHOOK_WORKER_HEARTBEAT_FILE` | `/tmp/webhook_worker_heartbeat.json` | Arquivo de heartbeat do worker |
    | `WEBHOOK_WORKER_HEARTBEAT_MAX_AGE_SEC` | `120` | Maximo de atraso aceito no heartbeat |
    | `WEBHOOK_OUTBOX_ENABLED` | `true` | Ativa processamento de webhooks |
+   | `WEBHOOK_OUTBOX_SEND_ENABLED` | `true` | Ativa envio real de webhooks |
    | `DB_POOL_SIZE` | `5` | Tamanho do pool de conexões (opcional para Turso) |
 
 6. Clique em **Create Web Service**.
+
+7. **Rodar Migrações (Obrigatório)**:
+   - Como `AUTO_CREATE_DB` é `false` em produção, você deve criar as tabelas manualmente.
+   - No dashboard do Render, vá na aba **Shell**.
+   - Execute:
+     ```bash
+     alembic upgrade head
+     ```
+   - Isso aplicará todas as migrações no banco Turso conectado.
 
 > **Nota**: O Render pode demorar alguns minutos no primeiro deploy.
 
