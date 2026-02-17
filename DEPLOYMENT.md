@@ -41,7 +41,8 @@ Copie a saída e use como valor para as variáveis de ambiente.
    - **Branch**: `main`
    - **Root Directory**: `backend` (Importante!)
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port 10000`
+   - **Start Command**: `bash entrypoint.sh uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - *Nota: O `./entrypoint.sh` executa as migrações automaticamente antes de iniciar o app.*
 
 5. Adicione as **Environment Variables**:
    | Variável | Valor | Descrição |
@@ -49,6 +50,7 @@ Copie a saída e use como valor para as variáveis de ambiente.
    | `PYTHON_VERSION` | `3.11.9` | Versão do Python |
    | `DATABASE_URL` | `sqlite+libsql://...` | A string do Turso (passo 1) |
    | `JWT_SECRET` | `(gere-um-hash-longo)` | `openssl rand -hex 32` |
+   | `WEBHOOK_SECRET_ENC_KEY` | `(gere-um-hash-longo)` | `openssl rand -hex 32` (Necessário!) |
    | `ENV` | `prod` | Ativa configurações de produção |
    | `CORS_ORIGINS` | `https://seusite.netlify.app` | Domínio do Frontend (adicione após o deploy do Netlify) |
    | `GEMINI_API_KEY` | `...` | Sua chave da Google AI |
@@ -64,32 +66,12 @@ Copie a saída e use como valor para as variáveis de ambiente.
    | `WEBHOOK_OUTBOX_ENABLED` | `true` | Ativa processamento de webhooks |
    | `WEBHOOK_OUTBOX_SEND_ENABLED` | `true` | Ativa envio real de webhooks |
    | `DB_POOL_SIZE` | `5` | Tamanho do pool de conexões (opcional para Turso) |
+   | `REDIS_URL` | `(opcional)` | Redis para rate limit compartilhado. Se omitido, usa memória local. |
 
 6. Clique em **Create Web Service**.
 
-7. **Rodar Migrações (Obrigatório)**:
-   - Como `AUTO_CREATE_DB` é `false` em produção, você deve criar as tabelas manualmente.
-   - No dashboard do Render, vá na aba **Shell**.
-   - Execute:
-     ```bash
-     alembic upgrade head
-     ```
-   - Isso aplicará todas as migrações no banco Turso conectado.
-
-> **Nota**: O Render pode demorar alguns minutos no primeiro deploy.
-
-### Hardening recomendado (sessao/cookies)
-
-- Defina `COOKIE_SAMESITE=lax` (ou `strict` quando possivel).
-- Defina `COOKIE_SECURE=true` em producao.
-- Nao use `COOKIE_SAMESITE=none` sem `COOKIE_SECURE=true` (bloqueado por validacao em prod/staging).
-- Mantenha `CSRF_ENABLED=true` para fluxos com cookie-auth.
-- Exponha `GET /api/v1/auth/csrf` no bootstrap do cliente e envie `X-CSRF-Token` em `POST|PUT|PATCH|DELETE`.
-- Configure `CONTENT_SECURITY_POLICY` estrita para same-origin, incluindo:
-  - `script-src 'self'` + `script-src-attr 'none'`
-  - `style-src-attr 'none'` (sem inline styles)
-  - `object-src 'none'`, `frame-src 'none'`, `frame-ancestors 'none'`
-- Planeje rotacao periodica de `WEBHOOK_SECRET_ENC_KEY` com fase de keyring em `WEBHOOK_SECRET_ENC_KEY_PREV` e re-encriptacao (`backend/scripts/reencrypt_secrets.py --apply`).
+7. **Verifique os Logs**:
+   - Acompanhe o deploy. O comando `./entrypoint.sh` deve rodar `alembic upgrade head` e depois iniciar o Uvicorn.
 
 ---
 
@@ -101,7 +83,7 @@ Copie a saída e use como valor para as variáveis de ambiente.
 4. Configure o build (o Netlify deve detectar automaticamente, mas confirme):
    - **Base directory**: `.` (raiz)
    - **Build command**: `npm run build`
-   - **Publish directory**: `dist/public`
+   - **Publish directory**: `dist/public` (Confirmado no vite.config.ts)
 
 > 💡 **Dica (Backend)**: O repositório já contém um arquivo `render.yaml`. No Render, você pode escolher **Blueprints** em vez de **Web Service** para configurar tudo automaticamente.
 
@@ -123,16 +105,17 @@ Copie a saída e use como valor para as variáveis de ambiente.
    - Copie a URL gerada pelo Netlify (ex: `https://study-leveling-front.netlify.app`).
    - Volte ao Render > Dashboard > Environment > Edit `CORS_ORIGINS`.
    - Cole a URL do Netlify (sem barra no final).
-   - O Render fará um re-deploy automático.
 
-2. **Verificar Conexão**:
+2. **Ajuste de Cookies (Crítico para Cross-Domain)**:
+   - Como o Backend (Render) e Frontend (Netlify) estão em domínios diferentes, você deve configurar as variáveis de cookie no Render para permitir o envio:
+   - `COOKIE_SAMESITE`: `none`
+   - `COOKIE_SECURE`: `true`
+   - `CSRF_ENABLED`: `true` (Mantenha ativado, o frontend envia o cabeçalho X-CSRF-Token)
+
+3. **Verificar Conexão**:
    - Abra o site no Netlify.
    - Tente fazer Signup/Login.
    - Verifique o console do navegador (F12) se houver erros de CORS ou conexão.
 
-3. **Backup Automático**:
+4. **Backup Automático**:
    - O Turso possui backups automáticos (Point-in-Time Recovery) no plano pago, ou snapshots manuais no plano free. Recomenda-se criar um script de dump periódico se usar o plano free.
-
-4. **CI/CD (Deploy Previews)**:
-   - Configurado automaticamente pelo Netlify/Render ao conectar o GitHub.
-   - Pull Requests criarão ambientes de preview no Netlify (`deploy-preview-xx--site.netlify.app`).
