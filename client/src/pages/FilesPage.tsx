@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
 import { Icon } from "../components/common/Icon";
-
+import { BridgeBrowser } from "../components/files/BridgeBrowser";
 
 import type { AppShellContextValue } from "../layout/types";
 import { VideoPlayer } from "../components/files/VideoPlayer";
@@ -32,7 +32,7 @@ import {
 } from "../lib/localVideosStore";
 import { useVideoLibrary } from "../hooks/useVideoLibrary";
 import { useVideoSelection } from "../hooks/useVideoSelection";
-
+import { useLocalBridge } from "../hooks/useLocalBridge";
 
 const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
 
@@ -48,6 +48,37 @@ export function FilesPage() {
     useOutletContext<AppShellContextValue>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Bridge Integration
+  const {
+    isConnected: isBridgeConnected,
+    checkConnection: checkBridgeConnection
+  } = useLocalBridge();
+
+  useEffect(() => {
+    checkBridgeConnection();
+  }, [checkBridgeConnection]);
+
+  // Bridge Browser Logic
+  const [showBridgeBrowser, setShowBridgeBrowser] = useState(false);
+  const [bridgeVideo, setBridgeVideo] = useState<{ video: StoredVideo, url: string } | null>(null);
+
+  const handleBridgePlay = (url: string, name: string, path: string) => {
+    const mockVideo: StoredVideo = {
+      id: `bridge-${path}`,
+      name: name,
+      relativePath: path.substring(0, path.lastIndexOf(name) - 1) || "Bridge",
+      size: 0,
+      type: "video/mp4",
+      lastModified: Date.now(),
+      createdAt: Date.now(),
+      sourceKind: "file",
+      storageKind: "blob",
+      importSource: "input_file",
+    };
+    setBridgeVideo({ video: mockVideo, url });
+    setShowBridgeBrowser(false);
+  };
 
   const invalidateProgressCaches = useCallback(async () => {
     await Promise.all([
@@ -413,6 +444,26 @@ export function FilesPage() {
             onOpenVisualSettings={handleOpenVisualSettings}
             onToggleMobileSidebar={() => setIsSidebarMobileOpen(true)}
           />
+
+
+          {isBridgeConnected && (
+            <button
+              className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-600/20 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-colors hover:bg-emerald-600/30 mr-3"
+              onClick={() => setShowBridgeBrowser(true)}
+            >
+              <Icon name="folder-search" />
+              Browse Bridge
+            </button>
+          )}
+
+          {/* Local Bridge Indicator */}
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ml-auto ${isBridgeConnected
+            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+            : "border-slate-800 bg-slate-900/50 text-slate-500"
+            }`}>
+            <div className={`w-2 h-2 rounded-full ${isBridgeConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-700"}`} />
+            {isBridgeConnected ? "Bridge: Online" : "Bridge: Offline"}
+          </div>
         </div>
 
         {storageUnavailable && (
@@ -559,8 +610,8 @@ export function FilesPage() {
                 <VideoPlayer
                   onDurationChange={setSelectedDurationSec}
                   onEnded={handleVideoEnded}
-                  video={selectedVideo}
-                  videoUrl={selectedVideoUrl}
+                  video={bridgeVideo ? bridgeVideo.video : selectedVideo}
+                  videoUrl={bridgeVideo ? bridgeVideo.url : selectedVideoUrl}
                 />
                 <div className="pointer-events-none absolute bottom-24 left-4 right-4 z-20 hidden items-end gap-1 md:flex">
                   {PLAYER_WAVEFORM_PATTERN.map((value, index) => (
@@ -704,6 +755,14 @@ export function FilesPage() {
               />
             </div>
           </div>
+        )
+      }
+      {
+        showBridgeBrowser && (
+          <BridgeBrowser
+            onClose={() => setShowBridgeBrowser(false)}
+            onPlayVideo={handleBridgePlay}
+          />
         )
       }
     </div >
