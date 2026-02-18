@@ -3,6 +3,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -356,8 +357,60 @@ export function FilesPage() {
 
   const currentFolderCount = filteredFolderSections.length;
 
+  // Drag & Drop
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      importInputRef.current?.handleFilesSelected({ target: { files: e.dataTransfer.files } } as any);
+    }
+  }, [importInputRef]);
+
   return (
-    <div className="animate-in slide-in-from-right-10 space-y-6 pb-20 duration-700">
+    <div
+      className="animate-in slide-in-from-right-10 space-y-6 pb-20 duration-700"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag Overlay */}
+      {isDragging && (
+        <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-cyan-500/10 backdrop-blur-sm border-4 border-dashed border-cyan-400/50 m-4 rounded-3xl">
+          <div className="text-center animate-bounce">
+            <Icon name="upload" className="text-6xl text-cyan-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-black uppercase text-cyan-300">Solte arquivos aqui</h2>
+          </div>
+        </div>
+      )}
       <input
         ref={fileInputRef}
         accept="video/*"
@@ -544,13 +597,13 @@ export function FilesPage() {
             </div>
           </div>
         ) : visibleVideos.length === 0 ? (
-          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center">
+          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center transition-colors hover:border-cyan-500/20 hover:bg-[#0a0a0b]/60">
             <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
-              <Icon name="film" className="text-[hsl(var(--accent))] text-[36px]" />
+              <Icon name="cloud-upload" className="text-[hsl(var(--accent))] text-[36px]" />
             </div>
             <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
             <p className="mt-2 max-w-xl text-sm text-slate-500">
-              Selecione videos ou pasta para montar sua trilha de estudos em /arquivos.
+              Arraste e solte videos aqui ou selecione abaixo para comecar.
             </p>
             <button
               className="mt-8 flex items-center gap-2 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95"

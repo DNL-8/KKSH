@@ -6,7 +6,7 @@ import { ORDER_LABELS } from "./constants";
 
 interface FilesToolbarProps {
     saving: boolean;
-    importProgress?: { processed: number; total: number } | null;
+    importProgress?: { processed: number; total: number; startTime?: number; speed?: number; eta?: number } | null;
     loading: boolean;
     exporting: boolean;
     visibleVideosCount: number;
@@ -27,6 +27,12 @@ interface FilesToolbarProps {
     onClearLibrary: () => void;
     onOpenVisualSettings: () => void;
     onToggleMobileSidebar: () => void;
+}
+
+function formatDuration(seconds: number): string {
+    if (!seconds || !isFinite(seconds) || seconds < 0) return "";
+    if (seconds < 60) return `${Math.ceil(seconds)}s`;
+    return `${Math.ceil(seconds / 60)}m`;
 }
 
 export function FilesToolbar({
@@ -53,9 +59,18 @@ export function FilesToolbar({
     onOpenVisualSettings,
     onToggleMobileSidebar,
 }: FilesToolbarProps) {
-    const progressText = importProgress
-        ? ` Processando ${importProgress.processed}/${importProgress.total}`
-        : " Carregando...";
+    let progressText = " Carregando...";
+    if (importProgress) {
+        const { processed, total, speed, eta } = importProgress;
+        progressText = ` ${processed}/${total}`;
+        if (speed && speed > 0) {
+            progressText += ` (${Math.round(speed)}/s`;
+            if (eta && eta > 0) {
+                progressText += `, ~${formatDuration(eta)}`;
+            }
+            progressText += ")";
+        }
+    }
 
     return (
         <div className="space-y-3 border-t border-slate-800 pt-4" data-testid="files-toolbar">
