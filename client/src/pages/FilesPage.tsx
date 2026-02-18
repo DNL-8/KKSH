@@ -320,14 +320,8 @@ export function FilesPage() {
   }, [folderSections, loading]);
 
   const handleExpandAllFolders = useCallback(() => {
-    setCollapsedFolders(() => {
-      const next: Record<string, boolean> = {};
-      for (const section of folderSections) {
-        next[section.path] = false;
-      }
-      return next;
-    });
-  }, [folderSections]);
+    setCollapsedFolders({});
+  }, []);
 
   const handleSelectLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
