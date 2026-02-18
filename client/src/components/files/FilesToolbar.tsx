@@ -6,6 +6,7 @@ import { ORDER_LABELS } from "./constants";
 
 interface FilesToolbarProps {
     saving: boolean;
+    importProgress?: { processed: number; total: number } | null;
     loading: boolean;
     exporting: boolean;
     visibleVideosCount: number;
@@ -30,6 +31,7 @@ interface FilesToolbarProps {
 
 export function FilesToolbar({
     saving,
+    importProgress,
     loading,
     exporting,
     visibleVideosCount,
@@ -51,6 +53,10 @@ export function FilesToolbar({
     onOpenVisualSettings,
     onToggleMobileSidebar,
 }: FilesToolbarProps) {
+    const progressText = importProgress
+        ? ` Processando ${importProgress.processed}/${importProgress.total}`
+        : " Carregando...";
+
     return (
         <div className="space-y-3 border-t border-slate-800 pt-4" data-testid="files-toolbar">
             <div className="flex flex-wrap items-center gap-2">
@@ -62,7 +68,7 @@ export function FilesToolbar({
                     type="button"
                 >
                     {saving ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="upload" className="text-[14px]" />}
-                    Upload
+                    {saving ? progressText : "Upload"}
                 </button>
                 <button
                     className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-600 px-3 py-2 text-[10px] font-black uppercase text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
@@ -72,7 +78,7 @@ export function FilesToolbar({
                     type="button"
                 >
                     <Icon name="folder-open" className="text-[14px]" />
-                    {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
+                    {saving ? progressText : `Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
                 </button>
                 {directoryHandleSupported && (
                     <button

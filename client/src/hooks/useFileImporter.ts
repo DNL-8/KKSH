@@ -48,6 +48,7 @@ export function useFileImporter({
   const folderInputRef = useRef<HTMLInputElement | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ processed: number; total: number } | null>(null);
   const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
   const [highVolumeHint, setHighVolumeHint] = useState<string | null>(null);
 
@@ -140,7 +141,9 @@ export function useFileImporter({
           return true;
         }
 
-        const result = await saveStoredVideos(scanned.videos);
+        const result = await saveStoredVideos(scanned.videos, (processed, total) => {
+          setImportProgress({ processed, total });
+        });
         await onReload();
         setRejectedFiles(scanned.rejected);
         setStatusMessage(
@@ -208,6 +211,7 @@ export function useFileImporter({
 
   const triggerDirectoryConnect = useCallback(async () => {
     setSaving(true);
+    setImportProgress(null);
     setError(null);
     setStatusMessage(null);
     setRejectedFiles([]);
@@ -215,6 +219,7 @@ export function useFileImporter({
       await connectDirectoryFlow("manual", false);
     } finally {
       setSaving(false);
+      setImportProgress(null);
     }
   }, [connectDirectoryFlow, setError, setStatusMessage]);
 
@@ -230,6 +235,7 @@ export function useFileImporter({
       const folderCount = countFoldersFromFiles(selectedFiles);
 
       setSaving(true);
+      setImportProgress(null);
       setError(null);
       setStatusMessage(null);
       setRejectedFiles([]);
@@ -258,7 +264,9 @@ export function useFileImporter({
           return;
         }
 
-        const result = await saveVideos(selectedFiles, importSource);
+        const result = await saveVideos(selectedFiles, importSource, (processed, total) => {
+          setImportProgress({ processed, total });
+        });
         await onReload();
         setRejectedFiles(result.rejected);
         setStatusMessage(
@@ -295,6 +303,7 @@ export function useFileImporter({
         }
       } finally {
         setSaving(false);
+        setImportProgress(null);
       }
     },
     [
@@ -335,6 +344,7 @@ export function useFileImporter({
     fileInputRef,
     folderInputRef,
     saving,
+    importProgress,
     rejectedFiles,
     directoryHandleSupported,
     highVolumeHint,

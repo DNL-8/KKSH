@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -13,7 +14,7 @@ import { BridgeBrowser } from "../components/files/BridgeBrowser";
 import type { AppShellContextValue } from "../layout/types";
 import { VideoPlayer } from "../components/files/VideoPlayer";
 import { VideoMetadata } from "../components/files/VideoMetadata";
-import { LessonSidebar, LESSONS_VISIBLE_DEFAULT, LESSONS_VISIBLE_INCREMENT } from "../components/files/LessonSidebar";
+import { LessonSidebar } from "../components/files/LessonSidebar";
 import { heightPercentClass } from "../lib/percentClasses";
 import {
   formatStorageKind,
@@ -92,6 +93,8 @@ export function FilesPage() {
 
   const [isSidebarMobileOpen, setIsSidebarMobileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // Defer search to keep UI responsive during typing
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const authUserId = authUser?.id ?? null;
   const {
@@ -99,8 +102,6 @@ export function FilesPage() {
     setSelectedLessonId,
     collapsedFolders,
     setCollapsedFolders,
-    visibleCountByFolder,
-    setVisibleCountByFolder,
     orderMode,
     setOrderMode,
     activeTab,
@@ -121,6 +122,7 @@ export function FilesPage() {
     folderInputRef,
     importInputRef,
     saving,
+    importProgress,
     rejectedFiles,
     directoryHandleSupported,
     highVolumeHint,
@@ -134,10 +136,6 @@ export function FilesPage() {
     setError: setLibraryError,
     isPersisted,
   } = useVideoLibrary();
-
-
-
-
 
   const folderSections = useMemo<FolderSection[]>(() => {
     const groups = new Map<string, StoredVideo[]>();
@@ -177,7 +175,7 @@ export function FilesPage() {
   }, [orderMode, visibleVideos]);
 
   const filteredFolderSections = useMemo<FolderSection[]>(() => {
-    const query = searchTerm.trim().toLowerCase();
+    const query = deferredSearchTerm.trim().toLowerCase();
     if (!query) {
       return folderSections;
     }
@@ -194,7 +192,7 @@ export function FilesPage() {
         }),
       }))
       .filter((section) => section.lessons.length > 0);
-  }, [folderSections, searchTerm]);
+  }, [folderSections, deferredSearchTerm]);
 
   const filteredLessonCount = useMemo(
     () => filteredFolderSections.reduce((acc, section) => acc + section.lessons.length, 0),
@@ -299,30 +297,7 @@ export function FilesPage() {
     });
   }, [folderSections, loading]);
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-    const validPaths = new Set(folderSections.map((section) => section.path));
-    setVisibleCountByFolder((current) => {
-      const entries = Object.entries(current);
-      if (entries.length === 0) {
-        return current;
-      }
 
-      let changed = false;
-      const next: Record<string, number> = {};
-      for (const [path, visibleCount] of entries) {
-        if (validPaths.has(path)) {
-          next[path] = visibleCount;
-        } else {
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-  }, [folderSections]);
 
 
 
@@ -358,12 +333,7 @@ export function FilesPage() {
     setIsSidebarMobileOpen(false);
   };
 
-  const handleShowMoreLessons = (path: string) => {
-    setVisibleCountByFolder((current) => ({
-      ...current,
-      [path]: (current[path] ?? LESSONS_VISIBLE_DEFAULT) + LESSONS_VISIBLE_INCREMENT,
-    }));
-  };
+
 
   const handleOpenVisualSettings = useCallback(() => {
     navigate("/config");
@@ -424,6 +394,7 @@ export function FilesPage() {
 
           <FilesToolbar
             saving={saving}
+            importProgress={importProgress}
             loading={loading}
             exporting={exporting}
             visibleVideosCount={visibleVideos.length}
@@ -709,10 +680,8 @@ export function FilesPage() {
                   completedVideoRefs={completedVideoRefs}
                   resolvedVideoRefsById={resolvedVideoRefsById}
                   collapsedFolders={collapsedFolders}
-                  visibleCountByFolder={visibleCountByFolder}
                   onToggleFolder={handleToggleFolder}
                   onSelectLesson={handleSelectLesson}
-                  onShowMore={handleShowMoreLessons}
                   onCollapseAllFolders={handleCollapseAllFolders}
                   onExpandAllFolders={handleExpandAllFolders}
                   onClose={() => setIsSidebarMobileOpen(false)}
@@ -740,25 +709,32 @@ export function FilesPage() {
       }
 
       {
-        isSidebarMobileOpen && visibleVideos.length > 0 && (
-          <div className="fixed inset-0 z-[120] lg:hidden" role="dialog" aria-modal="true">
-            <button
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        visibleVideos.length > 0 && (
+          <div
+            className={`fixed inset-0 z-[120] lg:hidden transition-all duration-300 ${isSidebarMobileOpen ? "visible" : "invisible pointer-events-none delay-300"}`}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Backdrop */}
+            <div
+              className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"}`}
               onClick={() => setIsSidebarMobileOpen(false)}
-              type="button"
+              aria-hidden="true"
             />
-            <div className="absolute bottom-0 right-0 top-0">
+
+            {/* Sidebar Container */}
+            <div
+              className={`absolute bottom-0 right-0 top-0 w-[340px] max-w-[90vw] transition-transform duration-300 ease-in-out ${isSidebarMobileOpen ? "translate-x-0" : "translate-x-full"}`}
+            >
               <LessonSidebar
                 folderSections={filteredFolderSections}
                 selectedLessonId={selectedLessonId}
                 completedVideoRefs={completedVideoRefs}
                 resolvedVideoRefsById={resolvedVideoRefsById}
                 collapsedFolders={collapsedFolders}
-                visibleCountByFolder={visibleCountByFolder}
                 mobile={true}
                 onToggleFolder={handleToggleFolder}
                 onSelectLesson={handleSelectLesson}
-                onShowMore={handleShowMoreLessons}
                 onCollapseAllFolders={handleCollapseAllFolders}
                 onExpandAllFolders={handleExpandAllFolders}
                 onClose={() => setIsSidebarMobileOpen(false)}

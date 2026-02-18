@@ -1,3 +1,4 @@
+// ... (imports remain)
 import { useState, useEffect } from "react";
 import { ORDER_MODES, TAB_MODES } from "../components/files/constants";
 import type { OrderMode, TabMode } from "../components/files/types";
@@ -7,7 +8,6 @@ const FILES_VIEW_STATE_STORAGE_PREFIX = "cmd8_files_view_state_v1";
 interface FilesViewStateSnapshot {
     selectedLessonId: string | null;
     collapsedFolders: Record<string, boolean>;
-    visibleCountByFolder: Record<string, number>;
     orderMode: OrderMode;
     activeTab: TabMode;
 }
@@ -36,20 +36,6 @@ function sanitizeBooleanMap(value: unknown): Record<string, boolean> {
     for (const [key, item] of Object.entries(value)) {
         if (typeof item === "boolean") {
             next[key] = item;
-        }
-    }
-    return next;
-}
-
-function sanitizeNumberMap(value: unknown): Record<string, number> {
-    if (!isRecord(value)) {
-        return {};
-    }
-    const next: Record<string, number> = {};
-    for (const [key, item] of Object.entries(value)) {
-        const parsed = Number(item);
-        if (Number.isFinite(parsed) && parsed > 0) {
-            next[key] = Math.round(parsed);
         }
     }
     return next;
@@ -91,7 +77,6 @@ function readFilesViewState(scope: string): FilesViewStateSnapshot | null {
         return {
             selectedLessonId,
             collapsedFolders: sanitizeBooleanMap(parsed.collapsedFolders),
-            visibleCountByFolder: sanitizeNumberMap(parsed.visibleCountByFolder),
             orderMode,
             activeTab,
         };
@@ -106,7 +91,6 @@ export function useFilesViewState(authUserId: string | null) {
 
     const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
     const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
-    const [visibleCountByFolder, setVisibleCountByFolder] = useState<Record<string, number>>({});
     const [orderMode, setOrderMode] = useState<OrderMode>("newest");
     const [activeTab, setActiveTab] = useState<TabMode>("overview");
     const [viewStateReadyKey, setViewStateReadyKey] = useState<string | null>(null);
@@ -122,7 +106,6 @@ export function useFilesViewState(authUserId: string | null) {
         if (snapshot) {
             setSelectedLessonId(snapshot.selectedLessonId);
             setCollapsedFolders(snapshot.collapsedFolders);
-            setVisibleCountByFolder(snapshot.visibleCountByFolder);
             setOrderMode(snapshot.orderMode);
             setActiveTab(snapshot.activeTab);
         }
@@ -138,7 +121,6 @@ export function useFilesViewState(authUserId: string | null) {
         const snapshot: FilesViewStateSnapshot = {
             selectedLessonId,
             collapsedFolders,
-            visibleCountByFolder,
             orderMode,
             activeTab,
         };
@@ -154,7 +136,6 @@ export function useFilesViewState(authUserId: string | null) {
         orderMode,
         selectedLessonId,
         viewStateReadyKey,
-        visibleCountByFolder,
     ]);
 
     return {
@@ -162,8 +143,6 @@ export function useFilesViewState(authUserId: string | null) {
         setSelectedLessonId,
         collapsedFolders,
         setCollapsedFolders,
-        visibleCountByFolder,
-        setVisibleCountByFolder,
         orderMode,
         setOrderMode,
         activeTab,

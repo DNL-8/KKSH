@@ -182,6 +182,7 @@ export function useVideoLibrary() {
 
         // Importer exposed props
         saving: importer.saving,
+        importProgress: importer.importProgress,
         rejectedFiles: importer.rejectedFiles,
         directoryHandleSupported: importer.directoryHandleSupported,
         highVolumeHint: importer.highVolumeHint,

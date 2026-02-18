@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { Icon } from "../common/Icon";
 
 import type { StoredVideo } from "../../lib/localVideosStore";
@@ -7,15 +8,13 @@ import {
   buildVideoRef,
   formatBytes,
   formatStorageKind,
-
 } from "./utils";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                         */
 /* ------------------------------------------------------------------ */
 
-export const LESSONS_VISIBLE_DEFAULT = 120;
-export const LESSONS_VISIBLE_INCREMENT = 200;
+// Removed legacy constants as virtualization handles large lists efficiently
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                             */
@@ -27,15 +26,21 @@ interface LessonSidebarProps {
   completedVideoRefs: Set<string>;
   resolvedVideoRefsById?: Record<string, string>;
   collapsedFolders: Record<string, boolean>;
-  visibleCountByFolder: Record<string, number>;
   mobile?: boolean;
   onToggleFolder: (path: string) => void;
   onSelectLesson: (id: string) => void;
-  onShowMore: (path: string) => void;
   onCollapseAllFolders?: () => void;
   onExpandAllFolders?: () => void;
   onClose?: () => void;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                             */
+/* ------------------------------------------------------------------ */
+
+type FlatItem =
+  | { type: "header"; section: FolderSection; collapsed: boolean; pathId: string; completedCount: number }
+  | { type: "lesson"; lesson: StoredVideo; sectionPathId: string; index: number };
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                         */
@@ -47,16 +52,17 @@ export function LessonSidebar({
   completedVideoRefs,
   resolvedVideoRefsById = {},
   collapsedFolders,
-  visibleCountByFolder,
+  // visibleCountByFolder, // Not needed with virtualization
   mobile = false,
   onToggleFolder,
   onSelectLesson,
-  onShowMore,
+  // onShowMore, // Not needed with virtualization
   onCollapseAllFolders,
   onExpandAllFolders,
   onClose,
 }: LessonSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const isLessonCompleted = useCallback(
     (lesson: StoredVideo): boolean => {
@@ -71,8 +77,8 @@ export function LessonSidebar({
   );
 
   const wrapperClasses = mobile
-    ? "h-full w-[340px] max-w-[92vw] overflow-y-auto border-l border-cyan-900/40 bg-[#041022] p-3 shadow-2xl"
-    : "h-full overflow-hidden rounded-[22px] border border-cyan-900/40 bg-[#041022]/95 shadow-[0_0_35px_rgba(0,180,255,0.08)]";
+    ? "h-full w-[340px] max-w-[92vw] border-l border-cyan-900/40 bg-[#041022] shadow-2xl flex flex-col"
+    : "h-full flex flex-col overflow-hidden rounded-[22px] border border-cyan-900/40 bg-[#041022]/95 shadow-[0_0_35px_rgba(0,180,255,0.08)]";
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -87,6 +93,54 @@ export function LessonSidebar({
       }))
       .filter((section) => section.lessons.length > 0);
   }, [folderSections, searchQuery]);
+
+  const flatItems = useMemo<FlatItem[]>(() => {
+    const items: FlatItem[] = [];
+    for (const section of filteredSections) {
+      const isSearching = Boolean(searchQuery);
+      const collapsed = isSearching ? false : (collapsedFolders[section.path] ?? false);
+      const completedInSection = section.lessons.filter((lesson) => isLessonCompleted(lesson)).length;
+
+      items.push({
+        type: "header",
+        section,
+        collapsed,
+        pathId: section.pathId, // Assuming pathId is available on FolderSection from parent mapping
+        completedCount: completedInSection,
+      });
+
+      if (!collapsed) {
+        // Render all lessons if not collapsed (virtualization handles performance)
+        for (let i = 0; i < section.lessons.length; i++) {
+          items.push({
+            type: "lesson",
+            lesson: section.lessons[i],
+            sectionPathId: section.pathId,
+            index: i,
+          });
+        }
+      }
+    }
+    return items;
+  }, [filteredSections, collapsedFolders, searchQuery, isLessonCompleted]);
+
+  // Scroll to selected lesson on initial load or selection change
+  useEffect(() => {
+    if (!selectedLessonId || !virtuosoRef.current) return;
+
+    // Find index of selected lesson
+    const index = flatItems.findIndex(
+      (item) => item.type === "lesson" && item.lesson.id === selectedLessonId
+    );
+
+    if (index !== -1) {
+      virtuosoRef.current.scrollIntoView({
+        index,
+        behavior: "auto",
+        align: "center",
+      });
+    }
+  }, [selectedLessonId, flatItems]); // Be careful with flatItems dependency, might scroll too often if list changes
 
   const totalLessons = useMemo(
     () => filteredSections.reduce((acc, section) => acc + section.lessons.length, 0),
@@ -122,9 +176,113 @@ export function LessonSidebar({
     onCollapseAllFolders?.();
   };
 
+  const ItemContent = useCallback((_index: number, item: FlatItem) => {
+    if (item.type === "header") {
+      const { section, collapsed, completedCount } = item;
+      return (
+        <div className="mt-2 first:mt-0 px-3 pb-1 pt-1">
+          <div className="flex items-center justify-between gap-2 rounded-t-lg border border-cyan-900/40 border-b-cyan-950/50 bg-[#071327] px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-bold uppercase tracking-wider text-slate-300" title={section.path} role="heading" aria-level={3}>
+                {section.path}
+              </p>
+              <p className="text-[10px] font-mono text-slate-500">
+                {completedCount}/{section.lessons.length}
+              </p>
+            </div>
+            <button
+              aria-expanded={!collapsed}
+              className="rounded-md border border-cyan-900/40 bg-[#0a1a33] p-1.5 text-slate-400 transition-colors hover:text-cyan-300 disabled:opacity-40"
+              disabled={Boolean(searchQuery)}
+              onClick={() => onToggleFolder(section.path)}
+              type="button"
+            >
+              {collapsed ? <Icon name="angle-right" className="text-[14px]" /> : <Icon name="angle-down" className="text-[14px]" />}
+            </button>
+          </div>
+          {/* Visual border closer if collapsed */}
+          {collapsed && <div className="h-1 rounded-b-lg border-x border-b border-cyan-900/40 bg-[#030d1d]" />}
+        </div>
+      );
+    }
+
+    const { lesson, index: lessonIndex } = item;
+    const active = selectedLessonId === lesson.id;
+    const lessonCompleted = isLessonCompleted(lesson);
+    const itemNumber = String(lessonIndex + 1).padStart(2, "0");
+    const storageLabel = formatStorageKind(lesson).toUpperCase();
+
+    // Check if this is the last item in the section to round corners
+    // (In a flat list, we'd need to peek ahead, but for simplicity we can just style the item container)
+    // Actually, simple list style is fine.
+
+    return (
+      <div className="px-3">
+        <button
+          className={`group flex w-full items-start gap-3 border-x border-cyan-900/40 bg-[#030d1d] px-3 py-3 text-left transition-all hover:bg-slate-900/60 ${active
+            ? "bg-gradient-to-r from-cyan-500/10 to-transparent"
+            : ""
+            } last:border-b last:rounded-b-lg`}
+          data-active={active ? "true" : "false"}
+          aria-current={active ? "true" : undefined}
+          onClick={() => onSelectLesson(lesson.id)}
+          type="button"
+        >
+          <div
+            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${lessonCompleted
+              ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-400"
+              : active
+                ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
+                : "border-slate-700 bg-slate-900 text-slate-500"
+              }`}
+          >
+            {lessonCompleted ? (
+              <Icon name="check-circle" className="text-[12px]" />
+            ) : active ? (
+              <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
+            ) : (
+              <span>{itemNumber}</span>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p
+              className={`truncate text-sm font-medium leading-tight transition-colors ${active ? "text-cyan-300" : "text-slate-300 group-hover:text-cyan-300"
+                }`}
+            >
+              {itemNumber}. {lesson.name}
+            </p>
+            {lessonCompleted ? (
+              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                <span className="rounded border border-emerald-500/50 bg-emerald-500/10 px-1.5 py-0.5">
+                  Concluida (+XP)
+                </span>
+              </div>
+            ) : (
+              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                <span className="rounded border border-slate-700/70 bg-slate-900/80 px-1.5 py-0.5">
+                  {formatBytes(lesson.size)}
+                </span>
+                <span>{storageLabel} [BLOB]</span>
+              </div>
+            )}
+          </div>
+
+          {active && (
+            <div className="mt-1 flex h-5 items-end gap-0.5 self-center">
+              <span className="h-2 w-0.5 animate-pulse rounded bg-cyan-400" />
+              <span className="h-4 w-0.5 animate-pulse rounded bg-cyan-300 [animation-delay:120ms]" />
+              <span className="h-3 w-0.5 animate-pulse rounded bg-cyan-400 [animation-delay:240ms]" />
+            </div>
+          )}
+        </button>
+      </div>
+    );
+  }, [selectedLessonId, isLessonCompleted, onToggleFolder, onSelectLesson, searchQuery]);
+
   return (
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
-      <div className="border-b border-cyan-950/50 px-4 py-4">
+      <div className="border-b border-cyan-950/50 px-4 py-4 shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h3 className="text-2xl font-black uppercase tracking-tight text-slate-100">
@@ -165,6 +323,7 @@ export function LessonSidebar({
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-200"
                 onClick={() => setSearchQuery("")}
                 type="button"
+                aria-label="Limpar busca"
               >
                 <Icon name="cross" className="text-[12px]" />
               </button>
@@ -173,9 +332,10 @@ export function LessonSidebar({
 
           {mobile && onClose && (
             <button
-              className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300"
+              className="flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-[11px] font-black uppercase tracking-wider text-slate-300 active:scale-95 transition-all"
               onClick={onClose}
               type="button"
+              aria-label="Fechar menu"
             >
               Fechar
             </button>
@@ -183,133 +343,20 @@ export function LessonSidebar({
         </div>
       </div>
 
-      <div className="space-y-3 p-3">
-        {filteredSections.map((section) => {
-          const isSearching = Boolean(searchQuery);
-          const collapsed = isSearching ? false : (collapsedFolders[section.path] ?? false);
-          const visibleCount = visibleCountByFolder[section.path] ?? LESSONS_VISIBLE_DEFAULT;
-          const visibleLessons = isSearching ? section.lessons : section.lessons.slice(0, visibleCount);
-          const hiddenLessons = isSearching ? 0 : Math.max(0, section.lessons.length - visibleLessons.length);
-          const completedInSection = section.lessons.filter((lesson) => isLessonCompleted(lesson)).length;
-
-          return (
-            <section
-              key={section.path}
-              className="overflow-hidden rounded-xl border border-cyan-900/40 bg-[#030d1d]"
-              data-testid={`folder-section-${section.pathId}`}
-            >
-              <div className="flex items-center justify-between gap-2 border-b border-cyan-950/50 bg-[#071327] px-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate text-[11px] font-bold uppercase tracking-wider text-slate-300" title={section.path}>
-                    {section.path}
-                  </p>
-                  <p className="text-[10px] font-mono text-slate-500">
-                    {completedInSection}/{section.lessons.length}
-                  </p>
-                </div>
-                <button
-                  aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-                  className="rounded-md border border-cyan-900/40 bg-[#0a1a33] p-1.5 text-slate-400 transition-colors hover:text-cyan-300 disabled:opacity-40"
-                  data-testid={`folder-toggle-${section.pathId}`}
-                  disabled={isSearching}
-                  onClick={() => onToggleFolder(section.path)}
-                  type="button"
-                >
-                  {collapsed ? <Icon name="angle-right" className="text-[14px]" /> : <Icon name="angle-down" className="text-[14px]" />}
-                </button>
-              </div>
-
-              {!collapsed && (
-                <div className="divide-y divide-cyan-950/40">
-                  {visibleLessons.map((lesson: StoredVideo, index: number) => {
-                    const active = selectedLessonId === lesson.id;
-                    const lessonCompleted = isLessonCompleted(lesson);
-                    const itemNumber = String(index + 1).padStart(2, "0");
-                    const storageLabel = formatStorageKind(lesson).toUpperCase();
-
-                    return (
-                      <button
-                        key={lesson.id}
-                        className={`group flex w-full items-start gap-3 px-3 py-3 text-left transition-all ${active
-                          ? "bg-gradient-to-r from-cyan-500/10 to-transparent"
-                          : "hover:bg-slate-900/60"
-                          }`}
-                        data-active={active ? "true" : "false"}
-                        data-testid={`lesson-item-${section.pathId}-${index}`}
-                        onClick={() => onSelectLesson(lesson.id)}
-                        type="button"
-                      >
-                        <div
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${lessonCompleted
-                            ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-400"
-                            : active
-                              ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
-                              : "border-slate-700 bg-slate-900 text-slate-500"
-                            }`}
-                        >
-                          {lessonCompleted ? (
-                            <Icon name="check-circle" className="text-[12px]" />
-                          ) : active ? (
-                            <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
-                          ) : (
-                            <span>{itemNumber}</span>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`truncate text-sm font-medium leading-tight transition-colors ${active ? "text-cyan-300" : "text-slate-300 group-hover:text-cyan-300"
-                              }`}
-                          >
-                            {itemNumber}. {lesson.name}
-                          </p>
-                          {lessonCompleted ? (
-                            <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                              <span className="rounded border border-emerald-500/50 bg-emerald-500/10 px-1.5 py-0.5">
-                                Concluida (+XP)
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-slate-500">
-                              <span className="rounded border border-slate-700/70 bg-slate-900/80 px-1.5 py-0.5">
-                                {formatBytes(lesson.size)}
-                              </span>
-                              <span>{storageLabel} [BLOB]</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {active && (
-                          <div className="mt-1 flex h-5 items-end gap-0.5 self-center">
-                            <span className="h-2 w-0.5 animate-pulse rounded bg-cyan-400" />
-                            <span className="h-4 w-0.5 animate-pulse rounded bg-cyan-300 [animation-delay:120ms]" />
-                            <span className="h-3 w-0.5 animate-pulse rounded bg-cyan-400 [animation-delay:240ms]" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  {hiddenLessons > 0 && (
-                    <button
-                      className="w-full border-t border-cyan-950/40 bg-[#071327] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-cyan-300 transition-colors hover:text-cyan-200"
-                      data-testid={`folder-show-more-${section.pathId}`}
-                      onClick={() => onShowMore(section.path)}
-                      type="button"
-                    >
-                      Mostrar mais ({hiddenLessons} restante)
-                    </button>
-                  )}
-                </div>
-              )}
-            </section>
-          );
-        })}
-
-        {filteredSections.length === 0 && searchQuery && (
+      <div className="flex-1 min-h-0 bg-[#041022]">
+        {flatItems.length === 0 && searchQuery ? (
           <div className="py-8 text-center text-xs font-medium text-slate-500">
             Nenhum arquivo encontrado para "{searchQuery}".
           </div>
+        ) : (
+          <Virtuoso
+            ref={virtuosoRef}
+            data={flatItems}
+            itemContent={ItemContent}
+            className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700"
+            // Increase overscan to prevent blank spaces during fast scroll
+            overscan={200}
+          />
         )}
       </div>
     </div>
