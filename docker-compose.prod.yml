@@ -40,10 +40,12 @@ services:
       AUTO_CREATE_DB: "false"
       SEED_DEV_DATA: "false"
       REDIS_URL: redis://redis:6379/0
-      SERVE_FRONTEND: "false"
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      SERVE_FRONTEND: "true"
+      CORS_ORIGINS: ${CORS_ORIGINS}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-preview-09-2025}
+    ports:
+      - "80:8000"
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" ]
       interval: 15s
@@ -81,18 +83,6 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_healthy
-    restart: always
-
-  frontend:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./dist/public:/usr/share/nginx/html
-    depends_on:
-      api:
         condition: service_healthy
     restart: always
 

@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo ==========================================
 echo      Iniciando Study Leveling Project
 echo ==========================================
@@ -7,7 +8,6 @@ echo [1/2] Iniciando Backend (Python Bridge)...
 start "Backend (Python)" cmd /k "python scripts/local_bridge.py"
 
 echo [2/2] Iniciando Frontend (React)...
-cd client
 start "Frontend (React)" cmd /k "npm run dev:client"
 
 echo.
