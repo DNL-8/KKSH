@@ -5,7 +5,7 @@ Aplicacao fullstack com backend FastAPI e frontend React + Vite + Tailwind, serv
 ## Stack
 
 - Backend: FastAPI + SQLModel + Alembic
-- Frontend: React 19 + TypeScript + Vite 7 + Tailwind v3
+- Frontend: React 18 + TypeScript + Vite 5 + Tailwind v3
 - IA: Google Gemini (`google-genai` SDK)
 - Banco: Postgres (Docker) / SQLite (local)
 - Cache/rate limiting compartilhado: Redis
