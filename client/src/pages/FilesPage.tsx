@@ -390,9 +390,9 @@ export function FilesPage() {
     setIsDragging(false);
     dragCounter.current = 0;
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      importInputRef.current?.handleFilesSelected({ target: { files: e.dataTransfer.files } } as any);
+      handleFilesSelected({ target: { files: e.dataTransfer.files } } as any);
     }
-  }, [importInputRef]);
+  }, [handleFilesSelected]);
 
   return (
     <div
@@ -511,10 +511,11 @@ export function FilesPage() {
             <div className="mt-3 flex items-center gap-3 rounded-xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs font-medium text-orange-200">
               <Icon name="exclamation" className="text-orange-400 text-[18px]" />
               <div>
-                <p className="font-bold text-orange-300 uppercase tracking-wide text-[10px] mb-1">Compatibilidade Limitada</p>
-                Seu navegador nao suporta a API de Acesso ao Sistema de Arquivos (padrao em Chrome/Edge).
-                A opcao <strong>Carregar pasta</strong> copiara os arquivos para o navegador, o que pode lotar o armazenamento rapido.
-                Recomendamos importar poucas pastas por vez.
+                <p className="font-bold text-orange-300 uppercase tracking-wide text-[10px] mb-1">Compatibilidade Limitada (Firefox/Safari)</p>
+                Seu navegador nao suporta conexao direta de pastas.
+                <br />
+                <strong>Alternativa Recomendada:</strong> Inicie o servidor Python (backend) e use o botao <span className="text-emerald-400 font-bold">BROWSE BRIDGE</span> acima.
+                Isso permite navegar por todos os seus arquivos locais sem limitacoes de navegador.
               </div>
             </div>
           )
