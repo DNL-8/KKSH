@@ -282,22 +282,20 @@ export function LessonSidebar({
 
   return (
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
-      <div className="border-b border-cyan-950/50 px-4 py-4 shrink-0">
+      <div className="border-b border-cyan-950/50 px-4 py-4 shrink-0 space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h3 className="text-2xl font-black uppercase tracking-tight text-slate-100">
-              {mobile ? "Conteudo" : "Arquivos avulsos"}
-            </h3>
-          </div>
-          <span className="rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-xs font-mono font-bold text-cyan-300">
+          <h3 className="text-2xl font-black uppercase tracking-tight text-white drop-shadow-md">
+            {mobile ? "Conteudo" : "Arquivos avulsos"}
+          </h3>
+          <span className="rounded-md border border-cyan-500/40 bg-cyan-950/40 px-2 py-1 text-xs font-mono font-bold text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.1)]">
             {totalCompleted}/{Math.max(totalLessons, 1)}
           </span>
         </div>
 
         {canToggleAll && (
-          <div className="mt-2">
+          <div>
             <button
-              className="rounded-md border border-cyan-900/40 bg-[#071327] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-300 transition-colors hover:bg-[#0a1a33] disabled:opacity-40"
+              className="rounded-md border border-cyan-500/30 bg-cyan-950/30 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-cyan-300 transition-all hover:bg-cyan-900/40 hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] disabled:opacity-40"
               data-testid="toggle-all-folders"
               disabled={Boolean(searchQuery)}
               onClick={handleToggleAll}
@@ -308,11 +306,11 @@ export function LessonSidebar({
           </div>
         )}
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
             <input
-              className="w-full rounded-lg border border-cyan-900/40 bg-[#071327] py-2 pl-9 pr-8 text-xs font-medium text-slate-200 placeholder-slate-600 focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+              className="w-full rounded-lg border border-cyan-900/40 bg-[#061221] py-2.5 pl-9 pr-8 text-xs font-medium text-slate-200 placeholder-slate-600 shadow-inner focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 transition-all"
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Buscar arquivo..."
               type="text"
