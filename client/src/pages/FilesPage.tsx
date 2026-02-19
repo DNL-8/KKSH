@@ -34,7 +34,6 @@ import {
 } from "../lib/localVideosStore";
 import { useVideoLibrary } from "../hooks/useVideoLibrary";
 import { useVideoSelection } from "../hooks/useVideoSelection";
-import { FilesHeader } from "../components/files/FilesHeader";
 import { FilesToolbar } from "../components/files/FilesToolbar";
 import { ErrorBanner } from "../components/common/ErrorBanner";
 import { trackFilesTelemetry } from "../lib/filesTelemetry";
@@ -59,7 +58,7 @@ function deriveBridgeRelativePath(path: string): string {
 
 
 export function FilesPage() {
-  const { globalStats, authUser, openAuthPanel } =
+  const { authUser, openAuthPanel } =
     useOutletContext<AppShellContextValue>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -462,7 +461,6 @@ export function FilesPage() {
         <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-60" />
 
         <div className="relative z-10 space-y-5">
-          <FilesHeader globalStats={globalStats} />
 
           <FilesToolbar
             saving={saving}
