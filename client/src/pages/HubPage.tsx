@@ -177,62 +177,104 @@ export function HubPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-4 rounded-3xl border border-white/10 bg-[#0a0b10]/90 p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Icon name="pulse" />Biometria Hunter</div>
+        <section className="lg:col-span-4 rounded-3xl border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+          <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-[60px]" />
+          <div className="mb-6 flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Icon name="pulse" className="text-blue-400" />Biometria Hunter</div>
             <div className="flex items-center gap-2">
-              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-white"><Icon name="settings" /></button>
-              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700 p-1.5 text-slate-400 hover:text-cyan-300">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
+              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700/50 p-1.5 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"><Icon name="settings" /></button>
+              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700/50 p-1.5 text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
             </div>
           </div>
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-500/30 bg-slate-900"><Icon name="user" className="text-slate-300 text-3xl" /></div>
+          <div className="mb-6 flex items-center gap-5 relative z-10">
+            <div className="group-avatar flex h-24 w-24 shrink-0 items-center justify-center rounded-[20px] border border-blue-500/40 bg-gradient-to-b from-blue-900/40 to-black/60 shadow-[inset_0_0_20px_rgba(59,130,246,0.2),0_0_20px_rgba(59,130,246,0.15)] backdrop-blur-md relative">
+              <div className="absolute inset-0 rounded-[20px] bg-blue-400/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <Icon name="user" className="text-blue-300/80 text-4xl drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+            </div>
             <div>
-              <h2 className="text-2xl font-black uppercase italic text-white">{authUser ? "Shadow Hunter" : "Operador Visitante"}</h2>
-              <p className="text-[10px] uppercase tracking-wider text-blue-400">Nivel {level} Operacional • Rank {rank}</p>
-              <div className="mt-2 flex gap-2 text-slate-400"><Icon name="bolt" className="text-sm" /><Icon name="brain" className="text-sm" /><Icon name="sparkles" className="text-sm" /></div>
+              <h2 className="text-2xl font-black uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 drop-shadow-sm">{authUser ? "Shadow Hunter" : "Operador"}</h2>
+              <div className="mt-1 inline-flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-300">
+                <Icon name="shield-check" className="text-xs" /> Nivel {level} • Rank {rank}
+              </div>
+              <div className="mt-3 flex gap-3 text-slate-400">
+                <div className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1"><Icon name="bolt" className="text-xs text-yellow-400" /><span className="text-[9px] font-bold">120K</span></div>
+                <div className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1"><Icon name="brain" className="text-xs text-purple-400" /><span className="text-[9px] font-bold">INT</span></div>
+              </div>
             </div>
           </div>
-          <div className="space-y-4 rounded-xl border border-white/10 bg-black/30 p-4">
-            <StatBar label="PYTHON" percent={attributes.python} gradientClass="from-blue-600 to-blue-400" sub="Automacao & Scripting" valueTestId="hub-attr-python-stat" />
-            <StatBar label="SQL" percent={attributes.sql} gradientClass="from-cyan-600 to-cyan-400" sub="Querying & Database" />
-            <StatBar label="EXCEL" percent={attributes.excel} gradientClass="from-emerald-600 to-emerald-400" sub="Analise & Dashboards" />
-            <StatBar label="ETL / ELT" percent={attributes.etl} gradientClass="from-amber-500 to-orange-400" sub="Data Pipelines" />
+          <div className="space-y-5 rounded-2xl border border-white/5 bg-black/40 p-5 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] relative z-10">
+            <StatBar label="PYTHON" percent={attributes.python} gradientClass="from-blue-600 via-blue-500 to-cyan-400" sub="Automacao & Scripting" valueTestId="hub-attr-python-stat" />
+            <StatBar label="SQL" percent={attributes.sql} gradientClass="from-cyan-600 via-cyan-500 to-blue-400" sub="Querying & Database" />
+            <StatBar label="EXCEL" percent={attributes.excel} gradientClass="from-emerald-600 via-emerald-500 to-teal-400" sub="Analise & Dashboards" />
+            <StatBar label="ETL / ELT" percent={attributes.etl} gradientClass="from-orange-600 via-orange-500 to-amber-400" sub="Data Pipelines" />
           </div>
-          <button type="button" data-testid="hub-connect-button" onClick={() => (authUser ? void refreshHub() : openAuthPanel())} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 py-3 text-xs font-black uppercase tracking-[0.2em] text-blue-300 hover:bg-blue-500/20">
+          <button type="button" data-testid="hub-connect-button" onClick={() => (authUser ? void refreshHub() : openAuthPanel())} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-gradient-to-r from-blue-600/10 to-blue-400/10 py-3.5 text-xs font-black uppercase tracking-[0.2em] text-blue-300 transition-all hover:bg-blue-500/20 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-400 relative z-10">
             {authUser ? "Sincronizar Sistema" : "Conectar Sistema"} <Icon name="angle-right" className="text-sm" />
           </button>
         </section>
 
-        <section className="lg:col-span-8 rounded-3xl border border-white/10 bg-[#050202] p-8">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="rounded border border-red-500/20 bg-red-950/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-red-400">{activeQuest ? "Incursao Ativa" : "Sem Incursao"}</div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500">Protocolo: {activeQuest ? `QST_${activeQuest.id.slice(0, 8).toUpperCase()}` : "QST_IDLE"}</span>
-          </div>
-          <div className="mb-3 flex items-center gap-3 text-[10px] uppercase tracking-wider text-slate-500">
-            <span>Rank {(activeQuest?.rank ?? "F").toUpperCase()}</span>
-            <span>•</span>
-            <span>{threatLabel}</span>
-          </div>
-          <h1 data-testid="hub-mission-title" className={`text-4xl font-black uppercase italic text-white md:text-6xl ${glitchActive ? "tracking-[0.02em]" : ""}`}>{missionTitle}</h1>
-          <p className="mt-4 max-w-2xl text-sm text-slate-400">{activeQuest?.objective ?? activeQuest?.description ?? "Conclua revisoes e sessoes para abrir uma incursao."}</p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-blue-400"><Icon name="brain" className="mb-1" />Materia: {activeQuest?.subject ?? "Geral"}</div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-red-400"><Icon name="shield" className="mb-1" />Dificuldade: {(activeQuest?.difficulty ?? "medio").toUpperCase()}</div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-purple-400"><Icon name="sparkles" className="mb-1" />Loot: +{activeQuest?.rewardXp ?? 0} XP</div>
-          </div>
-          <div className="mt-8">
-            <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-              <span>Progresso da Missao</span>
-              <span data-testid="hub-mission-progress" className="text-red-400">{missionProgress}</span>
+        <section className={`lg:col-span-8 rounded-3xl border border-white/5 bg-gradient-to-br from-[#02050a]/95 to-[#050101]/95 backdrop-blur-2xl p-8 relative overflow-hidden transition-all duration-700 ${activeQuest ? "shadow-[0_0_50px_rgba(220,38,38,0.1)]" : "shadow-[0_0_50px_rgba(34,211,238,0.05)]"}`}>
+          <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay" />
+          {activeQuest && (
+            <>
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-600/10 blur-[80px]" />
+              <div className="pointer-events-none absolute bottom-0 left-1/4 h-32 w-1/2 rounded-full bg-orange-500/5 blur-[60px]" />
+            </>
+          )}
+
+          <div className="relative z-10">
+            <div className="mb-6 flex items-center gap-3">
+              <div className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${activeQuest ? "border-red-500/40 bg-red-950/40 text-red-400 shadow-[0_0_15px_rgba(220,38,38,0.2)]" : "border-cyan-500/30 bg-cyan-950/30 text-cyan-400"}`}>
+                <span className="flex items-center gap-2">
+                  {activeQuest && <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />}
+                  {activeQuest ? "Incursao Ativa" : "Sem Incursao"}
+                </span>
+              </div>
+              <span className="text-[10px] uppercase tracking-widest text-slate-500/80 font-mono">Protocolo: {activeQuest ? `QST_${activeQuest.id.slice(0, 8).toUpperCase()}` : "QST_IDLE"}</span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full border border-white/10 bg-black/40">
-              <div className={`h-full rounded-full bg-gradient-to-r from-red-900 via-red-600 to-red-400 transition-all ${widthPercentClass(missionPercent)}`} />
+            <div className="mb-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              <span className="text-white">Rank {(activeQuest?.rank ?? "F").toUpperCase()}</span>
+              <span className="text-slate-600">•</span>
+              <span className={activeQuest ? "text-red-400" : "text-cyan-400"}>{threatLabel}</span>
             </div>
+
+            <h1 data-testid="hub-mission-title" className={`text-4xl font-black uppercase italic text-transparent bg-clip-text bg-gradient-to-r ${activeQuest ? "from-white to-red-300" : "from-white to-slate-400"} md:text-5xl lg:text-6xl drop-shadow-sm ${glitchActive ? "tracking-[0.02em] skew-x-[-2deg]" : "transition-all duration-300"}`}>
+              {missionTitle}
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-400/90 font-medium">
+              {activeQuest?.objective ?? activeQuest?.description ?? "Aguardando sincronizacao de dados diários. Conclua sessoes de foco ou revise conteudos para liberar a incursao."}
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-blue-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <div className="rounded bg-blue-500/20 p-1.5"><Icon name="brain" className="text-blue-400" /></div>
+                <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Materia</span><span className="font-bold">{activeQuest?.subject ?? "Geral"}</span></div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-red-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <div className="rounded bg-red-500/20 p-1.5"><Icon name="shield" className="text-red-400" /></div>
+                <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Dificuldade</span><span className="font-bold">{(activeQuest?.difficulty ?? "medio").toUpperCase()}</span></div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-purple-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <div className="rounded bg-purple-500/20 p-1.5"><Icon name="sparkles" className="text-purple-400" /></div>
+                <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Loot (XP)</span><span className="font-bold">+{activeQuest?.rewardXp ?? 0} XP</span></div>
+              </div>
+            </div>
+
+            <div className="mt-10">
+              <div className="mb-3 flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
+                <span>Sincronizacao Concluida</span>
+                <span data-testid="hub-mission-progress" className={`${activeQuest ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]" : "text-slate-500"} font-mono`}>{missionProgress}</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full border border-white/10 bg-black/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] relative">
+                <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out ${widthPercentClass(missionPercent)} ${activeQuest ? "bg-gradient-to-r from-red-900 via-red-500 to-red-400 shadow-[0_0_15px_rgba(239,68,68,0.6)]" : "bg-slate-700"}`} />
+              </div>
+            </div>
+
+            <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className={`mt-10 flex w-full md:w-auto items-center justify-center gap-3 rounded-2xl border px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${activeQuest ? "border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md" : "border-slate-700 bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white"}`}>
+              <Icon name="sword" className="text-lg" /> Iniciar Incursao
+            </button>
           </div>
-          <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className="mt-8 flex items-center gap-2 rounded-xl bg-red-600 px-8 py-3 text-xs font-black uppercase tracking-[0.2em] text-white hover:bg-red-500">
-            <Icon name="sword" className="text-sm" /> Iniciar Revisoes
-          </button>
         </section>
       </div>
 

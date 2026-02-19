@@ -435,7 +435,7 @@ export function VideoPlayer({
       )}
 
       <button
-        className="absolute right-4 top-4 z-30 rounded-full bg-black/40 p-1.5 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60"
+        className="absolute right-4 top-4 z-30 rounded-2xl border border-white/10 bg-black/40 p-2 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-black/60 hover:text-cyan-300"
         onClick={() => {
           setShowHotkeys((current) => !current);
           revealControls();
@@ -443,60 +443,62 @@ export function VideoPlayer({
         title={showHotkeys ? "Ocultar atalhos" : "Ver atalhos"}
         type="button"
       >
-        <Icon name="info" className="text-[18px]" />
+        <Icon name="info" className="text-[15px]" />
       </button>
 
       {showHotkeys && (
-        <div className="absolute right-4 top-14 z-30 w-64 rounded-xl border border-cyan-500/30 bg-[#07172b]/90 p-3 text-[11px] text-white backdrop-blur-md">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-300">Atalhos</p>
-          <p>K / espaco: play/pause</p>
-          <p>F: tela cheia</p>
-          <p>M: mutar</p>
-          <p>Seta esquerda/direita: -/+ 5s</p>
+        <div className="absolute right-4 top-16 z-30 w-64 rounded-[20px] border border-cyan-500/30 bg-[#040a17]/80 p-5 text-[11px] font-bold text-cyan-100 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+          <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Atalhos do Sistema</p>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center"><span className="text-cyan-600">K / Espaco</span><span>Play/Pause</span></div>
+            <div className="flex justify-between items-center"><span className="text-cyan-600">F</span><span>Tela Cheia</span></div>
+            <div className="flex justify-between items-center"><span className="text-cyan-600">M</span><span>Mutar/Vol</span></div>
+            <div className="flex justify-between items-center"><span className="text-cyan-600">Setas L/R</span><span>-/+ 5 Segs</span></div>
+          </div>
         </div>
       )}
 
       <button
-        className="absolute right-4 top-1/2 z-30 -translate-y-1/2 rounded-md bg-black/40 p-2 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/60 disabled:cursor-not-allowed disabled:opacity-45"
+        className="absolute right-4 top-1/2 z-30 hidden md:block -translate-y-1/2 rounded-2xl border border-white/10 bg-black/40 p-2.5 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-black/60 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-45"
         disabled={!hasSource}
         onClick={() => void togglePictureInPicture()}
         title="Mini player"
         type="button"
       >
-        <Icon name="compress" className="text-[18px]" />
+        <Icon name="compress" className="text-[16px]" />
       </button>
 
       <div
-        className={`absolute bottom-0 left-0 right-0 z-30 px-3 pb-3 transition-opacity duration-300 ${controlsVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-[#01030a]/95 via-[#030d1f]/60 to-transparent pt-16 px-4 pb-4 md:px-6 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${controlsVisible ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-6"}`}
       >
-        <div className="group/slider relative mb-2 h-2 w-full cursor-pointer rounded-full border border-cyan-900/70 bg-[#031022]" onClick={onProgressClick}>
-          <div className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-200 ${widthPercentClass(progressPercent)}`}>
-            <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.85)]" />
+        <div className="group/slider relative mb-4 h-1.5 w-full cursor-pointer rounded-full border border-cyan-500/20 bg-black/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] hover:h-2.5 transition-all" onClick={onProgressClick}>
+          <div className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)] ${widthPercentClass(progressPercent)}`}>
+            <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 scale-0 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(34,211,238,1)] transition-transform group-hover/slider:scale-100" />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-1.5 py-1 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-1 rounded-[16px] border border-cyan-500/20 bg-[#040f25]/40 px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:bg-[#040f25]/70">
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!hasSource}
                 onClick={togglePlay}
                 type="button"
               >
-                {playing ? <Icon name="pause" className="text-[20px]" /> : <Icon name="play" className="ml-0.5 text-[20px]" />}
+                {playing ? <Icon name="pause" className="text-[16px]" /> : <Icon name="play" className="ml-0.5 text-[16px]" />}
               </button>
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
                 onClick={toggleMute}
                 disabled={soundLocked || !hasSource}
                 title={soundLocked ? "Efeitos sonoros desativados em Configuracoes" : "Som"}
                 type="button"
               >
-                {muted || volume === 0 ? <Icon name="volume-mute" className="text-[19px]" /> : volume < 0.5 ? <Icon name="volume-down" className="text-[19px]" /> : <Icon name="volume" className="text-[19px]" />}
+                {muted || volume === 0 ? <Icon name="volume-mute" className="text-[15px]" /> : volume < 0.5 ? <Icon name="volume-down" className="text-[15px]" /> : <Icon name="volume" className="text-[15px]" />}
               </button>
               <input
-                className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/35 accent-white transition-all group-hover:w-20"
+                className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-cyan-700/50 accent-cyan-400 transition-all focus:outline-none group-hover:w-20"
                 disabled={soundLocked || !hasSource}
                 max="1"
                 min="0"
@@ -507,47 +509,47 @@ export function VideoPlayer({
               />
             </div>
 
-            <div className="rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-3 py-2 text-xl font-semibold tracking-tight text-white">
-              {formatTime(currentTime)} / {formatTime(duration)}
+            <div className="rounded-[14px] border border-cyan-500/20 bg-[#020b17]/50 px-4 py-2.5 font-mono text-[11px] font-black tracking-widest text-cyan-50 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl hidden sm:block">
+              <span className="text-cyan-300">{formatTime(currentTime)}</span><span className="mx-2 text-cyan-800">|</span><span className="text-cyan-600">{formatTime(duration)}</span>
             </div>
 
-            <div className="flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-500/12 px-4 py-2 text-xl font-medium text-cyan-100 backdrop-blur-sm">
-              {chapterLabel}
-              <Icon name="angle-right" className="text-[18px]" />
+            <div className="hidden flex-1 items-center gap-3 rounded-[14px] border border-cyan-400/10 bg-cyan-950/20 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-cyan-200 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:flex">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+              <span className="truncate max-w-[200px]">{chapterLabel}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-1.5 py-1 backdrop-blur-sm">
+          <div className="flex items-center gap-1 rounded-[16px] border border-cyan-500/20 bg-[#040f25]/40 px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:bg-[#040f25]/70">
             <button
-              className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
               title="Legenda indisponivel para este arquivo"
               disabled
               type="button"
             >
-              <Icon name="closed-captioning" className="text-[19px]" />
+              <Icon name="closed-captioning" className="text-[15px]" />
             </button>
 
             <div className="relative">
               <button
-                className={`rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45 ${settingsOpen ? "bg-white/10" : ""}`}
+                className={`rounded-xl p-2.5 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45 ${settingsOpen ? "bg-cyan-500/30 text-white" : "text-cyan-100"}`}
                 disabled={!hasSource}
                 onClick={() => setSettingsOpen((current) => !current)}
                 title="Velocidade e configuracoes"
                 type="button"
               >
-                <Icon name="settings" className="text-[19px]" />
+                <Icon name="settings" className="text-[15px]" />
               </button>
               {settingsOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-32 overflow-hidden rounded-xl border border-cyan-500/30 bg-[#07172b]/95 p-1 text-xs text-white backdrop-blur-md">
+                <div className="absolute bottom-full right-0 mb-3 w-36 overflow-hidden rounded-[16px] border border-cyan-500/30 bg-[#040a17]/90 p-1.5 text-[11px] font-bold uppercase tracking-wider text-cyan-100 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
                   {[0.5, 1, 1.25, 1.5, 2].map((speed) => (
                     <button
                       key={speed}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-cyan-500/10 ${playbackRate === speed ? "text-cyan-200" : "text-white"}`}
+                      className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-left transition-colors hover:bg-cyan-500/20 ${playbackRate === speed ? "bg-cyan-500/10 text-cyan-300" : "text-cyan-100"}`}
                       onClick={() => handleSpeedChange(speed)}
                       type="button"
                     >
                       <span>{speed}x</span>
-                      {playbackRate === speed && <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />}
+                      {playbackRate === speed && <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />}
                     </button>
                   ))}
                 </div>
@@ -556,23 +558,23 @@ export function VideoPlayer({
 
             {pipSupported && (
               <button
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!hasSource}
                 onClick={() => void togglePictureInPicture()}
                 title="Picture in Picture"
                 type="button"
               >
-                <Icon name="picture" className="text-[19px]" />
+                <Icon name="picture" className="text-[15px]" />
               </button>
             )}
 
             <button
-              className="rounded-full p-2 text-white transition-colors hover:bg-white/10"
+              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white"
               onClick={() => void toggleFullscreen()}
               title="Tela cheia"
               type="button"
             >
-              {fullscreen ? <Icon name="compress" className="text-[19px]" /> : <Icon name="expand" className="text-[19px]" />}
+              {fullscreen ? <Icon name="compress" className="text-[15px]" /> : <Icon name="expand" className="text-[15px]" />}
             </button>
           </div>
         </div>

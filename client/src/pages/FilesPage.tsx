@@ -453,10 +453,13 @@ export function FilesPage() {
     >
       {/* Drag Overlay */}
       {isDragging && (
-        <div className="pointer-events-none fixed inset-0 z-[200] m-4 flex items-center justify-center rounded-3xl border-4 border-dashed border-cyan-300/50 bg-cyan-500/10 backdrop-blur-sm">
-          <div className="text-center animate-bounce">
-            <Icon name="upload" className="text-6xl text-cyan-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-black uppercase text-cyan-300">Solte arquivos aqui</h2>
+        <div className="pointer-events-none fixed inset-0 z-[200] m-4 md:m-8 flex items-center justify-center rounded-[40px] border-4 border-dashed border-cyan-400/60 bg-[#020814]/80 backdrop-blur-xl shadow-[0_0_100px_rgba(34,211,238,0.2)_inset] transition-all duration-300">
+          <div className="text-center animate-in zoom-in-50 duration-300 flex flex-col items-center">
+            <div className="h-32 w-32 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 animate-pulse shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+              <Icon name="cloud-upload" className="text-7xl text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+            </div>
+            <h2 className="text-4xl font-black uppercase tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-cyan-500 drop-shadow-sm">Upload Matrix</h2>
+            <p className="mt-3 text-cyan-200/60 font-medium tracking-widest uppercase text-sm">Solte os arquivos para processamento local</p>
           </div>
         </div>
       )}
@@ -486,12 +489,12 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="files-panel-elevated relative overflow-hidden rounded-[30px] p-4 md:p-6" data-testid="files-header">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-cyan-500/14 blur-[130px]" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-amber-500/10 blur-[130px]" />
-        <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-60" />
+      <div className="files-panel-elevated relative overflow-hidden rounded-[40px] p-5 md:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-cyan-500/10 backdrop-blur-2xl bg-gradient-to-r from-[#030914]/90 via-[#051126]/80 to-[#030914]/90" data-testid="files-header">
+        <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-cyan-600/10 blur-[120px] mix-blend-screen" />
+        <div className="pointer-events-none absolute bottom-0 right-20 h-64 w-64 rounded-full bg-indigo-500/10 blur-[100px] mix-blend-screen" />
+        <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay" />
 
-        <div className="relative z-10 space-y-5">
+        <div className="relative z-10 space-y-6">
 
           <FilesToolbar
             saving={saving}
@@ -550,7 +553,7 @@ export function FilesPage() {
           </div>
         </div>
 
-                <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2">
           <ErrorBanner message={error} onClose={handleClearError} />
 
           {storageUnavailable && (
@@ -634,39 +637,42 @@ export function FilesPage() {
             </div>
           </div>
         ) : visibleVideos.length === 0 ? (
-          <div className="files-panel flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-cyan-700/40 px-8 text-center transition-colors hover:border-cyan-400/45 hover:bg-[#061127]">
-            <div className="mb-6 rounded-2xl border border-cyan-400/35 bg-cyan-500/12 p-4">
-              <Icon name="cloud-upload" className="text-[hsl(var(--accent))] text-[36px]" />
+          <div className="files-panel flex min-h-[460px] flex-col items-center justify-center rounded-[40px] border-2 border-dashed border-cyan-800/40 bg-gradient-to-b from-[#020b17]/50 to-[#030914]/80 px-8 text-center transition-all hover:border-cyan-400/60 hover:shadow-[0_0_60px_rgba(34,211,238,0.05)_inset]">
+            <div className="mb-8 rounded-full border border-cyan-400/20 bg-cyan-950/30 p-6 shadow-[0_0_60px_rgba(34,211,238,0.15)] relative group">
+              <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl group-hover:bg-cyan-400/30 transition-colors animate-pulse" />
+              <Icon name="cloud-upload" className="text-[hsl(var(--accent))] text-[48px] relative z-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
             </div>
-            <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">
-              Arraste e solte videos aqui ou selecione abaixo para comecar.
+            <h3 className="text-3xl font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-300">Terminal Inativo</h3>
+            <p className="mt-3 max-w-lg text-[13px] text-cyan-200/60 uppercase tracking-widest font-semibold leading-relaxed">
+              Arraste e solte vídeos na zona, ou utilize os comandos de importação abaixo para iniciar o Uplink.
             </p>
-            <button
-              className="mt-8 flex items-center gap-2 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:brightness-110 active:scale-95"
-              onClick={handleOpenPicker}
-              type="button"
-            >
-              <Icon name="upload" className="text-[16px]" />
-              Selecionar videos
-            </button>
-            <button
-              className="mt-3 flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-indigo-500 active:scale-95"
-              onClick={handleOpenFolderPicker}
-              type="button"
-            >
-              <Icon name="folder-open" className="text-[16px]" />
-              {`Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD})`}
-            </button>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
+              <button
+                className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-cyan-400/50 bg-cyan-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.2)] backdrop-blur-md transition-all hover:bg-cyan-500/30 hover:text-white hover:border-cyan-400 active:scale-95"
+                onClick={handleOpenPicker}
+                type="button"
+              >
+                <Icon name="upload" className="text-[16px]" />
+                Selecionar vídeos
+              </button>
+              <button
+                className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-indigo-400/50 bg-indigo-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-indigo-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] backdrop-blur-md transition-all hover:bg-indigo-500/30 hover:text-white hover:border-indigo-400 active:scale-95"
+                onClick={handleOpenFolderPicker}
+                type="button"
+              >
+                <Icon name="folder-open" className="text-[16px]" />
+                {`Pasta (${HIGH_VOLUME_FOLDER_THRESHOLD})`}
+              </button>
+            </div>
             {directoryHandleSupported && (
               <button
-                className="mt-3 flex items-center gap-2 rounded-2xl border border-violet-500/30 bg-violet-600 px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-violet-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-4 flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-8 py-3.5 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md transition-all hover:bg-emerald-500/30 hover:text-white hover:border-emerald-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={saving}
                 onClick={() => void handleOpenDirectoryPicker()}
                 type="button"
               >
-                <Icon name="folder-open" className="text-[16px]" />
-                Conectar pasta (alto volume)
+                <Icon name="server" className="text-[16px]" />
+                Conexão Contínua (Volumes Grandes)
               </button>
             )}
           </div>
