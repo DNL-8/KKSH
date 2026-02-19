@@ -18,6 +18,7 @@ import { VideoMetadata } from "../components/files/VideoMetadata";
 import { LessonSidebar } from "../components/files/LessonSidebar";
 import { heightPercentClass } from "../lib/percentClasses";
 import {
+  ensureHandleReadPermission,
   formatStorageKind,
   normalizePathForTestId,
   summarizeNames,
@@ -239,6 +240,7 @@ export function FilesPage() {
     error: selectionError,
     statusMessage: selectionStatusMessage,
     setError: setSelectionError,
+    reloadSelectedVideoSource,
   } = useVideoSelection({
     visibleVideos,
     folderSections,
@@ -346,9 +348,38 @@ export function FilesPage() {
   }, [setCollapsedFolders]);
 
   const handleSelectLesson = (lessonId: string) => {
-    setSelectedLessonId(lessonId);
-    setBridgeVideo(null);
-    setIsSidebarMobileOpen(false);
+    const candidate = visibleVideos.find((video) => video.id === lessonId) ?? null;
+    const finalizeSelection = () => {
+      setSelectedLessonId(lessonId);
+      setBridgeVideo(null);
+      setIsSidebarMobileOpen(false);
+    };
+
+    if (!candidate || candidate.storageKind !== "handle") {
+      setSelectionError(null);
+      finalizeSelection();
+      return;
+    }
+
+    void (async () => {
+      let permissionGranted = false;
+      try {
+        await ensureHandleReadPermission(candidate, { requestPermissionIfNeeded: true });
+        setSelectionError(null);
+        permissionGranted = true;
+      } catch (permissionError) {
+        setSelectionError(
+          permissionError instanceof Error && permissionError.message
+            ? permissionError.message
+            : "Permissao necessaria para reproduzir este arquivo conectado.",
+        );
+      } finally {
+        finalizeSelection();
+        if (permissionGranted && selectedLessonId === lessonId) {
+          reloadSelectedVideoSource();
+        }
+      }
+    })();
   };
 
 

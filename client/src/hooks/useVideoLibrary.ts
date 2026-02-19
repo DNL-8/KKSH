@@ -144,6 +144,8 @@ export function useVideoLibrary() {
                 });
             }
 
+            const bridgeConnected = await checkConnection();
+
             let localRows: StoredVideo[] = [];
             let localLoadFailed = false;
             try {
@@ -152,13 +154,13 @@ export function useVideoLibrary() {
             } catch (loadError) {
                 localLoadFailed = true;
                 setStorageUnavailable(true);
-                if (!isBridgeConnected) {
+                if (!bridgeConnected) {
                     setError(toErrorMessage(loadError, "Nao foi possivel carregar a biblioteca local."));
                 }
             }
 
             let bridgeRows: StoredVideo[] = [];
-            if (isBridgeConnected) {
+            if (bridgeConnected) {
                 const bridgeData = await getBridgeLibrary();
                 const bridgeItems = Array.isArray(bridgeData) ? bridgeData : [];
 
@@ -205,7 +207,7 @@ export function useVideoLibrary() {
             const persistedIds = new Set(mergedPersisted.map((video) => video.id));
             setRuntimeVideos((current) => current.filter((video) => !persistedIds.has(video.id)));
 
-            if (localLoadFailed && isBridgeConnected) {
+            if (localLoadFailed && bridgeConnected) {
                 setStatusMessage("Biblioteca local indisponivel. Exibindo somente itens da Bridge e do modo temporario.");
             }
         } catch (loadError) {
@@ -213,15 +215,11 @@ export function useVideoLibrary() {
         } finally {
             setLoading(false);
         }
-    }, [getBridgeLibrary, isBridgeConnected]);
+    }, [checkConnection, getBridgeLibrary]);
 
     useEffect(() => {
-        const run = async () => {
-            await checkConnection();
-            await loadVideos();
-        };
-        void run();
-    }, [checkConnection, loadVideos]);
+        void loadVideos();
+    }, [loadVideos]);
 
     const mergeRuntimeVideos = useCallback(
         (incoming: StoredVideo[]) => {

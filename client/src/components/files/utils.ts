@@ -229,25 +229,83 @@ type FileSystemPermissionCompat = {
     requestPermission?: (descriptor?: { mode?: FileHandlePermissionMode }) => Promise<PermissionState>;
 };
 
-export async function resolvePlayableFile(video: StoredVideo): Promise<File> {
+export class VideoHandlePermissionError extends Error {
+    constructor(message = "Permissao necessaria para reproduzir este arquivo conectado.") {
+        super(message);
+        this.name = "VideoHandlePermissionError";
+    }
+}
+
+interface ResolvePlayableFileOptions {
+    requestPermissionIfNeeded?: boolean;
+}
+
+function getVideoFileHandle(video: StoredVideo): (FileSystemFileHandle & FileSystemPermissionCompat) {
+    const handle = video.fileHandle as (FileSystemFileHandle & FileSystemPermissionCompat) | undefined;
+    if (!handle) {
+        throw new Error("Arquivo conectado indisponivel.");
+    }
+    return handle;
+}
+
+function isUserActivationRequiredError(error: unknown): boolean {
+    if (!(error instanceof DOMException)) {
+        return false;
+    }
+    return error.name === "SecurityError" && /user activation/i.test(error.message);
+}
+
+export async function ensureHandleReadPermission(
+    video: StoredVideo,
+    options: ResolvePlayableFileOptions = {},
+): Promise<void> {
+    if (video.storageKind !== "handle") {
+        return;
+    }
+
+    const handle = getVideoFileHandle(video);
+    let permission: PermissionState = "prompt";
+
+    if (typeof handle.queryPermission === "function") {
+        permission = await handle.queryPermission({ mode: "read" });
+    }
+
+    if (permission !== "granted" && options.requestPermissionIfNeeded) {
+        if (typeof handle.requestPermission === "function") {
+            try {
+                permission = await handle.requestPermission({ mode: "read" });
+            } catch (permissionError) {
+                if (isUserActivationRequiredError(permissionError)) {
+                    throw new VideoHandlePermissionError(
+                        "Clique em uma aula para conceder permissao de leitura da pasta conectada.",
+                    );
+                }
+                throw permissionError;
+            }
+        }
+    }
+
+    if (permission !== "granted") {
+        throw new VideoHandlePermissionError(
+            options.requestPermissionIfNeeded
+                ? "Permissao de leitura negada para este arquivo conectado."
+                : "Permissao pendente para este arquivo conectado. Clique na aula para liberar acesso.",
+        );
+    }
+}
+
+export async function resolvePlayableFile(video: StoredVideo, options: ResolvePlayableFileOptions = {}): Promise<File> {
     if (video.storageKind === "handle") {
-        const handle = video.fileHandle as (FileSystemFileHandle & FileSystemPermissionCompat) | undefined;
-        if (!handle) {
-            throw new Error("Arquivo conectado indisponivel.");
+        const handle = getVideoFileHandle(video);
+        await ensureHandleReadPermission(video, options);
+        try {
+            return await handle.getFile();
+        } catch (handleError) {
+            if (handleError instanceof DOMException && handleError.name === "NotAllowedError") {
+                throw new VideoHandlePermissionError("Permissao necessaria para abrir este arquivo conectado.");
+            }
+            throw handleError;
         }
-
-        let permission: PermissionState = "prompt";
-        if (typeof handle.queryPermission === "function") {
-            permission = await handle.queryPermission({ mode: "read" });
-        }
-        if (permission !== "granted" && typeof handle.requestPermission === "function") {
-            permission = await handle.requestPermission({ mode: "read" });
-        }
-        if (permission !== "granted") {
-            throw new Error("Permissao necessaria para reproduzir este arquivo.");
-        }
-
-        return handle.getFile();
     }
 
     // Try to get file from chunks or direct property

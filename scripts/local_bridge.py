@@ -3,7 +3,7 @@ import os
 import sqlite3
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
-from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
+from fastapi.responses import JSONResponse, FileResponse, StreamingResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from typing import List, Optional
@@ -200,43 +200,72 @@ def list_files(path: str):
 @app.get("/stream")
 def stream_file(path: str, request: Request):
     p = Path(path)
-    if not p.exists():
+    if not p.exists() or not p.is_file():
         return JSONResponse(status_code=404, content={"message": "File not found"})
 
     file_size = p.stat().st_size
     range_header = request.headers.get("range")
+    media_type = mimetypes.guess_type(str(p))[0] or "application/octet-stream"
+
+    def parse_range_header(value: str, size: int):
+        if not value.startswith("bytes="):
+            return None
+
+        spec = value.replace("bytes=", "", 1).split(",", 1)[0].strip()
+        if "-" not in spec:
+            return None
+
+        start_raw, end_raw = spec.split("-", 1)
+        try:
+            if start_raw == "":
+                suffix_len = int(end_raw)
+                if suffix_len <= 0:
+                    return None
+                start = max(size - suffix_len, 0)
+                end = size - 1
+            else:
+                start = int(start_raw)
+                end = int(end_raw) if end_raw else size - 1
+        except ValueError:
+            return None
+
+        if start < 0 or end < start or start >= size:
+            return None
+
+        end = min(end, size - 1)
+        return start, end
+
+    if range_header:
+        parsed = parse_range_header(range_header, file_size)
+        if parsed is None:
+            return Response(status_code=416, headers={"Content-Range": f"bytes */{file_size}"})
+
+        start, end = parsed
+        length = end - start + 1
+
+        def iterfile():
+            remaining = length
+            with open(p, "rb") as f:
+                f.seek(start)
+                while remaining > 0:
+                    chunk = f.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Content-Length": str(length),
+        }
+        return StreamingResponse(iterfile(), status_code=206, headers=headers, media_type=media_type)
 
     headers = {
         "Accept-Ranges": "bytes",
-        "Content-Type": mimetypes.guess_type(p)[0] or "application/octet-stream",
+        "Content-Length": str(file_size),
     }
-
-    if range_header:
-        byte1, byte2 = 0, None
-        match = range_header.replace("bytes=", "").split("-")
-        try:
-            byte1 = int(match[0])
-            if match[1]:
-                byte2 = int(match[1])
-        except ValueError:
-            pass
-
-        if byte2 is None:
-            byte2 = file_size - 1
-
-        length = byte2 - byte1 + 1
-        
-        def iterfile():
-            with open(p, "rb") as f:
-                f.seek(byte1)
-                yield from f.read(length)
-
-        headers["Content-Range"] = f"bytes {byte1}-{byte2}/{file_size}"
-        headers["Content-Length"] = str(length)
-        return StreamingResponse(iterfile(), status_code=206, headers=headers)
-
-    headers["Content-Length"] = str(file_size)
-    return FileResponse(p, headers=headers)
+    return FileResponse(p, headers=headers, media_type=media_type)
 
 @app.get("/health")
 def health():

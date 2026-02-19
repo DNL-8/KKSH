@@ -2,6 +2,10 @@
 
 export const LOCAL_BRIDGE_URL = "http://localhost:8765";
 
+const BRIDGE_HEALTH_CHECK_TIMEOUT_MS = 2500;
+const BRIDGE_HEALTH_CHECK_INTERVAL_ONLINE_MS = 15000;
+const BRIDGE_HEALTH_CHECK_INTERVAL_OFFLINE_MS = 60000;
+
 export interface BridgeItem {
     name: string;
     path: string;
@@ -18,12 +22,19 @@ export function useLocalBridge() {
     const [isConnected, setIsConnected] = useState(false);
     const [drives, setDrives] = useState<string[]>([]);
 
-    const checkConnection = useCallback(async () => {
+    const checkConnection = useCallback(async (): Promise<boolean> => {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), BRIDGE_HEALTH_CHECK_TIMEOUT_MS);
+
         try {
-            const res = await fetch(`${LOCAL_BRIDGE_URL}/health`);
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/health`, { signal: controller.signal });
             setIsConnected(res.ok);
+            return res.ok;
         } catch {
             setIsConnected(false);
+            return false;
+        } finally {
+            window.clearTimeout(timeoutId);
         }
     }, []);
 
@@ -61,11 +72,35 @@ export function useLocalBridge() {
     }, []);
 
     useEffect(() => {
-        void checkConnection();
-        const interval = setInterval(() => {
-            void checkConnection();
-        }, 5000);
-        return () => clearInterval(interval);
+        let cancelled = false;
+        let timeoutId: number | null = null;
+
+        const scheduleNext = (delayMs: number) => {
+            timeoutId = window.setTimeout(() => {
+                void run();
+            }, delayMs);
+        };
+
+        const run = async () => {
+            const connected = await checkConnection();
+            if (cancelled) {
+                return;
+            }
+            scheduleNext(
+                connected
+                    ? BRIDGE_HEALTH_CHECK_INTERVAL_ONLINE_MS
+                    : BRIDGE_HEALTH_CHECK_INTERVAL_OFFLINE_MS,
+            );
+        };
+
+        void run();
+
+        return () => {
+            cancelled = true;
+            if (timeoutId !== null) {
+                window.clearTimeout(timeoutId);
+            }
+        };
     }, [checkConnection]);
 
     const scanFolder = useCallback(async (path: string) => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type AuthUser } from "../layout/types";
 import {
     ApiRequestError,
@@ -45,6 +45,8 @@ export function useVideoSelection({
 }: UseVideoSelectionProps) {
     const [selectedVideoUrl, setSelectedVideoUrl] = useState("");
     const [selectedDurationSec, setSelectedDurationSec] = useState<number | null>(null);
+    const [playbackReloadKey, setPlaybackReloadKey] = useState(0);
+    const activeObjectUrlRef = useRef<string | null>(null);
 
     const [completedVideoRefs, setCompletedVideoRefs] = useState<Set<string>>(new Set());
     const [resolvedVideoRefsById, setResolvedVideoRefsById] = useState<Record<string, string>>({});
@@ -80,6 +82,10 @@ export function useVideoSelection({
     );
 
     const selectedVideoCompleted = isVideoCompleted(selectedVideo);
+
+    const reloadSelectedVideoSource = useCallback(() => {
+        setPlaybackReloadKey((current) => current + 1);
+    }, []);
 
     const loadCompletedVideoRefs = useCallback(async () => {
         if (!authUserId) {
@@ -173,13 +179,25 @@ export function useVideoSelection({
     }, [selectedVideo, completedVideoRefs, resolvedVideoRefsById]);
 
     useEffect(() => {
-        setSelectedVideoUrl("");
+        return () => {
+            if (activeObjectUrlRef.current) {
+                URL.revokeObjectURL(activeObjectUrlRef.current);
+                activeObjectUrlRef.current = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         if (!selectedVideo) {
+            if (activeObjectUrlRef.current) {
+                URL.revokeObjectURL(activeObjectUrlRef.current);
+                activeObjectUrlRef.current = null;
+            }
+            setSelectedVideoUrl("");
             return;
         }
 
         let closed = false;
-        let objectUrl: string | null = null;
 
         const loadPlayableSource = async () => {
             try {
@@ -187,7 +205,14 @@ export function useVideoSelection({
                     if (!selectedVideo.bridgePath) {
                         throw new Error("Caminho do video Bridge indisponivel.");
                     }
+
+                    if (activeObjectUrlRef.current) {
+                        URL.revokeObjectURL(activeObjectUrlRef.current);
+                        activeObjectUrlRef.current = null;
+                    }
+
                     setSelectedVideoUrl(buildBridgeStreamUrl(selectedVideo.bridgePath));
+                    setError(null);
                     trackFilesTelemetry("files.bridge.play.success", {
                         source: "bridge",
                         path: selectedVideo.bridgePath,
@@ -197,16 +222,33 @@ export function useVideoSelection({
                     return;
                 }
 
-                const playableFile = await resolvePlayableFile(selectedVideo);
+                const playableFile = await resolvePlayableFile(selectedVideo, { requestPermissionIfNeeded: false });
+                const nextObjectUrl = URL.createObjectURL(playableFile);
+
                 if (closed) {
+                    URL.revokeObjectURL(nextObjectUrl);
                     return;
                 }
-                objectUrl = URL.createObjectURL(playableFile);
-                setSelectedVideoUrl(objectUrl);
+
+                const previousObjectUrl = activeObjectUrlRef.current;
+                activeObjectUrlRef.current = nextObjectUrl;
+
+                setSelectedVideoUrl(nextObjectUrl);
+                setError(null);
+
+                if (previousObjectUrl) {
+                    URL.revokeObjectURL(previousObjectUrl);
+                }
             } catch (loadError) {
                 if (closed) {
                     return;
                 }
+
+                if (activeObjectUrlRef.current) {
+                    URL.revokeObjectURL(activeObjectUrlRef.current);
+                    activeObjectUrlRef.current = null;
+                }
+
                 setSelectedVideoUrl("");
                 const message = toErrorMessage(loadError, "Nao foi possivel abrir o video selecionado.");
                 if (selectedVideo.storageKind === "bridge") {
@@ -225,11 +267,8 @@ export function useVideoSelection({
 
         return () => {
             closed = true;
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-            }
         };
-    }, [selectedVideo]);
+    }, [playbackReloadKey, selectedVideo]);
 
     useEffect(() => {
         setSelectedDurationSec(null);
@@ -354,5 +393,6 @@ export function useVideoSelection({
         setStatusMessage,
         resolvingSelectedVideoRef,
         selectedVideoRef,
+        reloadSelectedVideoSource,
     };
 }
