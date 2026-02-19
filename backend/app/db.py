@@ -20,6 +20,9 @@ else:
 engine = create_engine(settings.database_url, connect_args=connect_args, **pool_kwargs)
 
 _SQLITE_COMPAT_COLUMNS: dict[str, dict[str, str]] = {
+    "users": {
+        "username": "TEXT",
+    },
     "daily_quests": {
         "title": "TEXT",
         "description": "TEXT",
@@ -67,6 +70,7 @@ _SQLITE_QUEST_INDEXES = (
     "CREATE INDEX IF NOT EXISTS ix_weekly_quests_source ON weekly_quests (source)",
     "CREATE INDEX IF NOT EXISTS ix_weekly_quests_generated_at ON weekly_quests (generated_at)",
     "CREATE INDEX IF NOT EXISTS ix_user_stats_rank ON user_stats (rank)",
+    "CREATE INDEX IF NOT EXISTS ix_users_username ON users (username)",
 )
 
 # Enable foreign keys on SQLite (important for tests/dev)

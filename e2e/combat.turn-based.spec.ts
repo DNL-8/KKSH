@@ -66,7 +66,12 @@ async function ensureAuthenticated(page: Page): Promise<void> {
   const password = "secret123";
 
   const csrfResponse = await page.request.get("/api/v1/auth/csrf");
-  expect(csrfResponse.ok()).toBeTruthy();
+  if (!csrfResponse.ok()) {
+    const responseBody = await csrfResponse.text();
+    throw new Error(
+      `Falha ao obter CSRF: status=${csrfResponse.status()} body=${responseBody || "<empty>"}`,
+    );
+  }
   const csrfPayload = (await csrfResponse.json()) as { csrfToken?: string };
   const csrfToken = String(csrfPayload.csrfToken ?? "");
   expect(csrfToken.length).toBeGreaterThan(0);
