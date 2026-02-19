@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
     checkPersistence,
     clearVideos,
@@ -12,6 +12,7 @@ import {
 } from "../lib/localVideosStore";
 import { toErrorMessage } from "../components/files/utils";
 import { useFileImporter } from "./useFileImporter";
+import { trackFilesTelemetry } from "../lib/filesTelemetry";
 import { useLocalBridge } from "./useLocalBridge";
 
 interface BridgeLibraryVideo {
@@ -297,6 +298,7 @@ export function useVideoLibrary() {
             return;
         }
 
+        const startedAt = Date.now();
         setExporting(true);
         setError(null);
         setStatusMessage(null);
@@ -307,8 +309,20 @@ export function useVideoLibrary() {
             const fileName = `cmd8-files-metadata-${timestamp}.json`;
             downloadJsonBackup(payload, fileName);
             setStatusMessage("Backup exportado com sucesso (metadados locais). A Bridge nao esta incluida.");
+            trackFilesTelemetry("files.metadata.export.success", {
+                source: "local",
+                fileName,
+                bytes: payload.length,
+                durationMs: Date.now() - startedAt,
+            });
         } catch (exportError) {
-            setError(toErrorMessage(exportError, "Falha ao exportar backup de metadados."));
+            const message = toErrorMessage(exportError, "Falha ao exportar backup de metadados.");
+            setError(message);
+            trackFilesTelemetry("files.metadata.export.error", {
+                source: "local",
+                error: message,
+                durationMs: Date.now() - startedAt,
+            });
         } finally {
             setExporting(false);
         }
@@ -323,6 +337,7 @@ export function useVideoLibrary() {
             return;
         }
 
+        const startedAt = Date.now();
         setError(null);
         setStatusMessage(null);
 
@@ -335,8 +350,28 @@ export function useVideoLibrary() {
             const result = await importMetadata(payload);
             await loadVideos();
             setStatusMessage(`${summarizeImportResult(result)} A Bridge nao foi alterada.`);
+            trackFilesTelemetry("files.metadata.import.success", {
+                source: "local",
+                fileName: selectedFile.name,
+                fileSize: selectedFile.size,
+                processed: result.processed,
+                added: result.added.length,
+                ignored: result.ignored.length,
+                rejected: result.rejected.length,
+                skippedNoSpace: result.skippedNoSpace.length,
+                skippedByLimit: result.skippedByLimit.length,
+                durationMs: Date.now() - startedAt,
+            });
         } catch (importError) {
-            setError(toErrorMessage(importError, "Falha ao restaurar metadados."));
+            const message = toErrorMessage(importError, "Falha ao restaurar metadados.");
+            setError(message);
+            trackFilesTelemetry("files.metadata.import.error", {
+                source: "local",
+                fileName: selectedFile.name,
+                fileSize: selectedFile.size,
+                error: message,
+                durationMs: Date.now() - startedAt,
+            });
         }
     };
 

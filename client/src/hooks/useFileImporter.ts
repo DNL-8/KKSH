@@ -9,6 +9,7 @@ import {
   type StoredVideo,
   type VideoImportSource,
 } from "../lib/localVideosStore";
+import { trackFilesTelemetry } from "../lib/filesTelemetry";
 import {
   buildImportStatusMessage,
   countFoldersFromFiles,
@@ -70,7 +71,11 @@ export function useFileImporter({
       setRejectedFiles(rejected);
       if (incoming.length === 0) {
         setStatusMessage("Nenhum video valido selecionado.");
-        return;
+        return {
+          addedCount,
+          ignoredCount,
+          skippedByLimitCount,
+        };
       }
 
       setStatusMessage(
@@ -87,6 +92,12 @@ export function useFileImporter({
           prefix,
         ),
       );
+
+      return {
+        addedCount,
+        ignoredCount,
+        skippedByLimitCount,
+      };
     },
     [mergeRuntimeVideos, setStatusMessage],
   );
@@ -110,7 +121,22 @@ export function useFileImporter({
 
   const connectDirectoryFlow = useCallback(
     async (reason: ConnectReason, fromAutoSwitch: boolean): Promise<boolean> => {
+      const startedAt = Date.now();
+      trackFilesTelemetry("files.import.start", {
+        source: "local",
+        importSource: "directory_handle",
+        reason,
+        fromAutoSwitch,
+      });
+
       if (!directoryHandleSupported || !pickerSupportedOnWindow()) {
+        trackFilesTelemetry("files.import.error", {
+          source: "local",
+          importSource: "directory_handle",
+          reason,
+          error: "directory_handle_unsupported",
+          durationMs: Date.now() - startedAt,
+        });
         if (!fromAutoSwitch) {
           setStatusMessage(
             "Seu navegador nao suporta Conectar pasta. Abrindo carregamento de pasta tradicional.",
@@ -130,7 +156,7 @@ export function useFileImporter({
         const folderCount = countFoldersFromVideos(scanned.videos);
 
         if (storageUnavailable) {
-          saveToRuntimeFallback(
+          const fallbackResult = saveToRuntimeFallback(
             scanned.videos,
             scanned.rejected,
             scanned.processed,
@@ -138,6 +164,20 @@ export function useFileImporter({
             "Modo temporario ativo (pasta conectada)",
           );
           clearHighVolumeHint();
+
+          trackFilesTelemetry("files.import.success", {
+            source: "runtime",
+            importSource: "directory_handle",
+            reason,
+            added: fallbackResult.addedCount,
+            ignored: fallbackResult.ignoredCount,
+            rejected: scanned.rejected.length,
+            skippedByLimit: fallbackResult.skippedByLimitCount,
+            skippedNoSpace: 0,
+            folderCount,
+            processed: scanned.processed,
+            durationMs: Date.now() - startedAt,
+          });
           return true;
         }
 
@@ -161,9 +201,30 @@ export function useFileImporter({
           ),
         );
         clearHighVolumeHint();
+
+        trackFilesTelemetry("files.import.success", {
+          source: "local",
+          importSource: "directory_handle",
+          reason,
+          added: result.added.length,
+          ignored: result.ignored.length,
+          rejected: scanned.rejected.length,
+          skippedNoSpace: result.skippedNoSpace.length,
+          skippedByLimit: result.skippedByLimit.length,
+          folderCount,
+          processed: scanned.processed,
+          durationMs: Date.now() - startedAt,
+        });
         return true;
       } catch (connectError) {
         if (connectError instanceof DOMException && connectError.name === "AbortError") {
+          trackFilesTelemetry("files.import.error", {
+            source: "local",
+            importSource: "directory_handle",
+            reason,
+            error: "aborted_by_user",
+            durationMs: Date.now() - startedAt,
+          });
           if (fromAutoSwitch) {
             setConnectHint(reason);
             setStatusMessage("Importacao de pasta grande pausada. Use Conectar pasta agora para continuar.");
@@ -172,6 +233,13 @@ export function useFileImporter({
         }
 
         if (connectError instanceof DOMException && connectError.name === "SecurityError") {
+          trackFilesTelemetry("files.import.error", {
+            source: "local",
+            importSource: "directory_handle",
+            reason,
+            error: "security_error",
+            durationMs: Date.now() - startedAt,
+          });
           if (fromAutoSwitch) {
             setConnectHint(reason);
           } else {
@@ -188,6 +256,13 @@ export function useFileImporter({
         }
 
         const message = toErrorMessage(connectError, "Falha ao conectar pasta.");
+        trackFilesTelemetry("files.import.error", {
+          source: "local",
+          importSource: "directory_handle",
+          reason,
+          error: message,
+          durationMs: Date.now() - startedAt,
+        });
         setError(message);
 
         if (message.toLowerCase().includes("indisponivel")) {
@@ -229,10 +304,19 @@ export function useFileImporter({
         return;
       }
 
+      const startedAt = Date.now();
       const validVideos = selectedFiles.filter((file) => file.type.startsWith("video/"));
       const rejected = selectedFiles.filter((file) => !file.type.startsWith("video/")).map((file) => file.name);
       const incoming = validVideos.map((file) => buildStoredVideoFromFile(file, importSource));
       const folderCount = countFoldersFromFiles(selectedFiles);
+
+      trackFilesTelemetry("files.import.start", {
+        source: "local",
+        importSource,
+        selected: selectedFiles.length,
+        validVideos: validVideos.length,
+        rejected: rejected.length,
+      });
 
       setSaving(true);
       setImportProgress(null);
@@ -242,7 +326,19 @@ export function useFileImporter({
       clearHighVolumeHint();
 
       if (storageUnavailable) {
-        saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
+        const fallbackResult = saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
+        trackFilesTelemetry("files.import.success", {
+          source: "runtime",
+          importSource,
+          added: fallbackResult.addedCount,
+          ignored: fallbackResult.ignoredCount,
+          rejected: rejected.length,
+          skippedByLimit: fallbackResult.skippedByLimitCount,
+          skippedNoSpace: 0,
+          folderCount,
+          processed: selectedFiles.length,
+          durationMs: Date.now() - startedAt,
+        });
         setSaving(false);
         return;
       }
@@ -280,6 +376,19 @@ export function useFileImporter({
             processed: result.processed,
           }),
         );
+
+        trackFilesTelemetry("files.import.success", {
+          source: "local",
+          importSource,
+          added: result.added.length,
+          ignored: result.ignored.length,
+          rejected: result.rejected.length,
+          skippedNoSpace: result.skippedNoSpace.length,
+          skippedByLimit: result.skippedByLimit.length,
+          folderCount,
+          processed: result.processed,
+          durationMs: Date.now() - startedAt,
+        });
       } catch (saveError) {
         const shouldRetryWithDirectory =
           importSource === "input_folder" &&
@@ -296,10 +405,31 @@ export function useFileImporter({
         }
 
         const message = toErrorMessage(saveError, "Falha ao salvar videos.");
+        trackFilesTelemetry("files.import.error", {
+          source: "local",
+          importSource,
+          selected: selectedFiles.length,
+          validVideos: validVideos.length,
+          rejected: rejected.length,
+          error: message,
+          durationMs: Date.now() - startedAt,
+        });
         setError(message);
         if (message.toLowerCase().includes("indisponivel")) {
           setStorageUnavailable(true);
-          saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
+          const fallbackResult = saveToRuntimeFallback(incoming, rejected, selectedFiles.length, folderCount);
+          trackFilesTelemetry("files.import.success", {
+            source: "runtime",
+            importSource,
+            added: fallbackResult.addedCount,
+            ignored: fallbackResult.ignoredCount,
+            rejected: rejected.length,
+            skippedByLimit: fallbackResult.skippedByLimitCount,
+            skippedNoSpace: 0,
+            folderCount,
+            processed: selectedFiles.length,
+            durationMs: Date.now() - startedAt,
+          });
         }
       } finally {
         setSaving(false);

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { type AuthUser } from "../layout/types";
 import {
     ApiRequestError,
@@ -20,6 +20,7 @@ import {
 } from "../components/files/utils";
 import type { FolderSection } from "../components/files/types";
 import { buildBridgeStreamUrl } from "./useLocalBridge";
+import { trackFilesTelemetry } from "../lib/filesTelemetry";
 
 const MAX_SESSION_PAGES = 300;
 
@@ -187,6 +188,12 @@ export function useVideoSelection({
                         throw new Error("Caminho do video Bridge indisponivel.");
                     }
                     setSelectedVideoUrl(buildBridgeStreamUrl(selectedVideo.bridgePath));
+                    trackFilesTelemetry("files.bridge.play.success", {
+                        source: "bridge",
+                        path: selectedVideo.bridgePath,
+                        videoId: selectedVideo.id,
+                        trigger: "playlist",
+                    });
                     return;
                 }
 
@@ -201,7 +208,16 @@ export function useVideoSelection({
                     return;
                 }
                 setSelectedVideoUrl("");
-                setError(toErrorMessage(loadError, "Nao foi possivel abrir o video selecionado."));
+                const message = toErrorMessage(loadError, "Nao foi possivel abrir o video selecionado.");
+                if (selectedVideo.storageKind === "bridge") {
+                    trackFilesTelemetry("files.bridge.play.error", {
+                        source: "bridge",
+                        path: selectedVideo.bridgePath ?? null,
+                        videoId: selectedVideo.id,
+                        error: message,
+                    });
+                }
+                setError(message);
             }
         };
 

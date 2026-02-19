@@ -1,4 +1,4 @@
-Ôªøimport {
+import {
   useCallback,
   useDeferredValue,
   useEffect,
@@ -37,6 +37,7 @@ import { useVideoSelection } from "../hooks/useVideoSelection";
 import { FilesHeader } from "../components/files/FilesHeader";
 import { FilesToolbar } from "../components/files/FilesToolbar";
 import { ErrorBanner } from "../components/common/ErrorBanner";
+import { trackFilesTelemetry } from "../lib/filesTelemetry";
 
 const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
 
@@ -68,6 +69,17 @@ export function FilesPage() {
 
   const handleBridgePlay = (url: string, name: string, path: string) => {
     const now = Date.now();
+
+    if (!url) {
+      trackFilesTelemetry("files.bridge.play.error", {
+        source: "bridge",
+        name,
+        path,
+        error: "empty_stream_url",
+      });
+      return;
+    }
+
     const mockVideo: StoredVideo = {
       id: `bridge::${path || name}`,
       name,
@@ -83,6 +95,13 @@ export function FilesPage() {
     };
     setBridgeVideo({ video: mockVideo, url });
     setShowBridgeBrowser(false);
+
+    trackFilesTelemetry("files.bridge.play.success", {
+      source: "bridge",
+      name,
+      path,
+      trigger: "bridge_browser",
+    });
   };
 
   const invalidateProgressCaches = useCallback(async () => {
@@ -494,9 +513,9 @@ export function FilesPage() {
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ${isPersisted
               ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
               : "border-orange-500/30 bg-orange-500/10 text-orange-400 cursor-help"
-              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Tempor√°rio (Pode ser limpo pelo navegador)"}>
+              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Tempor·rio (Pode ser limpo pelo navegador)"}>
               <div className={`w-2 h-2 rounded-full ${isPersisted ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-orange-500"}`} />
-              {isPersisted ? "HD: Persistente" : "HD: Tempor√°rio"}
+              {isPersisted ? "HD: Persistente" : "HD: Tempor·rio"}
             </div>
           </div>
         </div>
