@@ -350,7 +350,7 @@ export function VideoPlayer({
 
   if (!video) {
     return (
-      <div className="flex h-[320px] items-center justify-center text-sm font-semibold text-slate-500 md:h-[440px]">
+      <div className="files-panel flex h-[320px] items-center justify-center rounded-[26px] text-sm font-semibold text-slate-400 md:h-[440px]">
         Nenhuma aula selecionada.
       </div>
     );
@@ -359,7 +359,7 @@ export function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className={`group relative flex w-full items-center justify-center overflow-hidden bg-[#0a0a0b] ${fullscreen ? "h-screen" : "h-[320px] md:h-[440px]"}`}
+      className={`group relative flex w-full items-center justify-center overflow-hidden rounded-[26px] bg-[#03060d] ${fullscreen ? "h-screen" : "h-[320px] md:h-[440px]"}`}
       onContextMenu={(event) => event.preventDefault()}
       onMouseEnter={revealControls}
       onMouseLeave={() => {
@@ -370,7 +370,7 @@ export function VideoPlayer({
       }}
       onMouseMove={revealControls}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/70 via-black/15 to-black/70" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(34,211,238,0.16),transparent_40%),linear-gradient(to_right,rgba(2,6,23,0.78),rgba(2,6,23,0.2),rgba(2,6,23,0.78))]" />
 
       <video
         ref={videoRef}
@@ -408,7 +408,7 @@ export function VideoPlayer({
 
       {!playing && !playerError && hasSource && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/55 backdrop-blur-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/35 bg-black/60 backdrop-blur-sm">
             <Icon name="play" className="ml-1 text-white text-[32px]" />
           </div>
         </div>
@@ -416,7 +416,7 @@ export function VideoPlayer({
 
       {!playerError && !hasSource && (
         <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-          <div className="rounded-2xl border border-slate-500/30 bg-black/70 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-200 backdrop-blur-md">
+          <div className="rounded-2xl border border-cyan-500/30 bg-[#041022]/80 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-cyan-100 backdrop-blur-md">
             Carregando fonte do video...
           </div>
         </div>
@@ -424,7 +424,7 @@ export function VideoPlayer({
 
       {playerError && (
         <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-          <div className="max-w-xl rounded-2xl border border-red-500/40 bg-black/75 p-4 text-center text-sm text-red-200 backdrop-blur-md">
+          <div className="max-w-xl rounded-2xl border border-red-500/45 bg-[#2a0d11]/80 p-4 text-center text-sm text-red-100 backdrop-blur-md">
             <div className="mb-2 flex items-center justify-center gap-2 text-red-300">
               <Icon name="exclamation" className="text-[16px]" />
               <span className="font-black uppercase tracking-wider">Erro no player</span>
@@ -447,7 +447,7 @@ export function VideoPlayer({
       </button>
 
       {showHotkeys && (
-        <div className="absolute right-4 top-14 z-30 w-64 rounded-xl border border-white/10 bg-black/75 p-3 text-[11px] text-white backdrop-blur-md">
+        <div className="absolute right-4 top-14 z-30 w-64 rounded-xl border border-cyan-500/30 bg-[#07172b]/90 p-3 text-[11px] text-white backdrop-blur-md">
           <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-300">Atalhos</p>
           <p>K / espaco: play/pause</p>
           <p>F: tela cheia</p>
@@ -469,15 +469,15 @@ export function VideoPlayer({
       <div
         className={`absolute bottom-0 left-0 right-0 z-30 px-3 pb-3 transition-opacity duration-300 ${controlsVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
-        <div className="group/slider relative mb-2 h-1.5 w-full cursor-pointer rounded-full bg-white/30" onClick={onProgressClick}>
-          <div className={`absolute left-0 top-0 h-full rounded-full bg-rose-500 ${widthPercentClass(progressPercent)}`}>
-            <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.75)]" />
+        <div className="group/slider relative mb-2 h-2 w-full cursor-pointer rounded-full border border-cyan-900/70 bg-[#031022]" onClick={onProgressClick}>
+          <div className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-cyan-400 to-cyan-200 ${widthPercentClass(progressPercent)}`}>
+            <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.85)]" />
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+            <div className="flex items-center gap-1 rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-1.5 py-1 backdrop-blur-sm">
               <button
                 className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!hasSource}
@@ -507,17 +507,17 @@ export function VideoPlayer({
               />
             </div>
 
-            <div className="rounded-full bg-black/55 px-3 py-2 text-xl font-semibold tracking-tight text-white">
+            <div className="rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-3 py-2 text-xl font-semibold tracking-tight text-white">
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
 
-            <div className="flex items-center gap-1 rounded-full bg-white/35 px-4 py-2 text-xl font-medium text-white backdrop-blur-sm">
+            <div className="flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-500/12 px-4 py-2 text-xl font-medium text-cyan-100 backdrop-blur-sm">
               {chapterLabel}
               <Icon name="angle-right" className="text-[18px]" />
             </div>
           </div>
 
-          <div className="flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+          <div className="flex items-center gap-1 rounded-full border border-cyan-900/60 bg-[#030d1f]/80 px-1.5 py-1 backdrop-blur-sm">
             <button
               className="rounded-full p-2 text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
               title="Legenda indisponivel para este arquivo"
@@ -538,16 +538,16 @@ export function VideoPlayer({
                 <Icon name="settings" className="text-[19px]" />
               </button>
               {settingsOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-32 overflow-hidden rounded-xl border border-white/10 bg-black/85 p-1 text-xs text-white backdrop-blur-md">
+                <div className="absolute bottom-full right-0 mb-2 w-32 overflow-hidden rounded-xl border border-cyan-500/30 bg-[#07172b]/95 p-1 text-xs text-white backdrop-blur-md">
                   {[0.5, 1, 1.25, 1.5, 2].map((speed) => (
                     <button
                       key={speed}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-white/10 ${playbackRate === speed ? "text-rose-300" : "text-white"}`}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-cyan-500/10 ${playbackRate === speed ? "text-cyan-200" : "text-white"}`}
                       onClick={() => handleSpeedChange(speed)}
                       type="button"
                     >
                       <span>{speed}x</span>
-                      {playbackRate === speed && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
+                      {playbackRate === speed && <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />}
                     </button>
                   ))}
                 </div>

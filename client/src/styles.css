@@ -458,3 +458,123 @@ select:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+
+/* ------------------------------------------------------------------ */
+/*  Files Page Arcade HUD Scope                                       */
+/* ------------------------------------------------------------------ */
+
+[data-page="files"] {
+  --files-bg-start: #070b17;
+  --files-bg-end: #02040a;
+  --files-panel: rgba(7, 13, 26, 0.82);
+  --files-panel-2: rgba(4, 9, 20, 0.9);
+  --files-border: rgba(56, 189, 248, 0.22);
+  --files-border-strong: rgba(34, 211, 238, 0.5);
+  --files-glow-cyan: 34, 211, 238;
+  --files-glow-amber: 245, 158, 11;
+  --files-text-primary: #e8f4ff;
+  --files-text-muted: #8ca3c8;
+  --files-display: "Orbitron", "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--files-text-primary);
+}
+
+[data-page="files"] .files-display {
+  font-family: var(--files-display);
+  letter-spacing: 0.08em;
+}
+
+[data-page="files"] .files-panel {
+  border: 1px solid var(--files-border);
+  background: linear-gradient(145deg, var(--files-panel), var(--files-panel-2));
+  backdrop-filter: blur(10px);
+}
+
+[data-page="files"] .files-panel-elevated {
+  border: 1px solid var(--files-border-strong);
+  background: linear-gradient(155deg, rgba(9, 16, 33, 0.94), rgba(4, 8, 18, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(var(--files-glow-cyan), 0.08) inset,
+    0 18px 42px rgba(2, 8, 24, 0.65),
+    0 0 34px rgba(var(--files-glow-cyan), 0.14);
+}
+
+[data-page="files"] .files-grid-overlay {
+  background-image:
+    linear-gradient(rgba(var(--files-glow-cyan), 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--files-glow-cyan), 0.06) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+[data-page="files"] .files-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(var(--files-glow-cyan), 0.42);
+  background: rgba(8, 29, 45, 0.55);
+  color: #94f3ff;
+  border-radius: 999px;
+  font-family: var(--files-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.36rem 0.78rem;
+}
+
+[data-page="files"] .files-alert {
+  border-radius: 14px;
+  border: 1px solid transparent;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+[data-page="files"] .files-alert-info {
+  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(30, 64, 175, 0.16);
+  color: #bfdbfe;
+}
+
+[data-page="files"] .files-alert-warning {
+  border-color: rgba(245, 158, 11, 0.38);
+  background: rgba(120, 53, 15, 0.22);
+  color: #fde68a;
+}
+
+[data-page="files"] .files-alert-success {
+  border-color: rgba(16, 185, 129, 0.38);
+  background: rgba(6, 78, 59, 0.25);
+  color: #a7f3d0;
+}
+
+[data-page="files"] .files-alert-error {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}
+
+@keyframes files-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(var(--files-glow-cyan), 0);
+  }
+
+  50% {
+    box-shadow: 0 0 22px rgba(var(--files-glow-cyan), 0.2);
+  }
+}
+
+[data-page="files"] .files-pulse-glow {
+  animation: files-glow-pulse 3.4s ease-in-out infinite;
+}
+
+[data-page="files"] button:focus-visible,
+[data-page="files"] a:focus-visible,
+[data-page="files"] input:focus-visible,
+[data-page="files"] textarea:focus-visible,
+[data-page="files"] select:focus-visible {
+  box-shadow:
+    0 0 0 2px #020203,
+    0 0 0 4px rgba(var(--files-glow-cyan), 0.55);
+}

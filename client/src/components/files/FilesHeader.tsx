@@ -1,4 +1,3 @@
-﻿
 import { Icon } from "../common/Icon";
 import type { GlobalStats } from "../../layout/types";
 import { HudProgressBar } from "./HudProgressBar";
@@ -11,27 +10,27 @@ interface FilesHeaderProps {
 export function FilesHeader({ globalStats }: FilesHeaderProps) {
     return (
         <>
-            <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 p-4 backdrop-blur-md">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="min-w-0">
-                        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                            <Icon name="activity" className="animate-pulse text-[12px]" />
-                            System Ready
+            <div className="files-panel-elevated rounded-[26px] p-5 md:p-6">
+                <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                    <div className="min-w-0 space-y-2">
+                        <div className="files-chip files-pulse-glow w-fit">
+                            <Icon name="activity" className="text-[12px]" />
+                            Operacao ativa
                         </div>
-                        <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
-                            <span>UPLINK_ON</span>
-                            <Icon name="angle-right" className="text-[12px]" />
-                            <span>Arquivos de Sincronia</span>
-                        </div>
-                        <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">
-                            Biblioteca de <span className="text-cyan-400">Aulas</span>
+                        <p className="files-display flex items-center gap-2 text-[10px] uppercase text-cyan-200/80">
+                            <span>uplink_on</span>
+                            <Icon name="angle-right" className="text-[10px]" />
+                            <span>biblioteca local</span>
+                        </p>
+                        <h2 className="files-display text-2xl font-extrabold uppercase tracking-[0.14em] text-white md:text-4xl">
+                            Arquivos <span className="text-cyan-300">Avulsos</span>
                         </h2>
-                        <p className="mt-1 text-xs font-medium text-slate-500">
-                            Player local com progresso RPG, playlist por pasta e conclusao com XP.
+                        <p className="max-w-2xl text-xs text-slate-400 md:text-sm">
+                            Player local com progresso RPG, trilha por pasta e conclusao com XP em tempo real.
                         </p>
                     </div>
 
-                    <div className="ml-auto flex flex-wrap items-center gap-5 rounded-2xl border border-slate-800 bg-black/40 px-4 py-3 shadow-lg">
+                    <div className="files-panel flex w-full flex-wrap items-center gap-4 rounded-2xl px-4 py-3 xl:w-auto">
                         <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
                         <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
                         <HudProgressBar
@@ -54,4 +53,3 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
         </>
     );
 }
-

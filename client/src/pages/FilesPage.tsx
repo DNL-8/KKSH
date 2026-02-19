@@ -414,7 +414,8 @@ export function FilesPage() {
 
   return (
     <div
-      className="animate-in slide-in-from-right-10 space-y-6 pb-20 duration-700"
+      className="files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700"
+      data-page="files"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -422,7 +423,7 @@ export function FilesPage() {
     >
       {/* Drag Overlay */}
       {isDragging && (
-        <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-cyan-500/10 backdrop-blur-sm border-4 border-dashed border-cyan-400/50 m-4 rounded-3xl">
+        <div className="pointer-events-none fixed inset-0 z-[200] m-4 flex items-center justify-center rounded-3xl border-4 border-dashed border-cyan-300/50 bg-cyan-500/10 backdrop-blur-sm">
           <div className="text-center animate-bounce">
             <Icon name="upload" className="text-6xl text-cyan-400 mx-auto mb-4" />
             <h2 className="text-3xl font-black uppercase text-cyan-300">Solte arquivos aqui</h2>
@@ -455,12 +456,12 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="relative overflow-hidden rounded-[30px] border border-slate-800 bg-[#090b10]/90 p-4 md:p-6" data-testid="files-header">
-        <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-cyan-900/10 blur-[120px]" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-violet-900/10 blur-[120px]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.04)_1px,transparent_1px)] bg-[size:36px_36px]" />
+      <div className="files-panel-elevated relative overflow-hidden rounded-[30px] p-4 md:p-6" data-testid="files-header">
+        <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-cyan-500/14 blur-[130px]" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-amber-500/10 blur-[130px]" />
+        <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-60" />
 
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-5">
           <FilesHeader globalStats={globalStats} />
 
           <FilesToolbar
@@ -491,7 +492,7 @@ export function FilesPage() {
 
           {isBridgeConnected && (
             <button
-              className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-600/20 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 transition-colors hover:bg-emerald-600/30 mr-3"
+              className="files-chip border-emerald-400/45 bg-emerald-700/25 text-emerald-100 transition-colors hover:bg-emerald-700/40"
               onClick={() => setShowBridgeBrowser(true)}
             >
               <Icon name="folder-search" />
@@ -501,7 +502,7 @@ export function FilesPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ${isBridgeConnected
+            <div className={`files-chip ${isBridgeConnected
               ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
               : "border-slate-800 bg-slate-900/50 text-slate-500"
               }`}>
@@ -510,50 +511,38 @@ export function FilesPage() {
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider w-fit ${isPersisted
+            <div className={`files-chip ${isPersisted
               ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
               : "border-orange-500/30 bg-orange-500/10 text-orange-400 cursor-help"
-              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporário (Pode ser limpo pelo navegador)"}>
+              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
               <div className={`w-2 h-2 rounded-full ${isPersisted ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-orange-500"}`} />
-              {isPersisted ? "HD: Persistente" : "HD: Temporário"}
+              {isPersisted ? "HD: Persistente" : "HD: Temporario"}
             </div>
           </div>
         </div>
 
-        {storageUnavailable && (
-          <div className="mt-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs font-semibold text-yellow-300">
-            Persistencia local indisponivel neste navegador. Os videos ficam somente nesta sessao.
-          </div>
-        )}
+                <div className="mt-3 space-y-2">
+          <ErrorBanner message={error} onClose={handleClearError} />
 
-        {
-          !directoryHandleSupported && (
-            <div className="mt-3 flex items-center gap-3 rounded-xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs font-medium text-orange-200">
-              <Icon name="exclamation" className="text-orange-400 text-[18px]" />
+          {storageUnavailable && (
+            <div className="files-alert files-alert-warning">
+              Persistencia local indisponivel neste navegador. Os videos ficam somente nesta sessao.
+            </div>
+          )}
+
+          {!directoryHandleSupported && (
+            <div className="files-alert files-alert-warning flex items-start gap-3">
+              <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-300" />
               <div>
-                <p className="font-bold text-orange-300 uppercase tracking-wide text-[10px] mb-1">Compatibilidade Limitada (Firefox/Safari)</p>
-                Seu navegador nao suporta conexao direta de pastas.
-                <br />
-                <strong>Alternativa Recomendada:</strong> Inicie o servidor Python (backend) e use o botao <span className="text-emerald-400 font-bold">BROWSE BRIDGE</span> acima.
-                Isso permite navegar por todos os seus arquivos locais sem limitacoes de navegador.
+                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Compatibilidade limitada (Firefox/Safari)</p>
+                Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">BROWSE BRIDGE</span> para navegar sem limitacoes.
               </div>
             </div>
-          )
-        }
+          )}
 
-        <div className="mt-3 flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs font-medium text-blue-200">
-          <Icon name="device-hdd" className="text-blue-400 text-[18px]" />
-          <div>
-            <p className="font-bold text-blue-300 uppercase tracking-wide text-[10px] mb-1">Persistencia de Dados</p>
-            A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site ou o cache, a biblioteca sera apagada.
-            Use o botao <strong>Backup</strong> acima para salvar seus metadados regularmente.
-          </div>
-        </div>
-
-        {
-          highVolumeHint && directoryHandleSupported && (
+          {highVolumeHint && directoryHandleSupported && (
             <div
-              className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs font-semibold text-cyan-200"
+              className="files-alert files-alert-info"
               data-testid="high-volume-banner"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -577,49 +566,47 @@ export function FilesPage() {
                 </div>
               </div>
             </div>
-          )
-        }
+          )}
 
-        {
-          visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
-            <div className="mt-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs font-semibold text-indigo-200">
+          {visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
+            <div className="files-alert files-alert-warning">
               Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
             </div>
-          )
-        }
+          )}
 
-        {
-          statusMessage && (
-            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300">
-              {statusMessage}
-            </div>
-          )
-        }
-
-        {
-          rejectedFiles.length > 0 && (
-            <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs font-semibold text-amber-200">
+          {rejectedFiles.length > 0 && (
+            <div className="files-alert files-alert-warning">
               Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
             </div>
-          )
-        }
+          )}
 
-        <div className="mt-3">
-          <ErrorBanner message={error} onClose={handleClearError} />
+          {statusMessage && (
+            <div className="files-alert files-alert-success">
+              {statusMessage}
+            </div>
+          )}
+
+          <div className="files-alert files-alert-info flex items-start gap-3">
+            <Icon name="device-hdd" className="mt-0.5 text-[16px] text-blue-200" />
+            <div>
+              <p className="files-display mb-1 text-[10px] uppercase text-blue-100">Persistencia de dados</p>
+              A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site, a biblioteca sera apagada. Use <strong>Backup</strong> regularmente.
+            </div>
+          </div>
         </div>
       </div >
 
       {
         loading ? (
-          <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-800 bg-[#0a0a0b]/60" >
+          <div className="files-panel flex min-h-[280px] items-center justify-center rounded-[30px]" >
             <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
               <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
               Carregando biblioteca local...
             </div>
           </div>
         ) : visibleVideos.length === 0 ? (
-          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-slate-700 bg-[#0a0a0b]/40 px-8 text-center transition-colors hover:border-cyan-500/20 hover:bg-[#0a0a0b]/60">
-            <div className="mb-6 rounded-2xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-4">
+          <div className="files-panel flex min-h-[360px] flex-col items-center justify-center rounded-[30px] border border-dashed border-cyan-700/40 px-8 text-center transition-colors hover:border-cyan-400/45 hover:bg-[#061127]">
+            <div className="mb-6 rounded-2xl border border-cyan-400/35 bg-cyan-500/12 p-4">
               <Icon name="cloud-upload" className="text-[hsl(var(--accent))] text-[36px]" />
             </div>
             <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Biblioteca vazia</h3>
@@ -657,7 +644,7 @@ export function FilesPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
             <section className="space-y-5" data-testid="files-player">
-              <div className="group relative overflow-hidden rounded-[30px] border border-slate-800 bg-black/80 shadow-[0_0_40px_rgba(0,0,0,0.5)]" data-testid="course-player">
+              <div className="files-panel-elevated group relative overflow-hidden rounded-[30px]" data-testid="course-player">
                 <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
                 <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
                 <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
@@ -678,7 +665,7 @@ export function FilesPage() {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-800 bg-[#0b0d12] p-4">
+              <div className="files-panel rounded-[24px] p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div className="space-y-1">
                     <h3 className="text-lg font-black tracking-tight text-white">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
@@ -761,13 +748,13 @@ export function FilesPage() {
                   onClose={() => setIsSidebarMobileOpen(false)}
                 />
                 <button
-                  className="w-full rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-4 text-left transition-all hover:border-cyan-500/30 hover:bg-slate-800/50"
+                  className="files-panel w-full rounded-xl border border-dashed border-cyan-700/35 p-4 text-left transition-all hover:border-cyan-400/45 hover:bg-[#0a1a31]"
                   data-testid="files-support-material-upload"
                   onClick={handleOpenFolderPicker}
                   type="button"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-slate-800 p-2 text-slate-300">
+                    <div className="rounded-lg border border-cyan-700/35 bg-[#071427] p-2 text-cyan-200">
                       <Icon name="file-video" className="text-[20px]" />
                     </div>
                     <div>
