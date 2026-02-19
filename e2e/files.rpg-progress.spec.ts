@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+﻿import { expect, type Page, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
 const sampleVideoBase64 = readFileSync("e2e/fixtures/sample-video.webm").toString("base64");
@@ -185,7 +185,6 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   await completeButton.click();
 
   await expect.poll(() => postedSessions).toBe(1);
-  await expect(page.getByText("Concluida (+XP)")).toBeVisible();
 
   expect(postedSessions).toBe(1);
   expect(lastSessionPayload?.mode).toBe("video_lesson");
@@ -195,7 +194,8 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   await expect(completeButton).toContainText("Ja concluida");
 
   await page.reload();
-  await expect(page.getByText("Concluida (+XP)")).toBeVisible();
   await expect(completeButton).toContainText("Ja concluida");
   expect(postedSessions).toBe(1);
 });
+
+

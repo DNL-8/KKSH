@@ -1,7 +1,6 @@
+﻿import { useCallback, useEffect, useState } from "react";
 
-import { useState, useEffect, useCallback } from "react";
-
-const BRIDGE_URL = "http://localhost:8765";
+export const LOCAL_BRIDGE_URL = "http://localhost:8765";
 
 export interface BridgeItem {
     name: string;
@@ -11,18 +10,18 @@ export interface BridgeItem {
     mtime: number;
 }
 
+export function buildBridgeStreamUrl(path: string): string {
+    return `${LOCAL_BRIDGE_URL}/stream?path=${encodeURIComponent(path)}`;
+}
+
 export function useLocalBridge() {
     const [isConnected, setIsConnected] = useState(false);
     const [drives, setDrives] = useState<string[]>([]);
 
     const checkConnection = useCallback(async () => {
         try {
-            const res = await fetch(`${BRIDGE_URL}/health`);
-            if (res.ok) {
-                setIsConnected(true);
-            } else {
-                setIsConnected(false);
-            }
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/health`);
+            setIsConnected(res.ok);
         } catch {
             setIsConnected(false);
         }
@@ -30,45 +29,51 @@ export function useLocalBridge() {
 
     const listDrives = useCallback(async () => {
         try {
-            const res = await fetch(`${BRIDGE_URL}/drives`);
-            const data = await res.json();
-            setDrives(data.drives);
-            return data.drives;
-        } catch (err) {
-            console.error(err);
-            return [];
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/drives`);
+            if (!res.ok) {
+                return [] as string[];
+            }
+            const data = (await res.json()) as { drives?: unknown };
+            const nextDrives = Array.isArray(data.drives)
+                ? data.drives.filter((item): item is string => typeof item === "string")
+                : [];
+            setDrives(nextDrives);
+            return nextDrives;
+        } catch {
+            return [] as string[];
         }
     }, []);
 
     const listPath = useCallback(async (path: string) => {
-        try {
-            const res = await fetch(`${BRIDGE_URL}/list?path=${encodeURIComponent(path)}`);
-            if (!res.ok) throw new Error("Failed to list path");
-            const data = await res.json();
-            return data.items as BridgeItem[];
-        } catch (err) {
-            console.error(err);
-            throw err;
+        const res = await fetch(`${LOCAL_BRIDGE_URL}/list?path=${encodeURIComponent(path)}`);
+        if (!res.ok) {
+            throw new Error("Failed to list path");
         }
+        const data = (await res.json()) as { items?: unknown };
+        if (!Array.isArray(data.items)) {
+            return [] as BridgeItem[];
+        }
+        return data.items as BridgeItem[];
     }, []);
 
     const getStreamUrl = useCallback((path: string) => {
-        return `${BRIDGE_URL}/stream?path=${encodeURIComponent(path)}`;
+        return buildBridgeStreamUrl(path);
     }, []);
 
-    // Auto-check on mount
     useEffect(() => {
-        checkConnection();
-        const interval = setInterval(checkConnection, 5000);
+        void checkConnection();
+        const interval = setInterval(() => {
+            void checkConnection();
+        }, 5000);
         return () => clearInterval(interval);
     }, [checkConnection]);
 
     const scanFolder = useCallback(async (path: string) => {
         try {
-            const res = await fetch(`${BRIDGE_URL}/library/scan`, {
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/library/scan`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ path })
+                body: JSON.stringify({ path }),
             });
             return res.ok;
         } catch {
@@ -78,12 +83,14 @@ export function useLocalBridge() {
 
     const getLibrary = useCallback(async () => {
         try {
-            const res = await fetch(`${BRIDGE_URL}/library/videos`);
-            if (!res.ok) return [];
-            const data = await res.json();
-            return data.videos;
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/library/videos`);
+            if (!res.ok) {
+                return [] as unknown[];
+            }
+            const data = (await res.json()) as { videos?: unknown };
+            return Array.isArray(data.videos) ? data.videos : [];
         } catch {
-            return [];
+            return [] as unknown[];
         }
     }, []);
 
@@ -96,6 +103,6 @@ export function useLocalBridge() {
         getStreamUrl,
         scanFolder,
         getLibrary,
-        bridgeUrl: BRIDGE_URL
+        bridgeUrl: LOCAL_BRIDGE_URL,
     };
 }

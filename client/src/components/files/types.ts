@@ -1,5 +1,5 @@
-
-import { StoredVideo } from "../../lib/localVideosStore";
+﻿
+import type { StoredVideo } from "../../lib/localVideosStore";
 
 export interface FolderSection {
     path: string;
@@ -9,3 +9,4 @@ export interface FolderSection {
 
 export type OrderMode = "source" | "newest" | "oldest" | "name_asc" | "name_desc" | "size_desc" | "size_asc";
 export type TabMode = "overview" | "metadata";
+

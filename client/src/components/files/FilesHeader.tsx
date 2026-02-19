@@ -1,6 +1,6 @@
-
+﻿
 import { Icon } from "../common/Icon";
-import { GlobalStats } from "../../layout/types";
+import type { GlobalStats } from "../../layout/types";
 import { HudProgressBar } from "./HudProgressBar";
 import { FilesStatCard } from "./FilesStatCard";
 
@@ -54,3 +54,4 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
         </>
     );
 }
+

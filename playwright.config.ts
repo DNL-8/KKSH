@@ -1,4 +1,6 @@
-import { defineConfig } from "@playwright/test";
+﻿import { defineConfig } from "@playwright/test";
+
+const webServerCommand = process.env.PW_WEB_SERVER_COMMAND || "pnpm e2e:serve";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -12,7 +14,8 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm e2e:serve",
+    // Allows running Playwright in environments where pnpm is unavailable.
+    command: webServerCommand,
     url: "http://127.0.0.1:3000/hub",
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,

@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useDeferredValue,
   useEffect,
@@ -34,13 +34,25 @@ import {
 } from "../lib/localVideosStore";
 import { useVideoLibrary } from "../hooks/useVideoLibrary";
 import { useVideoSelection } from "../hooks/useVideoSelection";
-import { useLocalBridge } from "../hooks/useLocalBridge";
-
-const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
-
 import { FilesHeader } from "../components/files/FilesHeader";
 import { FilesToolbar } from "../components/files/FilesToolbar";
 import { ErrorBanner } from "../components/common/ErrorBanner";
+
+const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
+
+function deriveBridgeRelativePath(path: string): string {
+  const normalized = path.replace(/\\/g, "/").replace(/\/+/g, "/").trim();
+  if (!normalized) {
+    return "Bridge";
+  }
+  const lastSlash = normalized.lastIndexOf("/");
+  if (lastSlash <= 0) {
+    return "Bridge";
+  }
+  const parent = normalized.slice(0, lastSlash).replace(/^\/+|\/+$/g, "");
+  return parent || "Bridge";
+}
+
 
 
 
@@ -50,33 +62,24 @@ export function FilesPage() {
     useOutletContext<AppShellContextValue>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  // Bridge Integration
-  const {
-    isConnected: isBridgeConnected,
-    checkConnection: checkBridgeConnection
-  } = useLocalBridge();
-
-  useEffect(() => {
-    checkBridgeConnection();
-  }, [checkBridgeConnection]);
-
   // Bridge Browser Logic
   const [showBridgeBrowser, setShowBridgeBrowser] = useState(false);
   const [bridgeVideo, setBridgeVideo] = useState<{ video: StoredVideo, url: string } | null>(null);
 
   const handleBridgePlay = (url: string, name: string, path: string) => {
+    const now = Date.now();
     const mockVideo: StoredVideo = {
-      id: `bridge-${path}`,
-      name: name,
-      relativePath: path.substring(0, path.lastIndexOf(name) - 1) || "Bridge",
+      id: `bridge::${path || name}`,
+      name,
+      relativePath: deriveBridgeRelativePath(path),
       size: 0,
       type: "video/mp4",
-      lastModified: Date.now(),
-      createdAt: Date.now(),
+      lastModified: now,
+      createdAt: now,
       sourceKind: "file",
       storageKind: "bridge",
       importSource: "input_file",
+      bridgePath: path,
     };
     setBridgeVideo({ video: mockVideo, url });
     setShowBridgeBrowser(false);
@@ -136,6 +139,7 @@ export function FilesPage() {
     handleFolderSelected,
     setError: setLibraryError,
     isPersisted,
+    isBridgeConnected,
   } = useVideoLibrary();
 
   const folderSections = useMemo<FolderSection[]>(() => {
@@ -271,7 +275,7 @@ export function FilesPage() {
 
     const firstLessonId = folderSections[0]?.lessons[0]?.id ?? visibleVideos[0]?.id ?? null;
     setSelectedLessonId(firstLessonId);
-  }, [folderSections, loading, selectedLessonId, visibleVideos]);
+  }, [folderSections, loading, selectedLessonId, setSelectedLessonId, visibleVideos]);
 
   useEffect(() => {
     if (loading) {
@@ -296,7 +300,7 @@ export function FilesPage() {
 
       return changed ? next : current;
     });
-  }, [folderSections, loading]);
+  }, [folderSections, loading, setCollapsedFolders]);
 
 
 
@@ -317,14 +321,15 @@ export function FilesPage() {
       }
       return next;
     });
-  }, [folderSections, loading]);
+  }, [folderSections, setCollapsedFolders]);
 
   const handleExpandAllFolders = useCallback(() => {
     setCollapsedFolders({});
-  }, []);
+  }, [setCollapsedFolders]);
 
   const handleSelectLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
+    setBridgeVideo(null);
     setIsSidebarMobileOpen(false);
   };
 
@@ -336,7 +341,7 @@ export function FilesPage() {
 
   const handleToggleMetadataPanel = useCallback(() => {
     setActiveTab((current) => (current === "overview" ? "metadata" : "overview"));
-  }, []);
+  }, [setActiveTab]);
 
 
 
@@ -804,3 +809,12 @@ export function FilesPage() {
     </div >
   );
 }
+
+
+
+
+
+
+
+
+

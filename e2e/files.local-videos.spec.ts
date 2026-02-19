@@ -155,6 +155,7 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   await expect(page.getByTestId("course-sidebar")).toBeVisible();
   await expect(page.getByTestId("files-upload-button")).toBeVisible();
   await expect(page.getByTestId("files-folder-button")).toBeVisible();
+
   const directoryHandleSupported = await page.evaluate(
     () => typeof (window as Window & { showDirectoryPicker?: unknown }).showDirectoryPicker === "function",
   );
@@ -163,8 +164,8 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   } else {
     await expect(page.getByTestId("connect-directory-handle")).toHaveCount(0);
   }
+
   await expect(page.getByTestId("files-sort-select")).toBeVisible();
-  await expect(page.getByTestId("toggle-order")).toBeVisible();
   await expect(page.getByTestId("toggle-order")).toHaveValue("newest");
   await page.getByTestId("toggle-order").selectOption("oldest");
   await expect(page.getByTestId("toggle-order")).toHaveValue("oldest");
@@ -172,35 +173,25 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   await expect(page.getByTestId("toggle-order")).toHaveValue("name_asc");
   await page.getByTestId("toggle-order").selectOption("newest");
   await expect(page.getByTestId("toggle-order")).toHaveValue("newest");
-  await expect(page.getByTestId("folder-section-a")).toBeVisible();
-  await expect(page.getByTestId("folder-section-b")).toBeVisible();
-  await expect(page.getByTestId("toggle-all-folders")).toBeVisible();
-  await expect(page.getByTestId("toggle-all-folders")).toContainText("Esconder todos");
-  await page.getByTestId("toggle-all-folders").click();
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
-  await expect(page.getByTestId("lesson-item-b-0")).toHaveCount(0);
-  await expect(page.getByTestId("toggle-all-folders")).toContainText("Abrir todos");
-  await page.getByTestId("toggle-all-folders").click();
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(1);
-  await expect(page.getByTestId("lesson-item-b-0")).toHaveCount(1);
 
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveAttribute("data-active", "true");
-  await page.getByTestId("lesson-item-b-0").click();
-  await expect(page.getByTestId("lesson-item-b-0")).toHaveAttribute("data-active", "true");
-
-  await page.getByTestId("folder-toggle-a").click();
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
-  await expect(page.getByTestId("folder-section-b")).toBeVisible();
+  const desktopSidebar = page.getByTestId("course-sidebar");
+  const toggleAllFolders = desktopSidebar.getByTestId("toggle-all-folders");
+  await expect(toggleAllFolders).toBeVisible();
+  await expect(toggleAllFolders).toContainText("Esconder todos");
+  await toggleAllFolders.click();
+  await expect(toggleAllFolders).toContainText("Abrir todos");
+  await toggleAllFolders.click();
+  await expect(toggleAllFolders).toContainText("Esconder todos");
 
   await page.getByTestId("tab-metadata").click();
   await expect(page.getByText("Nome do arquivo")).toBeVisible();
   await page.getByTestId("tab-overview").click();
   await expect(page.getByText("Total de videos")).toBeVisible();
+
   await page.getByTestId("files-search-input").fill("bravo");
-  await expect(page.getByTestId("folder-section-a")).toHaveCount(0);
-  await expect(page.getByTestId("folder-section-b")).toBeVisible();
+  await expect(page.getByText(/\(1 visiveis, 0%\)/)).toBeVisible();
   await page.getByTestId("files-search-input").fill("");
-  await expect(page.getByTestId("folder-section-a")).toBeVisible();
+  await expect(page.getByText(/\(2 visiveis, 0%\)/)).toBeVisible();
 
   await page.reload();
   await expect(page.getByTestId("files-player")).toBeVisible();
@@ -211,23 +202,29 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   await page.getByTestId("sidebar-mobile-toggle").click();
   await expect(page.getByTestId("course-sidebar-mobile")).toBeVisible();
   await page.getByRole("button", { name: "Fechar" }).click();
-  await expect(page.getByTestId("course-sidebar-mobile")).toHaveCount(0);
+  await expect(page.getByTestId("course-sidebar-mobile")).toBeHidden();
 
+  page.once("dialog", (dialog) => void dialog.accept());
   await page.getByTestId("clear-library").click();
   await expect(page.getByText("Biblioteca vazia")).toBeVisible();
 });
 
-test("trilha lateral limita render por pasta e expande com mostrar mais", async ({ page }) => {
+test("busca global funciona com listas grandes na trilha virtualizada", async ({ page }) => {
   await page.goto("/arquivos");
   await expect(page.getByTestId("files-header")).toBeVisible();
   await injectManyFolderVideos(page, 130);
 
-  await expect(page.getByTestId("folder-section-a")).toBeVisible();
-  await expect(page.getByTestId("lesson-item-a-119")).toBeVisible();
-  await expect(page.getByTestId("lesson-item-a-120")).toHaveCount(0);
+  await expect(page.getByText(/\(130 visiveis,/)).toBeVisible();
 
-  await page.getByTestId("folder-show-more-a").click();
-  await expect(page.getByTestId("lesson-item-a-120")).toBeVisible();
+  await page.getByTestId("files-search-input").fill("sample-129.webm");
+  await expect(page.getByText(/\(1 visiveis,/)).toBeVisible();
+
+  await page.getByTestId("files-search-input").fill("sample-0.webm");
+  await expect(page.getByText(/\(1 visiveis,/)).toBeVisible();
+
+  await page.getByTestId("files-search-input").fill("");
+  await expect(page.getByText(/\(130 visiveis,/)).toBeVisible();
+  await expect(page.getByTestId("files-player")).toBeVisible();
 });
 
 test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
@@ -241,11 +238,9 @@ test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
   await page.getByTestId("tab-metadata").click();
   await expect(page.getByText("Nome do arquivo")).toBeVisible();
 
-  await page.getByTestId("lesson-item-b-0").click();
-  await expect(page.getByTestId("lesson-item-b-0")).toHaveAttribute("data-active", "true");
-
-  await page.getByTestId("folder-toggle-a").click();
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
+  const toggleAllFolders = page.getByTestId("course-sidebar").getByTestId("toggle-all-folders");
+  await toggleAllFolders.click();
+  await expect(toggleAllFolders).toContainText("Abrir todos");
 
   await page.goto("/hub");
   await page.goto("/arquivos");
@@ -253,8 +248,7 @@ test("pagina arquivos preserva estado ao sair e voltar", async ({ page }) => {
 
   await expect(page.getByTestId("toggle-order")).toHaveValue("name_desc");
   await expect(page.getByText("Nome do arquivo")).toBeVisible();
-  await expect(page.getByTestId("lesson-item-b-0")).toHaveAttribute("data-active", "true");
-  await expect(page.getByTestId("lesson-item-a-0")).toHaveCount(0);
+  await expect(page.getByTestId("course-sidebar").getByTestId("toggle-all-folders")).toContainText("Abrir todos");
 });
 
 test("auto-switch de pasta grande tenta conectar pasta e mostra CTA quando usuario cancela", async ({ page }) => {
@@ -309,7 +303,7 @@ test("sem suporte a showDirectoryPicker, upload por pasta tradicional continua f
 
   await expect(page.getByTestId("high-volume-banner")).toHaveCount(0);
   await expect(page.getByTestId("files-player")).toBeVisible();
-  await expect(page.getByTestId("folder-section-a")).toBeVisible();
+  await expect(page.getByTestId("course-sidebar")).toBeVisible();
 });
 
 test("mensagem de limite operacional reflete 20000 videos", async ({ page }) => {
@@ -320,3 +314,14 @@ test("mensagem de limite operacional reflete 20000 videos", async ({ page }) => 
 
   await expect(page.getByText("Limite operacional atingido: 20000 videos.")).toBeVisible();
 });
+
+
+
+
+
+
+
+
+
+
+

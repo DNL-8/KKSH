@@ -1,5 +1,6 @@
-import { StoredVideo } from "../../lib/localVideosStore";
-import { formatBytes, formatDate, formatStorageKind, TabMode } from "./utils";
+﻿import type { StoredVideo } from "../../lib/localVideosStore";
+import { formatBytes, formatDate, formatStorageKind } from "./utils";
+import type { TabMode } from "./types";
 
 interface VideoMetadataProps {
     selectedVideo: StoredVideo | null;
@@ -120,3 +121,5 @@ export function VideoMetadata({
         </div>
     );
 }
+
+

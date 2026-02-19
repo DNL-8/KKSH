@@ -1,7 +1,7 @@
-
+﻿
 import { Icon } from "../common/Icon";
 import { HIGH_VOLUME_FOLDER_THRESHOLD } from "../../lib/localVideosStore";
-import { OrderMode } from "./types";
+import type { OrderMode } from "./types";
 import { ORDER_LABELS } from "./constants";
 
 interface FilesToolbarProps {
@@ -215,3 +215,4 @@ export function FilesToolbar({
         </div>
     );
 }
+

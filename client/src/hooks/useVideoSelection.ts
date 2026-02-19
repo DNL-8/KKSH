@@ -1,5 +1,4 @@
-
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { type AuthUser } from "../layout/types";
 import {
     ApiRequestError,
@@ -20,6 +19,7 @@ import {
     toErrorMessage,
 } from "../components/files/utils";
 import type { FolderSection } from "../components/files/types";
+import { buildBridgeStreamUrl } from "./useLocalBridge";
 
 const MAX_SESSION_PAGES = 300;
 
@@ -80,7 +80,6 @@ export function useVideoSelection({
 
     const selectedVideoCompleted = isVideoCompleted(selectedVideo);
 
-    // Load completions
     const loadCompletedVideoRefs = useCallback(async () => {
         if (!authUserId) {
             setCompletedVideoRefs(new Set());
@@ -129,7 +128,6 @@ export function useVideoSelection({
         void loadCompletedVideoRefs();
     }, [loadCompletedVideoRefs]);
 
-    // Resolve selected video ref
     useEffect(() => {
         if (!selectedVideo) {
             setSelectedVideoRef(null);
@@ -147,14 +145,12 @@ export function useVideoSelection({
             return;
         }
 
-        // Check if we need to resolve
         if (completedVideoRefs.has(legacyRef)) {
             setSelectedVideoRef(legacyRef);
             setResolvingSelectedVideoRef(false);
             return;
         }
 
-        // Async resolution
         setResolvingSelectedVideoRef(true);
         resolveVideoCompletionRef(selectedVideo)
             .then((ref) => {
@@ -175,7 +171,6 @@ export function useVideoSelection({
         };
     }, [selectedVideo, completedVideoRefs, resolvedVideoRefsById]);
 
-    // Load playable blob
     useEffect(() => {
         setSelectedVideoUrl("");
         if (!selectedVideo) {
@@ -187,6 +182,14 @@ export function useVideoSelection({
 
         const loadPlayableSource = async () => {
             try {
+                if (selectedVideo.storageKind === "bridge") {
+                    if (!selectedVideo.bridgePath) {
+                        throw new Error("Caminho do video Bridge indisponivel.");
+                    }
+                    setSelectedVideoUrl(buildBridgeStreamUrl(selectedVideo.bridgePath));
+                    return;
+                }
+
                 const playableFile = await resolvePlayableFile(selectedVideo);
                 if (closed) {
                     return;
@@ -212,7 +215,6 @@ export function useVideoSelection({
         };
     }, [selectedVideo]);
 
-    // Reset duration on change
     useEffect(() => {
         setSelectedDurationSec(null);
     }, [selectedVideo?.id]);
@@ -243,11 +245,9 @@ export function useVideoSelection({
             return;
         }
 
-        // Duration is now tracked via onDurationChange in VideoPlayer
         let durationSec = selectedDurationSec;
         let usedFallbackDuration = false;
 
-        // Fallback if no duration detected (e.g. error or very short video)
         if (typeof durationSec !== "number" || !Number.isFinite(durationSec) || durationSec <= 0) {
             durationSec = 60;
             usedFallbackDuration = true;
@@ -286,6 +286,7 @@ export function useVideoSelection({
             if (completeError instanceof ApiRequestError && completeError.status === 401) {
                 setError("Sessao expirada. Faca login novamente.");
                 await invalidateProgressCaches();
+                return;
             }
             setError(toErrorMessage(completeError, "Falha ao registrar conclusao da aula."));
         } finally {
@@ -306,11 +307,9 @@ export function useVideoSelection({
     const handleVideoEnded = useCallback(() => {
         if (!selectedLessonId) return;
 
-        // Find current video in sections to determine next
         for (const section of folderSections) {
-            const idx = section.lessons.findIndex((l) => l.id === selectedLessonId);
+            const idx = section.lessons.findIndex((lesson) => lesson.id === selectedLessonId);
             if (idx !== -1) {
-                // Check if there is a next video in this section
                 if (idx < section.lessons.length - 1) {
                     const nextLesson = section.lessons[idx + 1];
                     setSelectedLessonId(nextLesson.id);
@@ -331,7 +330,7 @@ export function useVideoSelection({
         completingLesson,
         error,
         statusMessage,
-        setSelectedLessonId, // convenience re-export
+        setSelectedLessonId,
         handleCompleteLesson,
         handleVideoEnded,
         isVideoCompleted,

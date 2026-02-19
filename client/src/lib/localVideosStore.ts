@@ -1,4 +1,4 @@
-// Client-side wrapper for storage.worker.ts
+﻿// Client-side wrapper for storage.worker.ts
 
 export const LOCAL_MEDIA_DB_NAME = "cmd8_local_media";
 export const LOCAL_MEDIA_DB_VERSION = 4;
@@ -24,6 +24,7 @@ export interface StoredVideo {
   sourceKind: VideoSourceKind;
   storageKind: VideoStorageKind;
   importSource: VideoImportSource;
+  bridgePath?: string;
   file?: Blob;
   fileHandle?: FileSystemFileHandle;
   chunkCount?: number;
@@ -263,6 +264,7 @@ export async function importMetadata(json: string): Promise<SaveResult> {
   const cleanVideos = metadata.map((m) => ({
     ...m,
     storageKind: "blob" as VideoStorageKind,
+    bridgePath: undefined,
     file: undefined,
     fileHandle: undefined,
     chunkCount: undefined,
@@ -287,3 +289,7 @@ export async function checkPersistence(): Promise<boolean> {
 
 // Deprecated or removed exports that might still be imported:
 export function initDb() { return Promise.reject("initDb is worker-only"); }
+
+
+
+

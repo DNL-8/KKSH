@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
     checkPersistence,
     clearVideos,
@@ -7,11 +7,100 @@ import {
     listVideos,
     MAX_LIBRARY_VIDEOS,
     requestPersistentStorage,
+    type SaveResult,
     type StoredVideo,
 } from "../lib/localVideosStore";
 import { toErrorMessage } from "../components/files/utils";
 import { useFileImporter } from "./useFileImporter";
 import { useLocalBridge } from "./useLocalBridge";
+
+interface BridgeLibraryVideo {
+    id?: unknown;
+    name?: unknown;
+    path?: unknown;
+    size?: unknown;
+    last_modified?: unknown;
+    created_at?: unknown;
+}
+
+function toSafeNumber(value: unknown, fallback = 0): number {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0) {
+        return fallback;
+    }
+    return numeric;
+}
+
+function normalizeBridgeTimestamp(value: unknown): number {
+    const numeric = toSafeNumber(value, 0);
+    if (numeric <= 0) {
+        return Date.now();
+    }
+    if (numeric > 10 ** 12) {
+        return numeric;
+    }
+    return numeric * 1000;
+}
+
+function normalizePath(path: string): string {
+    return path.replace(/\\/g, "/").replace(/\/+/g, "/").trim();
+}
+
+function deriveBridgeName(path: string, fallback = "video-bridge.mp4"): string {
+    const normalized = normalizePath(path);
+    if (!normalized) {
+        return fallback;
+    }
+    const parts = normalized.split("/").filter(Boolean);
+    return parts[parts.length - 1] || fallback;
+}
+
+function deriveBridgeRelativePath(path: string): string {
+    const normalized = normalizePath(path);
+    if (!normalized) {
+        return "Biblioteca Local";
+    }
+
+    const parts = normalized.split("/").filter(Boolean);
+    if (parts.length <= 1) {
+        return "Biblioteca Local";
+    }
+
+    parts.pop();
+    return parts.join("/") || "Biblioteca Local";
+}
+
+function summarizeImportResult(result: SaveResult): string {
+    const parts: string[] = [
+        `${result.processed} item(ns) processado(s)`,
+        `${result.added.length} adicionado(s)`,
+    ];
+    if (result.ignored.length > 0) {
+        parts.push(`${result.ignored.length} ignorado(s)`);
+    }
+    if (result.rejected.length > 0) {
+        parts.push(`${result.rejected.length} rejeitado(s)`);
+    }
+    if (result.skippedByLimit.length > 0) {
+        parts.push(`${result.skippedByLimit.length} acima do limite`);
+    }
+    if (result.skippedNoSpace.length > 0) {
+        parts.push(`${result.skippedNoSpace.length} sem espaco`);
+    }
+    return `Restauracao concluida: ${parts.join(" | ")}.`;
+}
+
+function downloadJsonBackup(payload: string, fileName: string): void {
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+}
 
 export function useVideoLibrary() {
     const [videos, setVideos] = useState<StoredVideo[]>([]);
@@ -23,103 +112,161 @@ export function useVideoLibrary() {
     const [exporting, setExporting] = useState(false);
     const [isPersisted, setIsPersisted] = useState(false);
 
-    // Bridge Integration
     const { isConnected: isBridgeConnected, getLibrary: getBridgeLibrary, checkConnection } = useLocalBridge();
 
-    // Combined videos: Bridge + IndexedDB (filtered duplicates by ID)
-    const visibleVideos = videos;
+    const visibleVideos = useMemo(() => {
+        const dedup = new Map<string, StoredVideo>();
+
+        for (const video of videos) {
+            dedup.set(video.id, video);
+        }
+
+        for (const video of runtimeVideos) {
+            if (!dedup.has(video.id)) {
+                dedup.set(video.id, video);
+            }
+        }
+
+        return Array.from(dedup.values()).sort((left, right) => right.createdAt - left.createdAt);
+    }, [runtimeVideos, videos]);
 
     const loadVideos = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
-            // 0. Check/Request Persistence
             const persisted = await checkPersistence();
             setIsPersisted(persisted);
             if (!persisted) {
-                // Try to request it once on load (silently)
-                requestPersistentStorage().then(setIsPersisted).catch(() => { });
+                requestPersistentStorage().then(setIsPersisted).catch(() => {
+                    // no-op
+                });
             }
 
-            // 1. Load from IndexedDB
             let localRows: StoredVideo[] = [];
+            let localLoadFailed = false;
             try {
                 localRows = await listVideos();
                 setStorageUnavailable(false);
             } catch (loadError) {
+                localLoadFailed = true;
                 setStorageUnavailable(true);
-                // Don't fail completely if just IDB is down, might have Bridge
                 if (!isBridgeConnected) {
                     setError(toErrorMessage(loadError, "Nao foi possivel carregar a biblioteca local."));
                 }
             }
 
-            // 2. Load from Bridge (if connected)
             let bridgeRows: StoredVideo[] = [];
             if (isBridgeConnected) {
                 const bridgeData = await getBridgeLibrary();
-                bridgeRows = bridgeData.map((v: any) => ({
-                    id: v.id || v.path, // Use path as fallback ID
-                    name: v.name,
-                    type: "video/mp4", // Default to mp4 for now
-                    size: v.size,
-                    lastModified: v.last_modified * 1000,
-                    createdAt: v.created_at * 1000,
-                    relativePath: "Biblioteca Local",
-                    sourceKind: "file",
-                    storageKind: "bridge", // New kind!
-                    importSource: "input_file",
-                    // Extra metadata
-                    completed: v.completed === 1,
-                    progress: v.progress,
-                    tags: v.tags
-                } as StoredVideo));
+                const bridgeItems = Array.isArray(bridgeData) ? bridgeData : [];
+
+                bridgeRows = bridgeItems.map((raw, index) => {
+                    const row = raw as BridgeLibraryVideo;
+                    const bridgePath = typeof row.path === "string" ? row.path : "";
+                    const fallbackName = `video-bridge-${index + 1}.mp4`;
+                    const name = typeof row.name === "string" && row.name.trim().length > 0
+                        ? row.name.trim()
+                        : deriveBridgeName(bridgePath, fallbackName);
+                    const size = toSafeNumber(row.size, 0);
+                    const lastModified = normalizeBridgeTimestamp(row.last_modified ?? row.created_at);
+                    const createdAt = normalizeBridgeTimestamp(row.created_at ?? row.last_modified);
+                    const baseId = typeof row.id === "string" && row.id.trim().length > 0
+                        ? row.id.trim()
+                        : bridgePath || `${name}-${size}-${lastModified}`;
+
+                    return {
+                        id: baseId,
+                        name,
+                        type: "video/mp4",
+                        size,
+                        lastModified,
+                        createdAt,
+                        relativePath: deriveBridgeRelativePath(bridgePath),
+                        sourceKind: "file",
+                        storageKind: "bridge",
+                        importSource: "input_file",
+                        bridgePath,
+                    } satisfies StoredVideo;
+                });
             }
 
-            // 3. Merge Strategies
-            // Priority: Bridge > IndexedDB
-            const combined = [...bridgeRows];
-            const bridgeIds = new Set(bridgeRows.map(v => v.id));
-
+            const bridgeIds = new Set(bridgeRows.map((video) => video.id));
+            const mergedPersisted: StoredVideo[] = [...bridgeRows];
             for (const row of localRows) {
                 if (!bridgeIds.has(row.id)) {
-                    combined.push(row);
-                    // Also filter duplicates? existing logic handles IDs
+                    mergedPersisted.push(row);
                 }
             }
+            mergedPersisted.sort((left, right) => right.createdAt - left.createdAt);
+            setVideos(mergedPersisted);
 
-            // Sort by createdAt desc
-            setVideos(combined.sort((a, b) => b.createdAt - a.createdAt));
+            const persistedIds = new Set(mergedPersisted.map((video) => video.id));
+            setRuntimeVideos((current) => current.filter((video) => !persistedIds.has(video.id)));
 
-        } catch (e) {
-            setError("Erro ao carregar biblioteca.");
-            console.error(e);
+            if (localLoadFailed && isBridgeConnected) {
+                setStatusMessage("Biblioteca local indisponivel. Exibindo somente itens da Bridge e do modo temporario.");
+            }
+        } catch (loadError) {
+            setError(toErrorMessage(loadError, "Erro ao carregar biblioteca."));
         } finally {
             setLoading(false);
         }
-    }, [isBridgeConnected, getBridgeLibrary]);
+    }, [getBridgeLibrary, isBridgeConnected]);
 
-    // Refresh when bridge connection changes
     useEffect(() => {
-        const check = async () => {
+        const run = async () => {
             await checkConnection();
-            loadVideos();
+            await loadVideos();
         };
-        check();
+        void run();
     }, [checkConnection, loadVideos]);
-    // ^ Note: checkConnection is stable, but loadVideos depends on isBridgeConnected
-    // We want to reload when 'isBridgeConnected' changes, which is inside loadVideos dependency
 
-    const mergeRuntimeVideos = useCallback((incoming: StoredVideo[]) => {
-        // ... (Keep existing runtime merge logic if needed, or deprecate)
-        // For now, simplify: we don't use runtimeVideos for persistent storage anymore in this mode
-        // But keeping it for file imports that aren't yet saved
-        // ... Copied logic for safety ...
-        let addedCount = 0;
-        // ... implementation ...
-        return { addedCount, ignoredCount: 0, skippedByLimitCount: 0 };
-    }, []);
+    const mergeRuntimeVideos = useCallback(
+        (incoming: StoredVideo[]) => {
+            let addedCount = 0;
+            let ignoredCount = 0;
+            let skippedByLimitCount = 0;
+
+            setRuntimeVideos((current) => {
+                const next = [...current];
+                const knownIds = new Set<string>();
+
+                for (const video of videos) {
+                    knownIds.add(video.id);
+                }
+                for (const video of current) {
+                    knownIds.add(video.id);
+                }
+
+                for (const video of incoming) {
+                    if (knownIds.has(video.id)) {
+                        ignoredCount += 1;
+                        continue;
+                    }
+
+                    if (knownIds.size >= MAX_LIBRARY_VIDEOS) {
+                        skippedByLimitCount += 1;
+                        continue;
+                    }
+
+                    next.push(video);
+                    knownIds.add(video.id);
+                    addedCount += 1;
+                }
+
+                next.sort((left, right) => right.createdAt - left.createdAt);
+                return next;
+            });
+
+            return {
+                addedCount,
+                ignoredCount,
+                skippedByLimitCount,
+            };
+        },
+        [videos],
+    );
 
     const importer = useFileImporter({
         onReload: loadVideos,
@@ -136,6 +283,7 @@ export function useVideoLibrary() {
         }
 
         try {
+            setRuntimeVideos([]);
             await clearVideos();
             await loadVideos();
             setStatusMessage("Cache do navegador limpo.");
@@ -144,17 +292,52 @@ export function useVideoLibrary() {
         }
     };
 
-    // ... Metadata import/export logic (Keep as is, but note it only dumps IDB) ...
-
     const handleExportMetadata = async () => {
-        // ... existing ... 
+        if (typeof window === "undefined") {
+            return;
+        }
+
         setExporting(true);
-        // ...
-        setExporting(false);
+        setError(null);
+        setStatusMessage(null);
+
+        try {
+            const payload = await exportMetadata();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            const fileName = `cmd8-files-metadata-${timestamp}.json`;
+            downloadJsonBackup(payload, fileName);
+            setStatusMessage("Backup exportado com sucesso (metadados locais). A Bridge nao esta incluida.");
+        } catch (exportError) {
+            setError(toErrorMessage(exportError, "Falha ao exportar backup de metadados."));
+        } finally {
+            setExporting(false);
+        }
     };
 
-    const handleImportMetadata = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        // ... existing ...
+    const handleImportMetadata = async (event: ChangeEvent<HTMLInputElement>) => {
+        const input = event.currentTarget;
+        const selectedFile = input.files?.[0];
+        input.value = "";
+
+        if (!selectedFile) {
+            return;
+        }
+
+        setError(null);
+        setStatusMessage(null);
+
+        try {
+            const payload = await selectedFile.text();
+            if (!payload.trim()) {
+                throw new Error("Arquivo de backup vazio.");
+            }
+
+            const result = await importMetadata(payload);
+            await loadVideos();
+            setStatusMessage(`${summarizeImportResult(result)} A Bridge nao foi alterada.`);
+        } catch (importError) {
+            setError(toErrorMessage(importError, "Falha ao restaurar metadados."));
+        }
     };
 
     const importInputRef = useRef<HTMLInputElement>(null);
@@ -162,15 +345,16 @@ export function useVideoLibrary() {
     return {
         videos,
         runtimeVideos,
-        visibleVideos, // unified view
+        visibleVideos,
         loading,
         error,
         statusMessage,
         storageUnavailable,
         exporting,
-        isPersisted, // New prop
+        isPersisted,
+        isBridgeConnected,
         handleClearAll,
-        handleExportMetadata, // These might need updates to support Bridge export
+        handleExportMetadata,
         handleImportMetadata,
         importInputRef,
         fileInputRef: importer.fileInputRef,
@@ -179,8 +363,6 @@ export function useVideoLibrary() {
         setStatusMessage,
         handleFileSelect: importer.handleFilesSelected,
         handleFolderSelect: importer.handleFolderSelected,
-
-        // Importer exposed props
         saving: importer.saving,
         importProgress: importer.importProgress,
         rejectedFiles: importer.rejectedFiles,
@@ -192,6 +374,8 @@ export function useVideoLibrary() {
         handleOpenFolderPicker: importer.handleOpenFolderPicker,
         handleOpenDirectoryPicker: importer.handleOpenDirectoryPicker,
         handleFilesSelected: importer.handleFilesSelected,
-        handleFolderSelected: importer.handleFolderSelected // duplicate but keeping for compatibility if used elsewhere
+        handleFolderSelected: importer.handleFolderSelected,
     };
 }
+
+

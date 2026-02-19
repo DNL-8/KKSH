@@ -1,5 +1,5 @@
-
-import { OrderMode, TabMode } from "./types";
+﻿
+import type { OrderMode, TabMode } from "./types";
 
 export const ORDER_MODES: OrderMode[] = ["source", "newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];
 export const TAB_MODES: TabMode[] = ["overview", "metadata"];
@@ -13,3 +13,4 @@ export const ORDER_LABELS: Record<OrderMode, string> = {
     size_desc: "Ordem: maior arquivo",
     size_asc: "Ordem: menor arquivo",
 };
+

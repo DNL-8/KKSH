@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef, useEffect } from "react";
+﻿import { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { Icon } from "../common/Icon";
 
@@ -192,6 +192,7 @@ export function LessonSidebar({
             </div>
             <button
               aria-expanded={!collapsed}
+              aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
               className="rounded-md border border-cyan-900/40 bg-[#0a1a33] p-1.5 text-slate-400 transition-colors hover:text-cyan-300 disabled:opacity-40"
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
@@ -211,6 +212,13 @@ export function LessonSidebar({
     const lessonCompleted = isLessonCompleted(lesson);
     const itemNumber = String(lessonIndex + 1).padStart(2, "0");
     const storageLabel = formatStorageKind(lesson).toUpperCase();
+    const storageHint = lesson.storageKind === "bridge"
+      ? "STREAM"
+      : lesson.storageKind === "handle"
+        ? "HANDLE"
+        : lesson.storageKind === "chunks"
+          ? "CHUNKS"
+          : "BLOB";
 
     // Check if this is the last item in the section to round corners
     // (In a flat list, we'd need to peek ahead, but for simplicity we can just style the item container)
@@ -225,6 +233,7 @@ export function LessonSidebar({
             } last:border-b last:rounded-b-lg`}
           data-active={active ? "true" : "false"}
           aria-current={active ? "true" : undefined}
+          aria-label={`Selecionar aula ${lesson.name}`}
           onClick={() => onSelectLesson(lesson.id)}
           type="button"
         >
@@ -263,7 +272,7 @@ export function LessonSidebar({
                 <span className="rounded border border-slate-700/70 bg-slate-900/80 px-1.5 py-0.5">
                   {formatBytes(lesson.size)}
                 </span>
-                <span>{storageLabel} [BLOB]</span>
+                <span>{storageLabel} [{storageHint}]</span>
               </div>
             )}
           </div>
@@ -360,3 +369,5 @@ export function LessonSidebar({
     </div>
   );
 }
+
+
