@@ -68,11 +68,11 @@ export function AiPage() {
             <h2 className="mb-2 text-xl font-black uppercase italic leading-none tracking-[0.4em] text-[hsl(var(--accent))]">
               Neural IQ Core
             </h2>
-            <div className="flex gap-4 text-[9px] font-mono font-black uppercase text-[hsl(var(--accent)/0.3)]">
-              <span className="flex items-center gap-1.5">
+            <div className="flex gap-4 text-[10px] font-mono font-black uppercase text-[hsl(var(--accent)/0.6)]">
+              <span className="flex items-center gap-2 drop-shadow-[0_0_5px_rgba(var(--glow),0.5)]">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[hsl(var(--accent))]" /> Sincronizado
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent)/0.3)]" /> CPU Load: 12%
               </span>
             </div>
@@ -104,11 +104,11 @@ export function AiPage() {
                 }`}
             >
               <div
-                className={`mb-2 text-[9px] font-black uppercase tracking-[0.3em] ${log.type === "user"
+                className={`mb-3 text-[10px] font-black uppercase tracking-[0.3em] ${log.type === "user"
                   ? "text-slate-500"
                   : log.type === "error"
-                    ? "text-red-400"
-                    : "text-[hsl(var(--accent)/0.5)]"
+                    ? "text-red-400 drop-shadow-sm"
+                    : "text-[hsl(var(--accent)/0.8)] drop-shadow-[0_0_5px_rgba(var(--glow),0.3)]"
                   }`}
               >
                 {log.type === "user" ? ">> Hunter #9284-AX" : log.type === "error" ? "> System Error" : "> System Output"}
@@ -128,7 +128,7 @@ export function AiPage() {
 
       <div className="z-10 border-t border-[hsl(var(--accent)/0.15)] bg-[#0a0c10]/95 p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
         <div className="relative mx-auto flex max-w-4xl items-center">
-          <div className="pointer-events-none absolute left-6 font-mono text-lg font-bold tracking-widest text-[hsl(var(--accent)/0.3)] opacity-50">
+          <div className="pointer-events-none absolute left-6 font-mono text-lg font-bold tracking-widest text-[hsl(var(--accent)/0.5)] opacity-80 drop-shadow-[0_0_5px_rgba(var(--glow),0.4)]">
             {">"}
           </div>
           <input
@@ -140,17 +140,17 @@ export function AiPage() {
               }
             }}
             placeholder="Introduza diretriz para o Sistema..."
-            className="w-full rounded-[28px] border border-[hsl(var(--accent)/0.25)] bg-[#050506] py-5 pl-14 pr-20 font-mono text-sm text-[hsl(var(--accent-light))] shadow-[inset_0_2px_10px_rgba(0,0,0,1)] transition-all placeholder:text-[hsl(var(--accent)/0.15)] focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.2)]"
+            className="w-full rounded-[32px] border border-[hsl(var(--accent)/0.4)] bg-[#050508]/80 py-5 pl-14 pr-20 font-mono text-sm text-white shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.15)] transition-all placeholder:text-[hsl(var(--accent)/0.3)] focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent)/0.3)] backdrop-blur-md"
           />
           <button
             onClick={() => {
               void sendCommand();
             }}
             disabled={loading || !input.trim()}
-            className="absolute right-3 flex items-center justify-center rounded-2xl bg-[hsl(var(--accent))] p-3.5 text-black shadow-[0_0_20px_rgba(var(--glow),0.4)] transition-all hover:brightness-110 active:scale-90 disabled:opacity-20"
+            className="absolute right-3 flex items-center justify-center rounded-[20px] bg-[hsl(var(--accent))] p-4 text-black shadow-[0_0_20px_rgba(var(--glow),0.6)] transition-all hover:brightness-125 hover:shadow-[0_0_30px_rgba(var(--glow),0.8)] hover:scale-105 active:scale-95 disabled:opacity-20"
             type="button"
           >
-            <Icon name="paper-plane" className="text-[22px]" />
+            <Icon name="paper-plane" className="text-[20px]" />
           </button>
         </div>
       </div>

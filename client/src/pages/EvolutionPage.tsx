@@ -19,7 +19,6 @@ import {
   type WeeklyQuestOut,
   type WeeklyReportOut,
 } from "../lib/api";
-import { widthPercentClass } from "../lib/percentClasses";
 import type { AppShellContextValue } from "../layout/types";
 
 interface EvolutionQueryData {
@@ -78,20 +77,20 @@ const SESSION_PAGE_LIMIT = 200;
 const MAX_SESSION_PAGES = 6;
 
 const HEATMAP_INTENSITY_CLASS: Record<RaidCellVM["intensity"], string> = {
-  0: "bg-[#10131d] border-white/10",
-  1: "bg-cyan-900/35 border-cyan-500/25",
-  2: "bg-cyan-700/65 border-cyan-400/50",
-  3: "bg-cyan-400 border-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.45)]",
+  0: "bg-white/[0.02] border border-white/5",
+  1: "bg-cyan-900/60 border border-cyan-900/40",
+  2: "bg-cyan-600/80 border border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.6)]",
+  3: "bg-cyan-400 border border-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.6)] hover:shadow-[0_0_15px_rgba(34,211,238,0.8)]",
 };
 
 const QUEST_TYPE_CLASS: Record<QuestCardVM["typeKey"], string> = {
-  daily: "bg-blue-500/10 border-blue-500/25 text-blue-400",
-  weekly: "bg-purple-500/10 border-purple-500/25 text-purple-300",
+  daily: "bg-blue-500/10 border-blue-500/25 text-blue-400 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]",
+  weekly: "bg-purple-500/10 border-purple-500/25 text-purple-300 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]",
 };
 
 const BADGE_TONE_CLASS: Record<StatBadgeTone, string> = {
-  cyan: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300",
-  red: "bg-red-500/10 border-red-500/30 text-red-300",
+  cyan: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]",
+  red: "bg-red-500/10 border-red-500/30 text-red-300 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]",
 };
 
 function clampPercent(value: number): number {
@@ -263,12 +262,12 @@ async function loadRecentSessions(dateFrom: string, dateTo: string): Promise<Ses
 
 function StatBadge({ icon, value, label, tone = "cyan" }: StatBadgeProps) {
   return (
-    <div className="flex min-w-[170px] items-center gap-3 rounded-lg border border-white/10 bg-[#0a0a0b] px-4 py-2 shadow-lg">
-      <div className={`rounded border px-2 py-1 ${BADGE_TONE_CLASS[tone]}`}>
-        <Icon name={icon} className="text-[14px]" />
+    <div className="flex min-w-[170px] items-center gap-3 rounded-xl border border-white/5 bg-gradient-to-br from-white/[0.05] to-transparent p-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-md">
+      <div className={`rounded-lg border px-2.5 py-1.5 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] ${BADGE_TONE_CLASS[tone]}`}>
+        <Icon name={icon} className="text-[16px] drop-shadow-md" />
       </div>
       <div className="leading-none">
-        <div className="text-sm font-black tracking-wide text-white">{value}</div>
+        <div className="text-[15px] font-black tracking-wide text-white drop-shadow-sm">{value}</div>
         <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
       </div>
     </div>
@@ -278,14 +277,14 @@ function StatBadge({ icon, value, label, tone = "cyan" }: StatBadgeProps) {
 function StatBox({ label, value, sub, highlight = false }: StatBoxProps) {
   return (
     <article
-      className={`rounded-xl border p-4 transition-all ${highlight
-        ? "border-cyan-500/30 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.12)]"
-        : "border-white/10 bg-[#0f1118]"
+      className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${highlight
+        ? "border-cyan-500/40 bg-cyan-950/20 shadow-[0_0_20px_rgba(34,211,238,0.15),inset_0_0_15px_rgba(34,211,238,0.05)] translate-y-[-2px]"
+        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10"
         }`}
     >
-      <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
-      <div className={`mt-1 text-xl font-black ${highlight ? "text-cyan-300" : "text-white"}`}>{value}</div>
-      <div className="mt-1 text-[10px] font-mono text-slate-500">{sub}</div>
+      <div className={`text-[10px] font-bold uppercase tracking-wider ${highlight ? "text-cyan-400" : "text-slate-500"}`}>{label}</div>
+      <div className={`mt-2 text-2xl font-black ${highlight ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-500 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" : "text-white"}`}>{value}</div>
+      <div className="mt-1.5 text-[11px] font-mono text-slate-500/80">{sub}</div>
     </article>
   );
 }
@@ -415,28 +414,29 @@ export function EvolutionPage() {
         </div>
       )}
 
-      <header className="group relative evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6 md:p-8">
-        <div className="pointer-events-none absolute right-4 top-4 opacity-20">
-          <Icon name="apps" className="text-cyan-500 text-[96px]" />
+      <header className="group relative evo-slide-up overflow-hidden rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-2xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+        <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.15),transparent_60%)] opacity-80" />
+        <div className="pointer-events-none absolute right-4 top-4 opacity-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+          <Icon name="apps" className="text-cyan-400 text-[120px]" />
         </div>
-        <div className="absolute left-0 top-0 flex items-center gap-2 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-950/80 to-transparent px-4 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
+        <div className="absolute left-0 top-0 flex items-center gap-2 border-b border-cyan-500/30 bg-gradient-to-r from-cyan-900/60 to-transparent px-5 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300 backdrop-blur-md shadow-[0_2px_10px_rgba(34,211,238,0.1)]">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
           System online v3.0
         </div>
 
-        <div className="mt-6 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+        <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end relative z-10">
           <div>
-            <h1 className="text-5xl font-black italic tracking-tighter text-white md:text-6xl">
-              REVI<span className="text-cyan-400">SOES</span>
+            <h1 className="text-5xl font-black italic tracking-tighter text-white drop-shadow-md md:text-7xl">
+              REVI<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">SOES</span>
             </h1>
-            <p className="mt-2 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.28em] text-cyan-500/70">
-              <span className="h-px w-8 bg-cyan-500/70" />
+            <p className="mt-3 flex items-center gap-3 text-xs font-mono uppercase tracking-[0.3em] text-cyan-400/80">
+              <span className="h-px w-10 bg-gradient-to-r from-cyan-500 to-transparent" />
               Sincronizacao mental necessaria
             </p>
-            <p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-400">{weeklyLine}</p>
+            <p className="mt-4 text-[13px] font-bold uppercase tracking-wider text-slate-400 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5 w-fit backdrop-blur-sm">{weeklyLine}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <StatBadge icon="clock" value={`${weeklyTotalMinutes} min`} label="Tempo em combate" tone="cyan" />
             <StatBadge icon="skull" value={`${sessions.length}`} label="Inimigos abatidos" tone="red" />
             <button
@@ -444,9 +444,9 @@ export function EvolutionPage() {
               data-testid="evolution-refresh"
               onClick={() => void refreshEvolution()}
               disabled={evolutionQuery.isFetching}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-900/80 px-4 text-[11px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:border-cyan-500/50 hover:text-cyan-300 disabled:cursor-wait disabled:opacity-70"
+              className="inline-flex h-[60px] items-center justify-center gap-2 rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 px-6 text-[12px] font-black uppercase tracking-widest text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)] hover:-translate-y-1 active:scale-95 disabled:cursor-wait disabled:opacity-70 backdrop-blur-md"
             >
-              {evolutionQuery.isFetching ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="refresh" className="text-[14px]" />}
+              {evolutionQuery.isFetching ? <Icon name="spinner" className="animate-spin text-[16px]" /> : <Icon name="refresh" className="text-[16px]" />}
               Atualizar
             </button>
           </div>
@@ -455,90 +455,91 @@ export function EvolutionPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
-          <section className="evo-slide-up relative h-[290px] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-[#0a0f1c] to-black p-8">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.16),transparent_65%)]" />
+          <section className="evo-slide-up relative h-[320px] overflow-hidden rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent mix-blend-overlay" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_70%)]" />
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div className="flex items-start justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                    <Icon name="sword" className="text-[12px]" /> Rank {activeQuest?.rank ?? "F"} - Dungeon
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-950/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.2)] backdrop-blur-sm">
+                    <Icon name="sword" className="text-[13px]" /> Rank {activeQuest?.rank ?? "F"} - Dungeon
                   </div>
-                  <h2 className="text-4xl font-black italic tracking-tight text-white">CATEDRAL {activeQuest?.subject.toUpperCase() ?? "SQL"}</h2>
-                  <p className="max-w-xl text-sm text-slate-400">
+                  <h2 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 drop-shadow-sm md:text-5xl">CATEDRAL {activeQuest?.subject.toUpperCase() ?? "Geral"}</h2>
+                  <p className="max-w-xl text-[13px] leading-relaxed text-slate-400 font-medium">
                     {activeQuest?.objective ??
-                      "Uma dungeon focada em consultas estruturadas. Inimigos do tipo JOIN e INDEX aguardam."}
+                      "Uma dungeon focada em evolucao geral."}
                   </p>
                 </div>
-                <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-black">
-                  <span className="text-3xl font-black text-white">{activeQuest?.rank ?? "F"}</span>
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-black to-slate-900 shadow-[inset_0_5px_15px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)]">
+                  <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500">{activeQuest?.rank ?? "F"}</span>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-6 text-sm text-slate-300">
-                  <span className="flex items-center gap-2">
-                    <Icon name="clock" className="text-cyan-400 text-[16px]" />
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-8 text-[13px] font-bold text-slate-300">
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-white/5">
+                    <Icon name="clock" className="text-cyan-400 text-[18px] drop-shadow-[0_0_5px_rgba(34,211,238,0.6)]" />
                     {Math.max(5, activeQuest?.targetMinutes ?? 15)} min est.
                   </span>
-                  <span className="flex items-center gap-2">
-                    <Icon name="brain" className="text-purple-400 text-[16px]" />
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-white/5">
+                    <Icon name="brain" className="text-purple-400 text-[18px] drop-shadow-[0_0_5px_rgba(168,85,247,0.6)]" />
                     {Math.max(4, quests.length)} missoes
                   </span>
-                  <span className="flex items-center gap-2">
-                    <Icon name="sparkles" className="text-yellow-400 text-[16px]" />
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-white/5">
+                    <Icon name="sparkles" className="text-yellow-400 text-[18px] drop-shadow-[0_0_5px_rgba(250,204,21,0.6)]" />
                     {activeQuest?.rewardLabel ?? "+0 XP / +0 G"}
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full border border-cyan-500/20 bg-black/40">
+                <div className="h-4 overflow-hidden rounded-full border border-cyan-500/30 bg-black/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] p-0.5">
                   <div
-                    className={`h-full rounded-full bg-gradient-to-r from-cyan-700 via-cyan-500 to-blue-400 transition-all duration-500 ${widthPercentClass(dungeonProgressPercent)}`}
+                    className={`h-full rounded-full bg-gradient-to-r from-blue-900 via-cyan-500 to-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.6),inset_0_0_5px_rgba(255,255,255,0.5)] transition-all duration-700 ease-out`}
+                    style={{ width: `${dungeonProgressPercent}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  <span>{activeQuest ? activeQuest.progressLabel : "0/0 min"}</span>
-                  <span>{dungeonProgressPercent}%</span>
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="drop-shadow-sm">{activeQuest ? activeQuest.progressLabel : "0/0 min"}</span>
+                  <span className="text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">{dungeonProgressPercent}%</span>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg border border-cyan-500/25 bg-cyan-950/30 p-2">
-                  <Icon name="bolt" className="text-cyan-400 text-[18px]" />
+          <section className="evo-slide-up rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-xl p-8 xl:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/40 p-3 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                  <Icon name="bolt" className="text-cyan-400 text-[22px] drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-white">Frequencia de Raids</h3>
-                  <p className="text-[10px] font-mono uppercase text-slate-500">Sincronizacao dos ultimos 28 dias</p>
+                  <h3 className="text-[15px] font-black uppercase tracking-widest text-white drop-shadow-sm">Frequencia de Raids</h3>
+                  <p className="text-[11px] font-mono uppercase text-slate-500/80">Sincronizacao dos ultimos 28 dias</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-black text-white">{raidConsistency}%</div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Consistencia</div>
+                <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-l from-white to-cyan-200 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">{raidConsistency}%</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400 drop-shadow-sm">Consistencia</div>
               </div>
             </div>
-            <div className="mb-4 flex justify-end">
+            <div className="mb-6 flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsHeatmapExpanded((current) => !current)}
-                className="rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:border-cyan-500/50 hover:text-cyan-300"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-300 transition-all hover:bg-white/[0.08] hover:text-white"
               >
-                {isHeatmapExpanded ? "Ocultar detalhes" : "Expandir"}
+                {isHeatmapExpanded ? "Ocultar grade" : "Expandir celulas"}
               </button>
             </div>
             <div
               data-testid="evolution-heatmap"
-              className={`grid w-fit ${isHeatmapExpanded
-                ? "grid-cols-[repeat(14,1rem)] gap-1.5 sm:grid-cols-[repeat(14,1.1rem)]"
-                : "grid-cols-[repeat(7,0.8rem)] gap-1 sm:grid-cols-[repeat(7,0.9rem)]"
+              className={`grid w-fit rounded-2xl bg-black/40 p-5 border border-white/5 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)] ${isHeatmapExpanded
+                ? "grid-cols-[repeat(14,1.2rem)] gap-2 sm:grid-cols-[repeat(14,1.4rem)]"
+                : "grid-cols-[repeat(7,1rem)] gap-1.5 sm:grid-cols-[repeat(7,1.2rem)]"
                 }`}
             >
               {raidHistory.map((cell) => (
                 <div
                   key={cell.date}
-                  className={`rounded border transition-transform hover:scale-105 ${isHeatmapExpanded ? "h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" : "h-[0.8rem] w-[0.8rem] sm:h-[0.9rem] sm:w-[0.9rem]"
+                  className={`rounded-[4px] transition-all hover:scale-125 z-0 hover:z-10 relative cursor-help ${isHeatmapExpanded ? "h-5 w-5 sm:h-[1.4rem] sm:w-[1.4rem]" : "h-4 w-4 sm:h-[1.2rem] sm:w-[1.2rem]"
                     } ${HEATMAP_INTENSITY_CLASS[cell.intensity]}`}
                   title={cell.tooltip}
                   aria-label={cell.tooltip}
@@ -547,36 +548,36 @@ export function EvolutionPage() {
             </div>
           </section>
 
-          <section className="evo-slide-up relative min-h-[310px] rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-1">
-            <div className="absolute -top-3 left-6 rounded border border-cyan-500/30 bg-[#050505] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
+          <section className="evo-slide-up relative min-h-[310px] rounded-[32px] border border-white/5 bg-[#08080a] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+            <div className="absolute -top-4 left-8 rounded-lg border border-cyan-500/40 bg-[#02050a] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-md z-20">
               <span className="flex items-center gap-2">
-                <Icon name="crosshairs" className="text-[12px]" />
+                <Icon name="crosshairs" className="text-[14px]" />
                 Arena de Combate
               </span>
             </div>
-            <div className="relative h-full overflow-hidden rounded-xl bg-[#08080a]">
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
-              <div className="relative z-10 flex h-full min-h-[308px] flex-col items-center justify-center p-8 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-cyan-500/25 bg-cyan-950/30">
-                  <Icon name="brain" className="text-cyan-400 text-[32px]" />
+            <div className="relative h-full overflow-hidden rounded-[26px] bg-[#050813]">
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] opacity-50 mix-blend-overlay" />
+              <div className="relative z-10 flex h-full min-h-[310px] flex-col items-center justify-center p-8 text-center ring-1 ring-inset ring-white/5">
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-950/40 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+                  <Icon name="brain" className="text-cyan-400 text-[36px] drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                 </div>
-                <div className="mb-8 max-w-xl space-y-3">
-                  <div className="text-xs font-mono text-cyan-600">[SISTEMA] Pergunta Gerada:</div>
-                  <h4 className="text-xl font-medium leading-relaxed text-white">
+                <div className="mb-8 max-w-xl space-y-4">
+                  <div className="text-xs font-mono uppercase tracking-widest text-cyan-600/80 drop-shadow-sm">[SYSTEM_INTERCEPT] Pergunta Gerada:</div>
+                  <h4 className="text-2xl font-bold leading-relaxed text-slate-200 drop-shadow-md">
                     {showArenaAnswer ? arenaPrompt.answer : arenaPrompt.question}
                   </h4>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    STATUS: {arenaStatus === "revealed" ? "RESPOSTA EXIBIDA" : arenaStatus === "skipped" ? "PULADA" : "ATIVO"}
+                  <p className="inline-block rounded-md bg-black/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 border border-white/5">
+                    STATUS: <span className={arenaStatus === "revealed" ? "text-cyan-400" : arenaStatus === "skipped" ? "text-red-400" : "text-yellow-400 animate-pulse"}>{arenaStatus === "revealed" ? "RESPOSTA EXIBIDA" : arenaStatus === "skipped" ? "PULADA" : "ATIVO"}</span>
                   </p>
                 </div>
-                <div className="flex flex-wrap justify-center gap-4">
+                <div className="flex flex-wrap justify-center gap-5">
                   <button
                     type="button"
                     onClick={() => {
                       setShowArenaAnswer(true);
                       setArenaStatus("revealed");
                     }}
-                    className="rounded bg-white px-8 py-3 text-sm font-bold uppercase tracking-wider text-black transition-colors hover:bg-cyan-50"
+                    className="rounded-xl border border-cyan-400 bg-cyan-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all hover:bg-cyan-400 hover:text-black hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] active:scale-95"
                   >
                     Mostrar Resposta
                   </button>
@@ -586,7 +587,7 @@ export function EvolutionPage() {
                       setShowArenaAnswer(false);
                       setArenaStatus("skipped");
                     }}
-                    className="rounded border border-white/20 px-8 py-3 text-sm font-bold uppercase tracking-wider text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    className="rounded-xl border border-white/10 bg-white/[0.02] px-8 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 transition-all hover:bg-white/[0.1] hover:text-white active:scale-95"
                   >
                     Pular
                   </button>
@@ -597,82 +598,89 @@ export function EvolutionPage() {
         </div>
 
         <aside className="space-y-6 lg:col-span-4">
-          <section className="evo-slide-up overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0b]/80">
-            <div className="border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent p-6">
-              <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                <Icon name="exclamation" className="text-orange-400 text-[16px]" />
+          <section className="evo-slide-up overflow-hidden rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="border-b border-white/5 bg-gradient-to-r from-orange-500/10 to-transparent p-6">
+              <h3 className="flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-white drop-shadow-sm">
+                <Icon name="exclamation" className="text-orange-400 text-[18px] drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
                 Missoes Ativas
               </h3>
             </div>
-            <div className="space-y-3 p-4">
+            <div className="space-y-4 p-6">
               {quests.length ? (
                 quests.slice(0, 6).map((quest) => (
                   <article
                     key={quest.id}
-                    className={`relative rounded-xl border p-4 ${quest.completed
-                      ? "border-slate-800/60 bg-slate-900/30 opacity-70"
-                      : "border-white/10 bg-[#0f1118] hover:border-orange-500/35"
+                    className={`relative rounded-2xl border p-5 transition-all duration-300 ${quest.completed
+                      ? "border-slate-800/60 bg-slate-900/30 opacity-60"
+                      : "border-white/5 bg-white/[0.02] hover:border-orange-500/40 hover:bg-orange-950/20 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:-translate-y-1"
                       }`}
                   >
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <span className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${QUEST_TYPE_CLASS[quest.typeKey]}`}>
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <span className={`rounded-lg border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.2em] ${QUEST_TYPE_CLASS[quest.typeKey]}`}>
                         {quest.typeLabel}
                       </span>
-                      {quest.completed ? <Icon name="check-circle" className="text-green-500 text-[16px]" /> : <Icon name="angle-right" className="text-slate-500 text-[16px]" />}
+                      {quest.completed ? <Icon name="check-circle" className="text-green-500 text-[18px] drop-shadow-sm" /> : <Icon name="angle-right" className="text-slate-500 text-[18px]" />}
                     </div>
-                    <h4 className={`text-xs font-bold ${quest.completed ? "text-slate-500" : "text-white"}`}>{quest.title}</h4>
-                    <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">
-                      {quest.progressLabel} • {quest.difficulty}
+                    <h4 className={`text-[13px] font-bold leading-snug ${quest.completed ? "text-slate-500" : "text-white"}`}>{quest.title}</h4>
+                    <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Progresso: <span className="text-slate-300">{quest.progressLabel}</span> • Nv. <span className="text-orange-300">{quest.difficulty}</span>
                     </p>
-                    <div className="mt-3 rounded border border-white/10 bg-black/20 p-2 text-[10px] font-mono text-slate-300">
-                      Recompensa: <span className="font-bold text-yellow-400">{quest.rewardLabel}</span>
+                    <div className="mt-4 rounded-xl border border-white/5 bg-black/40 p-3 text-[10px] font-mono text-slate-400 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                      Recompensa: <span className="font-bold text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]">{quest.rewardLabel}</span>
                     </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-slate-700 bg-black/20 p-4 text-xs text-slate-500">
+                <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-xs font-medium text-slate-500">
                   Nenhuma missao ativa no momento.
                 </div>
               )}
             </div>
           </section>
 
-          <section className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
-            <h3 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <Icon name="trophy" className="text-yellow-500 text-[16px]" />
-              Performance do Jogador
+          <section className="evo-slide-up rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <h3 className="mb-8 flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-white drop-shadow-sm">
+              <Icon name="trophy" className="text-yellow-400 text-[18px] drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
+              Performance Global
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <StatBox label="Total Cartas" value={`${monthlySessions || sessions.length}`} sub={`+${sessions.length} janela 28d`} />
-              <StatBox label="Taxa de Acerto" value={`${raidConsistency}%`} sub={`${activeRaidDays}/${HEATMAP_DAYS} dias ativos`} highlight />
+              <StatBox label="Taxa Acerto" value={`${raidConsistency}%`} sub={`${activeRaidDays}/${HEATMAP_DAYS} dias ativos`} highlight />
               <StatBox label="Combo Atual" value={`x${Math.max(0, comboBase)}`} sub={`Streak ${Math.max(0, comboBase)} dias`} />
-              <StatBox label="XP Hora" value={`${xpPerHour}`} sub={`${monthlyXp} XP em ${monthlyMinutes} min`} />
+              <StatBox label="XP / Hora" value={`${xpPerHour}`} sub={`${monthlyXp} XP em ${monthlyMinutes} min`} />
             </div>
           </section>
 
-          <section data-testid="evolution-achievements" className="evo-slide-up rounded-2xl border border-white/10 bg-[#0a0a0b]/80 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-white">Conquistas</h3>
-              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-yellow-300">
+          <section data-testid="evolution-achievements" className="evo-slide-up rounded-[32px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 backdrop-blur-xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-[13px] font-black uppercase tracking-widest text-white drop-shadow-sm">Conquistas</h3>
+              <span className="rounded-lg border border-yellow-500/40 bg-yellow-950/40 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.15)]">
                 {achievementsLabel}
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {achievements.length ? (
                 achievements.map((achievement) => (
                   <article
                     key={achievement.key}
-                    className={`rounded-lg border px-3 py-2 ${achievement.unlocked
-                      ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
-                      : "border-slate-700 bg-slate-900/50 text-slate-400"
+                    className={`rounded-2xl border p-4 transition-all duration-300 ${achievement.unlocked
+                      ? "border-cyan-500/40 bg-cyan-950/20 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.1)] hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                      : "border-white/5 bg-white/[0.02] text-slate-500 hover:bg-white/[0.04]"
                       }`}
                   >
-                    <div className="text-xs font-bold uppercase tracking-wider">{achievement.name}</div>
-                    <div className="mt-1 text-[10px] text-slate-400">{achievement.description}</div>
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-full border ${achievement.unlocked ? "border-cyan-400/50 bg-cyan-900/50 text-cyan-300" : "border-slate-800 bg-slate-900 text-slate-700"}`}>
+                        <Icon name={achievement.unlocked ? "star" : "lock"} className="text-[16px]" />
+                      </div>
+                      <div>
+                        <div className={`text-[11px] font-black uppercase tracking-widest ${achievement.unlocked ? "text-cyan-300 drop-shadow-sm" : "text-slate-400"}`}>{achievement.name}</div>
+                        <div className="mt-1 text-[10px] text-slate-500/80">{achievement.description}</div>
+                      </div>
+                    </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-xs text-slate-500">
+                <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-xs font-medium text-slate-500">
                   Nenhuma conquista registrada.
                 </div>
               )}
