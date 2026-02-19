@@ -81,9 +81,14 @@ test("menu mobile abre, navega e fecha por overlay", async ({ page }) => {
   await expect(page).toHaveURL(/\/combate$/);
   await expect(page.getByTestId("mobile-menu-drawer")).toHaveCount(0);
 
-  await page.getByTestId("mobile-menu-open").click();
-  await expect(page.getByTestId("mobile-menu-drawer")).toBeVisible();
-  await page.mouse.click(370, 120);
+  const reopenMenu = page.getByTestId("mobile-menu-open");
+  await expect(reopenMenu).toBeVisible();
+  await expect(reopenMenu).toBeEnabled();
+  await reopenMenu.click();
+
+  const menuOverlay = page.getByTestId("mobile-menu-overlay");
+  await expect(menuOverlay).toBeVisible();
+  await menuOverlay.click({ position: { x: 360, y: 120 } });
   await expect(page.getByTestId("mobile-menu-drawer")).toHaveCount(0);
 });
 

@@ -49,13 +49,15 @@ Esperado: HTTP 200 com `{"ok": true, "checks": {"database": "ok", "redis": "ok|n
 
 ## 4) Qualidade frontend
 
-- [ ] `pnpm lint:frontend`
-- [ ] `pnpm typecheck`
-- [ ] `pnpm build`
+- [ ] `npm run lint:frontend` (ou `pnpm lint:frontend`)
+- [ ] `npm run typecheck` (ou `pnpm typecheck`)
+- [ ] `npm run build` (ou `pnpm build`)
 
 ## 5) E2E
 
-- [ ] `pnpm e2e` verde (smoke de abertura, rotas e IA)
+- [ ] Banco E2E resetado automaticamente via `npm run e2e:db:reset` dentro de `e2e:serve`
+- [ ] `PW_WEB_SERVER_COMMAND="npm run e2e:serve" npm run e2e -- --reporter=line` verde
+- [ ] `pnpm e2e` verde (quando `pnpm` estiver disponivel)
 
 ## 6) Hardening de deploy
 
