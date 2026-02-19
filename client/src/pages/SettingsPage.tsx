@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +10,7 @@ import { usePreferences, type ClientPreferences } from "../contexts/PreferencesC
 import { useTheme, type ThemeId } from "../contexts/ThemeContext";
 import { ApiRequestError, resetMeState, updateProfile } from "../lib/api";
 import { LOCAL_MEDIA_DB_NAME, clearVideos } from "../lib/localVideosStore";
+import { clearFilesTelemetry, readFilesTelemetry, type FilesTelemetryEvent } from "../lib/filesTelemetry";
 
 const THEME_PRESETS = [
   { id: "matrix", name: "Matrix", color: "bg-[#00ff41]" },
@@ -51,6 +52,52 @@ export function SettingsPage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
+  const [filesTelemetryEvents, setFilesTelemetryEvents] = useState<FilesTelemetryEvent[]>([]);
+
+  const refreshFilesTelemetry = useCallback(() => {
+    const events = readFilesTelemetry();
+    setFilesTelemetryEvents([...events].reverse());
+  }, []);
+
+  useEffect(() => {
+    refreshFilesTelemetry();
+  }, [refreshFilesTelemetry]);
+
+  const filesTelemetryStats = useMemo(() => {
+    let errors = 0;
+    let importEvents = 0;
+    let bridgeEvents = 0;
+
+    for (const event of filesTelemetryEvents) {
+      if (event.name.endsWith(".error")) {
+        errors += 1;
+      }
+      if (event.name.startsWith("files.import")) {
+        importEvents += 1;
+      }
+      if (event.name.startsWith("files.bridge.play")) {
+        bridgeEvents += 1;
+      }
+    }
+
+    return {
+      total: filesTelemetryEvents.length,
+      errors,
+      importEvents,
+      bridgeEvents,
+    };
+  }, [filesTelemetryEvents]);
+
+  const visibleFilesTelemetryEvents = useMemo(
+    () => filesTelemetryEvents.slice(0, 40),
+    [filesTelemetryEvents],
+  );
+
+  const handleClearFilesTelemetry = useCallback(() => {
+    clearFilesTelemetry();
+    refreshFilesTelemetry();
+    showToast("Telemetria de arquivos limpa.", "success");
+  }, [refreshFilesTelemetry, showToast]);
 
   const updatePreference = useCallback(
     <K extends keyof ClientPreferences>(key: K, value: ClientPreferences[K]) => {
@@ -301,6 +348,83 @@ export function SettingsPage() {
             </div>
           </section>
 
+          {/* Files Telemetry */}
+          <section>
+            <div className="mb-6 flex items-center gap-4">
+              <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-500"><Icon name="database" className="text-[24px]" /></div>
+              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Telemetria de Arquivos</h2>
+            </div>
+
+            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <p className="text-sm text-slate-400">
+                  Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={refreshFilesTelemetry}
+                    className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
+                    type="button"
+                  >
+                    Atualizar
+                  </button>
+                  <button
+                    onClick={handleClearFilesTelemetry}
+                    disabled={filesTelemetryEvents.length === 0}
+                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="button"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</p>
+                  <p className="mt-1 text-xl font-black text-white">{filesTelemetryStats.total}</p>
+                </div>
+                <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-red-300/70">Erros</p>
+                  <p className="mt-1 text-xl font-black text-red-300">{filesTelemetryStats.errors}</p>
+                </div>
+                <div className="rounded-xl border border-cyan-900/40 bg-cyan-950/20 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300/70">Imports</p>
+                  <p className="mt-1 text-xl font-black text-cyan-300">{filesTelemetryStats.importEvents}</p>
+                </div>
+                <div className="rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/70">Bridge Play</p>
+                  <p className="mt-1 text-xl font-black text-emerald-300">{filesTelemetryStats.bridgeEvents}</p>
+                </div>
+              </div>
+
+              {filesTelemetryEvents.length === 0 ? (
+                <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
+                  Sem eventos de telemetria no momento.
+                </div>
+              ) : (
+                <div className="custom-scrollbar mt-4 max-h-[320px] space-y-2 overflow-y-auto pr-1" data-testid="settings-files-telemetry-list">
+                  {visibleFilesTelemetryEvents.map((event, index) => (
+                    <div key={`${event.at}-${event.name}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <code className="text-[10px] font-black uppercase tracking-wider text-cyan-300">{event.name}</code>
+                        <span className="text-[10px] font-mono text-slate-500">{new Date(event.at).toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                        <span className="rounded border border-slate-700 bg-slate-900/60 px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
+                        {typeof event.payload.durationMs === "number" && (
+                          <span className="rounded border border-slate-700 bg-slate-900/60 px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
+                        )}
+                        {event.payload.error && (
+                          <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-red-300">erro: {String(event.payload.error)}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
           {/* Danger Zone */}
           <section className="relative overflow-hidden rounded-[32px] border border-red-900/30 bg-red-950/5 p-8">
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(220,38,38,0.05)_10px,rgba(220,38,38,0.05)_20px)]" />
