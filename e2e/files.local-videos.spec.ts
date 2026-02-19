@@ -177,7 +177,14 @@ test("modulo arquivos usa layout player + trilha + abas com drawer mobile", asyn
   const desktopSidebar = page.getByTestId("course-sidebar");
   const toggleAllFolders = desktopSidebar.getByTestId("toggle-all-folders");
   await expect(toggleAllFolders).toBeVisible();
+
+  // Estado persistido pode iniciar com pastas recolhidas; forca expandidas antes da assercao de itens.
+  if ((await toggleAllFolders.textContent())?.includes("Abrir todos")) {
+    await toggleAllFolders.click();
+  }
   await expect(toggleAllFolders).toContainText("Esconder todos");
+  await expect(desktopSidebar.getByRole("button", { name: /^Selecionar aula / }).first()).toBeVisible();
+
   await toggleAllFolders.click();
   await expect(toggleAllFolders).toContainText("Abrir todos");
   await toggleAllFolders.click();

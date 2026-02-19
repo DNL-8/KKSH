@@ -78,7 +78,7 @@ export function LessonSidebar({
 
   const wrapperClasses = mobile
     ? "h-full w-[340px] max-w-[92vw] border-l border-cyan-900/40 bg-[#041022] shadow-2xl flex flex-col"
-    : "h-full flex flex-col overflow-hidden rounded-[22px] border border-cyan-900/40 bg-[#041022]/95 shadow-[0_0_35px_rgba(0,180,255,0.08)]";
+    : "h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[22px] border border-cyan-900/40 bg-[#041022]/95 shadow-[0_0_35px_rgba(0,180,255,0.08)]";
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -351,9 +351,11 @@ export function LessonSidebar({
       </div>
 
       <div className="flex-1 min-h-0 bg-[#041022]">
-        {flatItems.length === 0 && searchQuery ? (
+        {flatItems.length === 0 ? (
           <div className="py-8 text-center text-xs font-medium text-slate-500">
-            Nenhum arquivo encontrado para "{searchQuery}".
+            {searchQuery
+              ? `Nenhum arquivo encontrado para "${searchQuery}".`
+              : "Nenhum video disponivel nesta lista."}
           </div>
         ) : (
           <Virtuoso
@@ -361,6 +363,7 @@ export function LessonSidebar({
             data={flatItems}
             itemContent={ItemContent}
             className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700"
+            style={{ height: "100%" }}
             // Increase overscan to prevent blank spaces during fast scroll
             overscan={200}
           />
