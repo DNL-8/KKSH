@@ -93,11 +93,48 @@ export function SettingsPage() {
     [filesTelemetryEvents],
   );
 
-  const handleClearFilesTelemetry = useCallback(() => {
+    const handleClearFilesTelemetry = useCallback(() => {
+    if (filesTelemetryEvents.length === 0) {
+      showToast("Nao ha eventos para limpar.", "info");
+      return;
+    }
+
+    const confirmed = window.confirm("Limpar todos os eventos de telemetria de arquivos?");
+    if (!confirmed) {
+      return;
+    }
+
     clearFilesTelemetry();
     refreshFilesTelemetry();
     showToast("Telemetria de arquivos limpa.", "success");
-  }, [refreshFilesTelemetry, showToast]);
+  }, [filesTelemetryEvents.length, refreshFilesTelemetry, showToast]);
+
+  const handleExportFilesTelemetry = useCallback(() => {
+    if (filesTelemetryEvents.length === 0) {
+      showToast("Nao ha eventos para exportar.", "info");
+      return;
+    }
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      eventCount: filesTelemetryEvents.length,
+      events: [...filesTelemetryEvents].reverse(),
+    };
+
+    const fileName = `cmd8-files-telemetry-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+
+    showToast("Telemetria exportada com sucesso.", "success");
+  }, [filesTelemetryEvents, showToast]);
 
   const updatePreference = useCallback(
     <K extends keyof ClientPreferences>(key: K, value: ClientPreferences[K]) => {
@@ -360,13 +397,21 @@ export function SettingsPage() {
                 <p className="text-sm text-slate-400">
                   Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
                 </p>
-                <div className="flex gap-2">
+                                <div className="flex gap-2">
                   <button
                     onClick={refreshFilesTelemetry}
                     className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
                     type="button"
                   >
                     Atualizar
+                  </button>
+                  <button
+                    onClick={handleExportFilesTelemetry}
+                    disabled={filesTelemetryEvents.length === 0}
+                    className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="button"
+                  >
+                    Exportar JSON
                   </button>
                   <button
                     onClick={handleClearFilesTelemetry}
