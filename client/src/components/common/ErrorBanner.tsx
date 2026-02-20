@@ -12,16 +12,21 @@ export function ErrorBanner({ message, onClose }: ErrorBannerProps) {
     }
 
     return (
-        <div className="mb-4 rounded-lg bg-red-500/10 p-4 text-red-400 border border-red-500/20 flex items-start gap-3">
-            <Icon name="alert-circle" className="w-5 h-5 mt-0.5 shrink-0" />
-            <p className="flex-1 text-sm">{message}</p>
+        <div className="files-alert files-alert-error mb-4 flex items-start gap-4">
+            <div className="rounded-full bg-red-500/20 p-2 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                <Icon name="exclamation" className="shrink-0 text-[18px]" />
+            </div>
+            <div className="flex-1">
+                <p className="files-display mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-red-300">Erro do Sistema</p>
+                <p className="text-sm font-medium leading-relaxed">{message}</p>
+            </div>
             <button
                 type="button"
                 onClick={onClose}
-                className="text-red-400 hover:text-red-300 transition-colors"
+                className="rounded-lg bg-white/5 p-2 text-red-300 transition-all hover:bg-white/10 hover:text-white"
                 aria-label="Fechar mensagem de erro"
             >
-                <Icon name="x" className="w-5 h-5" />
+                <Icon name="cross" className="text-[16px]" />
             </button>
         </div>
     );

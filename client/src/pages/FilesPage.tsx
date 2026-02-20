@@ -524,29 +524,23 @@ export function FilesPage() {
 
           {isBridgeConnected && (
             <button
-              className="files-chip border-emerald-400/45 bg-emerald-700/25 text-emerald-100 transition-colors hover:bg-emerald-700/40"
+              className="files-chip transition-all"
               onClick={() => setShowBridgeBrowser(true)}
             >
-              <Icon name="folder-search" />
+              <Icon name="folder-search" className="text-[14px]" />
               Browse Bridge
             </button>
           )}
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Local Bridge Indicator */}
-            <div className={`files-chip ${isBridgeConnected
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-              : "border-slate-800 bg-slate-900/50 text-slate-500"
-              }`}>
+            <div className={`files-chip ${isBridgeConnected ? "" : "opacity-50 grayscale"}`}>
               <div className={`w-2 h-2 rounded-full ${isBridgeConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-700"}`} />
               {isBridgeConnected ? "Bridge: Online" : "Bridge: Offline"}
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`files-chip ${isPersisted
-              ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-              : "border-orange-500/30 bg-orange-500/10 text-orange-400 cursor-help"
-              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
+            <div className={`files-chip ${isPersisted ? "" : "text-amber-400"}`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
               <div className={`w-2 h-2 rounded-full ${isPersisted ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-orange-500"}`} />
               {isPersisted ? "HD: Persistente" : "HD: Temporario"}
             </div>
@@ -557,8 +551,12 @@ export function FilesPage() {
           <ErrorBanner message={error} onClose={handleClearError} />
 
           {storageUnavailable && (
-            <div className="files-alert files-alert-warning">
-              Persistencia local indisponivel neste navegador. Os videos ficam somente nesta sessao.
+            <div className="files-alert files-alert-warning flex items-start gap-3">
+              <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-500/80" />
+              <div>
+                <p className="files-display mb-1 text-[10px] uppercase text-amber-400 font-bold tracking-widest">Aviso de Armazenamento</p>
+                Persistencia local indisponivel neste navegador. Os videos ficam somente nesta sessao.
+              </div>
             </div>
           )}
 
@@ -601,20 +599,32 @@ export function FilesPage() {
           )}
 
           {visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
-            <div className="files-alert files-alert-warning">
-              Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
+            <div className="files-alert files-alert-warning flex items-start gap-3">
+              <Icon name="box-open" className="mt-0.5 text-[16px] text-amber-400" />
+              <div>
+                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Capacidade Maxima</p>
+                Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
+              </div>
             </div>
           )}
 
           {rejectedFiles.length > 0 && (
-            <div className="files-alert files-alert-warning">
-              Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
+            <div className="files-alert files-alert-warning flex items-start gap-3">
+              <Icon name="trash" className="mt-0.5 text-[16px] text-amber-300" />
+              <div>
+                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Filtro de Arquivos</p>
+                Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
+              </div>
             </div>
           )}
 
           {statusMessage && (
-            <div className="files-alert files-alert-success">
-              {statusMessage}
+            <div className="files-alert files-alert-success flex items-start gap-3">
+              <Icon name="check-circle" className="mt-0.5 text-[16px] text-emerald-400" />
+              <div>
+                <p className="files-display mb-1 text-[10px] uppercase text-emerald-300">Status do Operador</p>
+                {statusMessage}
+              </div>
             </div>
           )}
 
