@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 
-export const LOCAL_BRIDGE_URL = "http://localhost:8765";
+export const LOCAL_BRIDGE_URL = `http://${window.location.hostname}:8765`;
 
 const BRIDGE_HEALTH_CHECK_TIMEOUT_MS = 2500;
 const BRIDGE_HEALTH_CHECK_INTERVAL_ONLINE_MS = 15000;

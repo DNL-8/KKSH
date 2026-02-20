@@ -24,6 +24,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://192.168.1.64:3000",
+        "http://192.168.1.64:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -272,6 +274,6 @@ def health():
     return {"status": "ok", "version": "2.0.0", "persistence": "sqlite"}
 
 if __name__ == "__main__":
-    print(f"Starting Local Bridge on http://localhost:8765")
+    print(f"Starting Local Bridge on http://localhost:8765 and LAN IP")
     # Need to reload to pick up DB changes during dev? No, script is static.
-    uvicorn.run(app, host="127.0.0.1", port=8765)
+    uvicorn.run(app, host="0.0.0.0", port=8765)

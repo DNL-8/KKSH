@@ -282,7 +282,7 @@ export function SettingsPage() {
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="flex items-center gap-3 rounded-2xl bg-slate-800 px-6 py-4 text-xs font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-slate-700 active:scale-95"
+              className="flex items-center gap-3 rounded-[20px] bg-slate-800/80 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] transition-all hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 backdrop-blur-md border border-white/5"
               type="button"
             >
               <Icon name="disk" className="text-[16px]" />
@@ -297,11 +297,11 @@ export function SettingsPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-50" />
 
             <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
-              <div className="relative group">
-                <div className="absolute inset-0 -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur opacity-25 group-hover:opacity-75 transition duration-500" />
-                <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-slate-700 bg-slate-800 p-1 md:h-32 md:w-32">
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-slate-600">
-                    <Icon name="robot" className="h-10 w-10 md:h-12 md:w-12 text-[48px]" />
+              <div className="relative group perspective-1000">
+                <div className="absolute inset-0 -inset-4 rounded-full bg-[radial-gradient(circle,rgba(var(--glow),0.4),transparent_70%)] blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-110 transition duration-700" />
+                <div className="relative h-24 w-24 overflow-hidden rounded-full border border-white/10 bg-black/60 p-1 md:h-32 md:w-32 shadow-[inset_0_0_20px_rgba(var(--glow),0.3)] transform-style-3d transition-transform duration-500 group-hover:rotate-y-12">
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#0c1020] to-[#04060a] text-[hsl(var(--accent))] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8)]">
+                    <Icon name="robot" className="h-10 w-10 md:h-12 md:w-12 text-[48px] drop-shadow-[0_0_10px_rgba(var(--glow),0.8)]" />
                   </div>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export function SettingsPage() {
                       type="text"
                       value={tempName}
                       onChange={(e) => setTempName(e.target.value)}
-                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-white text-xl font-bold uppercase tracking-tight focus:outline-none focus:border-cyan-500 min-w-[200px]"
+                      className="bg-black/40 border border-[hsl(var(--accent)/0.3)] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.1)] rounded-xl px-4 py-2 text-white text-xl font-bold uppercase tracking-widest focus:outline-none focus:border-[hsl(var(--accent))] focus:ring-1 focus:ring-[hsl(var(--accent)/0.3)] min-w-[200px]"
                       placeholder="Novo nome"
                       autoFocus
                     />
@@ -360,31 +360,31 @@ export function SettingsPage() {
                         setTempName(user?.username || "");
                         setIsEditingName(true);
                       }}
-                      className="p-2 rounded-full hover:bg-slate-800 text-slate-500 hover:text-cyan-400 transition-colors"
+                      className="p-3 rounded-full hover:bg-white/[0.05] text-slate-500 hover:text-[hsl(var(--accent))] transition-all active:scale-95"
                     >
-                      <Icon name="pencil" className="text-[14px]" />
+                      <Icon name="pencil" className="text-[16px]" />
                     </button>
                   </>
                 )}
 
-                <Badge color="bg-cyan-500/10 text-cyan-400 border-cyan-500/20" icon="check-circle">
+                <Badge color="bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)] shadow-[0_0_10px_rgba(var(--glow),0.1)]" icon="check-circle">
                   Verificado
                 </Badge>
-                <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20" icon="crown">
+                <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]" icon="crown">
                   Premium
                 </Badge>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl bg-slate-950/50 p-4">
-                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">ID do Usuario</span>
-                  <code className="font-mono text-xs text-slate-300">{user?.id}</code>
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/5 bg-black/40 p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:bg-black/60">
+                  <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] drop-shadow-[0_0_5px_rgba(var(--glow),0.3)]">ID do Usuario</span>
+                  <code className="font-mono text-[11px] text-slate-300 bg-white/[0.03] px-2 py-1 rounded">{user?.id}</code>
                 </div>
-                <div className="rounded-2xl bg-slate-950/50 p-4">
-                  <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Email</span>
+                <div className="rounded-2xl border border-white/5 bg-black/40 p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:bg-black/60">
+                  <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] drop-shadow-[0_0_5px_rgba(var(--glow),0.3)]">Email</span>
                   <div className="flex items-center justify-between">
-                    <code className="font-mono text-xs text-slate-300">{user?.email}</code>
-                    <Icon name="key" className="text-slate-600 text-[14px]" />
+                    <code className="font-mono text-[11px] text-slate-300 bg-white/[0.03] px-2 py-1 rounded">{user?.email}</code>
+                    <Icon name="key" className="text-[hsl(var(--accent)/0.5)] text-[16px]" />
                   </div>
                 </div>
               </div>
@@ -399,11 +399,11 @@ export function SettingsPage() {
           {/* Visual Preferences */}
           <section>
             <div className="mb-6 flex items-center gap-4">
-              <div className="rounded-xl bg-cyan-500/10 p-3 text-cyan-500"><Icon name="palette" className="text-[24px]" /></div>
-              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Interface Visual</h2>
+              <div className="rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] p-3 text-[hsl(var(--accent))] shadow-[0_0_15px_rgba(var(--glow),0.2)]"><Icon name="palette" className="text-[24px]" /></div>
+              <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Interface Visual</h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <DetailedToggle
                 label="Efeitos Glitch"
                 desc="Artefatos visuais de instabilidade do sistema."
@@ -424,11 +424,11 @@ export function SettingsPage() {
           {/* System Preferences */}
           <section>
             <div className="mb-6 flex items-center gap-4">
-              <div className="rounded-xl bg-purple-500/10 p-3 text-purple-500"><Icon name="microchip" className="text-[24px]" /></div>
-              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Sistema</h2>
+              <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-3 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]"><Icon name="microchip" className="text-[24px]" /></div>
+              <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Sistema</h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <DetailedToggle
                 label="Notificacoes"
                 desc="Alertas de missoes e atualizacoes do sistema."
@@ -447,19 +447,19 @@ export function SettingsPage() {
           {/* Files Telemetry */}
           <section>
             <div className="mb-6 flex items-center gap-4">
-              <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-500"><Icon name="database" className="text-[24px]" /></div>
-              <h2 className="text-lg font-bold uppercase tracking-widest text-white">Telemetria de Arquivos</h2>
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]"><Icon name="database" className="text-[24px]" /></div>
+              <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Telemetria de Arquivos</h2>
             </div>
 
-            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p className="text-sm text-slate-400">
+            <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                <p className="text-[13px] text-slate-400 max-w-lg leading-relaxed font-medium">
                   Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={refreshFilesTelemetry}
-                    className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
+                    className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/[0.08] hover:text-white"
                     type="button"
                   >
                     Atualizar
@@ -467,7 +467,7 @@ export function SettingsPage() {
                   <button
                     onClick={handleExportFilesTelemetry}
                     disabled={filesTelemetryEvents.length === 0}
-                    className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
                     type="button"
                   >
                     Exportar JSON
@@ -475,7 +475,7 @@ export function SettingsPage() {
                   <button
                     onClick={handleClearFilesTelemetry}
                     disabled={filesTelemetryEvents.length === 0}
-                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 shadow-[0_0_10px_rgba(220,38,38,0.1)] transition-all hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(220,38,38,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
                     type="button"
                   >
                     Limpar
@@ -554,20 +554,23 @@ export function SettingsPage() {
             </div>
           </section>
           {/* Danger Zone */}
-          <section className="relative overflow-hidden rounded-[32px] border border-red-900/30 bg-red-950/5 p-8">
-            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(220,38,38,0.05)_10px,rgba(220,38,38,0.05)_20px)]" />
+          <section className="relative overflow-hidden rounded-[40px] border border-red-500/30 bg-[#0a0f1d]/90 p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_80px_rgba(220,38,38,0.15)] backdrop-blur-xl">
+            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_15px,rgba(220,38,38,0.03)_15px,rgba(220,38,38,0.03)_30px)] pointer-events-none mix-blend-overlay opacity-80" />
+            <div className="absolute -left-32 -top-32 h-64 w-64 rounded-full bg-red-600/20 blur-[100px] pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="mb-6 flex items-center gap-4 text-red-500">
-                <Icon name="exclamation" className="animate-pulse text-[24px]" />
-                <h2 className="text-lg font-black uppercase tracking-widest">Zona de Perigo</h2>
+              <div className="mb-8 flex items-center gap-4 text-red-500">
+                <div className="rounded-xl border border-red-500/40 bg-red-950/40 p-3 shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+                  <Icon name="exclamation" className="animate-pulse text-[24px]" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-[0.2em] drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]">Zona de Perigo</h2>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-5">
+                <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                   <div>
-                    <h3 className="font-bold text-white">Resetar Progresso Local</h3>
-                    <p className="text-sm text-red-200/60">Limpa dados locais e zera progresso da conta. Nao apaga o usuario.</p>
+                    <h3 className="font-bold text-white text-[15px] mb-1 drop-shadow-sm">Resetar Progresso Local</h3>
+                    <p className="text-[13px] text-red-200/60 font-medium">Limpa dados locais e zera progresso da conta. Nao apaga o usuario.</p>
                   </div>
                   <HoldButton
                     label="SEGURE PARA DELETAR TUDO"
@@ -575,22 +578,22 @@ export function SettingsPage() {
                     loading={dangerBusy === "reset"}
                     holdDuration={1000}
                     progressLabel="CONFIRMANDO"
-                    className="w-full rounded-xl bg-red-600 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto md:px-8"
+                    className="w-full rounded-[16px] border border-red-400/50 bg-red-600 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.8)]"
                   />
                 </div>
 
-                <div className="flex flex-col gap-4 rounded-2xl bg-red-500/5 p-6 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                   <div>
-                    <h3 className="font-bold text-white">Encerrar Sessao</h3>
-                    <p className="text-sm text-red-200/60">Desconecta do terminal com segurança.</p>
+                    <h3 className="font-bold text-white text-[15px] mb-1 drop-shadow-sm">Encerrar Sessao</h3>
+                    <p className="text-[13px] text-red-200/60 font-medium">Desconecta do terminal com seguranca.</p>
                   </div>
                   <button
                     onClick={() => void handleLogout()}
                     disabled={dangerBusy === "logout"}
-                    className="flex items-center justify-center gap-2 w-full rounded-xl border border-red-500/30 bg-transparent py-4 text-xs font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-500/10 active:scale-95 md:w-auto md:px-8"
+                    className="flex items-center justify-center gap-3 w-full rounded-[16px] border border-red-500/30 bg-black/40 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-950/50 hover:border-red-500/60 hover:text-red-300 hover:shadow-[0_0_20px_rgba(220,38,38,0.2)] active:scale-95 md:w-auto shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
                     type="button"
                   >
-                    <Icon name="trash" className="text-[16px]" />
+                    <Icon name="trash" className="text-[18px]" />
                     Desconectar
                   </button>
                 </div>
@@ -602,59 +605,59 @@ export function SettingsPage() {
         {/* Sidebar Settings (Theme) */}
         <div className="lg:col-span-4">
           <div className="sticky top-24 space-y-6">
-            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
-              <div className="mb-6 flex items-center gap-4">
-                <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500"><Icon name="bolt" className="text-[24px]" /></div>
-                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Dificuldade</h2>
+            <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+              <div className="mb-8 flex items-center gap-4">
+                <div className="rounded-xl border border-orange-500/30 bg-orange-950/40 p-3 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]"><Icon name="bolt" className="text-[24px]" /></div>
+                <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-sm">Dificuldade</h2>
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <button
                   onClick={() => updatePreference("difficulty", "casual")}
-                  className={`rounded-2xl p-4 border transition-all text-left group ${preferences.difficulty === "casual"
-                    ? "bg-slate-900 border-emerald-500/50 opacity-100"
-                    : "bg-slate-900/50 border-slate-800 opacity-50 grayscale hover:grayscale-0 hover:opacity-100"
+                  className={`rounded-[20px] p-5 border transition-all text-left group ${preferences.difficulty === "casual"
+                    ? "bg-[#142618] border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)] opacity-100"
+                    : "bg-white/[0.02] border-white/5  opacity-60 grayscale hover:grayscale-0 hover:opacity-100 hover:bg-white/[0.05]"
                     }`}
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className={`font-black uppercase tracking-wider ${preferences.difficulty === "casual" ? "text-emerald-400" : "text-white"
+                    <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "casual" ? "text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" : "text-white"
                       }`}>Casual</span>
                     {preferences.difficulty === "casual" && (
-                      <Icon name="check-circle" className="text-emerald-500 text-[18px]" />
+                      <Icon name="check-circle" className="text-emerald-500 text-[20px] drop-shadow-sm" />
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">Modo historia sem desafios.</p>
+                  <p className="text-[11px] font-medium text-slate-500">Modo historia sem desafios punitivos.</p>
                 </button>
 
                 <button
                   onClick={() => updatePreference("difficulty", "hardcore")}
-                  className={`rounded-2xl p-4 border transition-all text-left relative overflow-hidden group ${preferences.difficulty === "hardcore"
-                    ? "bg-red-900/20 border-red-500/50"
-                    : "bg-red-900/5 border-red-500/10 hover:bg-red-900/10 hover:border-red-500/30"
+                  className={`rounded-[20px] p-5 border transition-all text-left relative overflow-hidden group ${preferences.difficulty === "hardcore"
+                    ? "bg-[#251010] border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)]"
+                    : "bg-white/[0.02] border-white/5 hover:bg-red-950/20 hover:border-red-500/30 opacity-80 hover:opacity-100"
                     }`}
                 >
                   {preferences.difficulty === "hardcore" && (
-                    <div className="absolute top-0 right-0 p-2 text-red-500"><Icon name="skull" className="text-[14px]" /></div>
+                    <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-red-600/10 blur-[20px]" />
+                  )}
+                  {preferences.difficulty === "hardcore" && (
+                    <div className="absolute top-0 right-0 p-4 text-red-500"><Icon name="skull" className="text-[16px] animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" /></div>
                   )}
                   <div className="flex justify-between items-center mb-2">
-                    <span className={`font-black uppercase tracking-wider ${preferences.difficulty === "hardcore" ? "text-red-500" : "text-red-400"
+                    <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "hardcore" ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "text-red-400"
                       }`}>Hardcore</span>
-                    {preferences.difficulty === "hardcore" && (
-                      <Icon name="check-circle" className="text-red-500 text-[18px]" />
-                    )}
                   </div>
-                  <p className="text-xs text-red-200/60">Dano permanente. Boot loops reais.</p>
+                  <p className="text-[11px] font-medium text-red-200/60 relative z-10">Dano permanente. Boot loops reais.</p>
                 </button>
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-slate-800 bg-[#0a0a0b]/80 p-6 backdrop-blur-xl">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-bold uppercase tracking-widest text-white">Tema</h2>
-                <Icon name="refresh" className="text-slate-600 animate-spin-slow text-[16px]" />
+            <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+              <div className="mb-8 flex items-center justify-between">
+                <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-sm">Tema</h2>
+                <Icon name="refresh" className="text-[hsl(var(--accent)/0.6)] animate-spin-slow text-[20px]" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {THEME_PRESETS.map(preset => (
                   <ThemeOption
                     key={preset.id}
@@ -668,16 +671,16 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-[32px] bg-gradient-to-br from-[#0a0a0b] to-slate-950 p-8 text-center border border-slate-800 shadow-xl">
-              <div className="mb-6 rounded-full bg-red-500/10 p-6 text-red-500 shadow-[0_0_50px_rgba(220,38,38,0.2)] inline-block">
-                <Icon name="skull" className="text-[48px]" />
+            <div className="rounded-[40px] bg-gradient-to-b from-[#0a0f1d]/90 to-[#03050a]/95 p-10 text-center border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl group">
+              <div className="mb-6 rounded-full border border-red-500/20 bg-red-950/40 p-6 text-red-500 shadow-[inset_0_2px_10px_rgba(220,38,38,0.2),0_0_30px_rgba(220,38,38,0.1)] inline-block transition-transform duration-700 group-hover:scale-110">
+                <Icon name="skull" className="text-[48px] drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]" />
               </div>
-              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Build v0.9.4</h3>
-              <p className="text-xs font-mono text-slate-500">COMPILADO: 2024-05-20</p>
-              <div className="mt-6 flex justify-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2 drop-shadow-sm">Build v0.9.4</h3>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500">COMPILADO: 2024-05-20</p>
+              <div className="mt-8 flex justify-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />
+                <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />
+                <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />
               </div>
             </div>
           </div>
