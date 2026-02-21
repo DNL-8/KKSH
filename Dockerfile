@@ -40,6 +40,9 @@ RUN chmod +x /app/entrypoint.sh && sed -i 's/\r$//' /app/entrypoint.sh
 ENV SERVE_FRONTEND=true \
     FRONTEND_DIST_PATH=/app/dist/public
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" || exit 1
+
 EXPOSE 8000
 
 ENTRYPOINT ["/app/entrypoint.sh"]

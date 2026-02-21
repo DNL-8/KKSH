@@ -340,6 +340,19 @@ def state(
     )
 
 
+@router.get("/me/bootstrap", response_model=AppStateOut)
+def bootstrap(
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    """Single endpoint for initial app boot — returns all user state in one request.
+
+    Semantically equivalent to ``/me/state`` but intended as the single call
+    the frontend issues on startup, reducing multiple sequential requests.
+    """
+    return state(session=session, user=user)
+
+
 @router.post(
     "/me/reset",
     response_model=ResetStateOut,
