@@ -746,3 +746,58 @@ export async function listAchievements(): Promise<AchievementOut[]> {
     method: "GET",
   });
 }
+
+// ------------------------------------------------------------------
+// SPACED REPETITION (REVIEWS & DRILLS)
+// ------------------------------------------------------------------
+
+export interface ReviewStatsOut {
+  dueCount: number;
+  totalAnswered: number;
+  goodCount: number;
+  againCount: number;
+  goodRate: number;
+  avgTimeMs: number | null;
+  maturity: {
+    new: number;
+    learning: number;
+    mature: number;
+  };
+}
+
+export interface DueDrillOut {
+  drillId: string;
+  subject: string;
+  question: string;
+  answer: string;
+  nextReviewAt: string;
+  intervalDays: number;
+  reps: number;
+  ease: number;
+}
+
+export interface DrillReviewIn {
+  drillId: string;
+  result: "good" | "again";
+  elapsedMs?: number;
+  difficulty?: string;
+}
+
+export async function getReviewStats(): Promise<ReviewStatsOut> {
+  return requestJson<ReviewStatsOut>("/api/v1/reviews/stats", { method: "GET" });
+}
+
+export async function listDueReviews(limit = 50): Promise<DueDrillOut[]> {
+  return requestJson<DueDrillOut[]>(`/api/v1/reviews/due?limit=${limit}`, { method: "GET" });
+}
+
+export async function submitDrillReview(payload: DrillReviewIn, idempotencyKey?: string): Promise<void> {
+  return requestJson<void>("/api/v1/drills/review", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
