@@ -1,4 +1,5 @@
-from app.api.v1 import ai as ai_module
+from app.services import ai_rate_limiter as rl_module
+from app.services import gemini_client as gc_module
 
 
 class _QuotaModels:
@@ -22,9 +23,9 @@ class _UpstreamClient:
 
 
 def test_ai_hunter_maps_provider_quota_to_429(client, csrf_headers, monkeypatch):
-    ai_module._guest_daily_hits.clear()
+    rl_module._guest_daily_hits.clear()
     monkeypatch.setattr(
-        ai_module, "_create_model",
+        gc_module, "_create_client_tuple",
         lambda **_: (_QuotaClient(), "gemini-2.0-flash", {}),
     )
 
@@ -41,13 +42,13 @@ def test_ai_hunter_maps_provider_quota_to_429(client, csrf_headers, monkeypatch)
     assert body["details"]["providerStatus"] == 429
     assert response.headers.get("Retry-After") == "7"
 
-    ai_module._guest_daily_hits.clear()
+    rl_module._guest_daily_hits.clear()
 
 
 def test_ai_hunter_keeps_502_for_non_quota_upstream_errors(client, csrf_headers, monkeypatch):
-    ai_module._guest_daily_hits.clear()
+    rl_module._guest_daily_hits.clear()
     monkeypatch.setattr(
-        ai_module, "_create_model",
+        gc_module, "_create_client_tuple",
         lambda **_: (_UpstreamClient(), "gemini-2.0-flash", {}),
     )
 
@@ -62,5 +63,4 @@ def test_ai_hunter_keeps_502_for_non_quota_upstream_errors(client, csrf_headers,
     assert body["code"] == "ai_upstream_error"
     assert "Retry-After" not in response.headers
 
-    ai_module._guest_daily_hits.clear()
-
+    rl_module._guest_daily_hits.clear()

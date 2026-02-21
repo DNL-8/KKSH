@@ -10,15 +10,20 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
 from sqlmodel import Session, select
-from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.models import DailyQuest, User, UserSettings, WeeklyQuest
+from app.services.gemini_client import (
+    GeminiError,
+    extract_json_block,
+    generate_content_text,
+    get_api_key,
+)
 
 Cycle = Literal["daily", "weekly"]
 GenerationSource = Literal["gemini", "fallback", "mixed"]
 
-_API_KEY_PLACEHOLDERS = {"", "SUA_CHAVE_AQUI", "YOUR_API_KEY_HERE"}
+
 _RANKS = ["F", "E", "D", "C", "B", "A", "S"]
 _DIFFICULTIES = {"easy", "medium", "hard", "elite"}
 
@@ -246,62 +251,14 @@ def build_fallback_missions(
     return rows
 
 
-def _extract_json_block(raw: str) -> str:
-    cleaned = (raw or "").strip()
-    if not cleaned:
-        return ""
-    cleaned = cleaned.replace("```json", "```")
-    if cleaned.startswith("```") and cleaned.endswith("```"):
-        cleaned = cleaned.strip("`").strip()
-    return cleaned
-
-
-def _get_api_key(user_settings: UserSettings | None = None) -> str:
-    from app.core.secrets import decrypt_secret
-
-    # 1. Try user settings
+def _resolve_user_api_key(user_settings: UserSettings | None) -> str:
+    """Resolve API key from user settings, falling back to system key."""
     if user_settings and user_settings.gemini_api_key:
+        from app.core.secrets import decrypt_secret
         raw = (decrypt_secret(user_settings.gemini_api_key) or "").strip()
-        if raw and raw.upper() not in _API_KEY_PLACEHOLDERS:
-            return raw
-
-    # 2. Fallback to system env
-    raw = settings.gemini_api_key.strip()
-    if raw.upper() in _API_KEY_PLACEHOLDERS:
-        return ""
-    return raw
-
-
-def _extract_sdk_text(response: Any) -> str | None:
-    try:
-        text = getattr(response, "text", None)
-    except Exception:
-        text = None
-
-    if isinstance(text, str) and text.strip():
-        return text.strip()
-
-    to_dict = getattr(response, "to_dict", None)
-    if callable(to_dict):
-        try:
-            payload = to_dict()
-        except Exception:
-            payload = None
-        if isinstance(payload, dict):
-            candidates = payload.get("candidates")
-            if isinstance(candidates, list) and candidates:
-                first = candidates[0]
-                if isinstance(first, dict):
-                    content = first.get("content")
-                    if isinstance(content, dict):
-                        parts = content.get("parts")
-                        if isinstance(parts, list) and parts:
-                            first_part = parts[0]
-                            if isinstance(first_part, dict):
-                                text = first_part.get("text")
-                                if isinstance(text, str) and text.strip():
-                                    return text.strip()
-    return None
+        if raw:
+            return get_api_key(user_gemini_key=raw)
+    return get_api_key()
 
 
 async def _try_generate_with_gemini(
@@ -310,13 +267,8 @@ async def _try_generate_with_gemini(
     cycle: Literal["daily", "weekly", "both"],
     user_settings: UserSettings | None = None,
 ) -> _GeneratedPayloadIn | None:
-    api_key = _get_api_key(user_settings)
+    api_key = _resolve_user_api_key(user_settings)
     if not api_key:
-        return None
-
-    try:
-        from google import genai
-    except Exception:
         return None
 
     # Personality injection
@@ -329,7 +281,6 @@ async def _try_generate_with_gemini(
     elif personality == "gamer":
         personality_prompt = "Atue como um Gamemaster RPG. Use termos de jogos (buff, nerf, grind), seja empolgado e trate o estudo como XP."
     else:
-        # standard
         personality_prompt = "Voce e um gerador de missoes oficiais para um app RPG de estudos."
 
     goals_payload = {k: int(v or 0) for k, v in goals.items()}
@@ -345,25 +296,20 @@ async def _try_generate_with_gemini(
     )
 
     try:
-        client = genai.Client(api_key=api_key)
-        response = await run_in_threadpool(
-            client.models.generate_content,
-            model=settings.gemini_model,
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "system_instruction": "Voce atua como Sistema. Entregue JSON limpo, sem markdown, sem comentarios, sem texto extra.",
-            },
+        text = await generate_content_text(
+            prompt=prompt,
+            system_instruction="Voce atua como Sistema. Entregue JSON limpo, sem markdown, sem comentarios, sem texto extra.",
+            response_mime_type="application/json",
+            api_key=api_key,
         )
-    except Exception:
+    except GeminiError:
         return None
 
-    text = _extract_sdk_text(response)
     if not text:
         return None
 
     try:
-        payload = json.loads(_extract_json_block(text))
+        payload = json.loads(extract_json_block(text))
     except json.JSONDecodeError:
         return None
 

@@ -1,4 +1,4 @@
-from app.api.v1 import ai as ai_module
+from app.services import ai_rate_limiter as rl_module
 from app.core.config import settings
 
 
@@ -30,8 +30,8 @@ def test_ai_hunter_user_daily_limit_is_isolated_per_user(client, csrf_headers):
         settings.ai_rate_limit_window_sec = 60
         settings.gemini_api_key = ""
 
-        ai_module._user_daily_hits.clear()
-        ai_module._user_burst_hits.clear()
+        rl_module._user_daily_hits.clear()
+        rl_module._user_burst_hits.clear()
 
         _signup(client, csrf_headers, "ai-limit-user1@example.com")
 
@@ -69,8 +69,8 @@ def test_ai_hunter_user_daily_limit_is_isolated_per_user(client, csrf_headers):
         settings.ai_rate_limit_max = prev_burst_max
         settings.ai_rate_limit_window_sec = prev_burst_window
         settings.gemini_api_key = prev_key
-        ai_module._user_daily_hits.clear()
-        ai_module._user_burst_hits.clear()
+        rl_module._user_daily_hits.clear()
+        rl_module._user_burst_hits.clear()
 
 
 def test_ai_hunter_user_burst_limit(client, csrf_headers):
@@ -87,8 +87,8 @@ def test_ai_hunter_user_burst_limit(client, csrf_headers):
         settings.ai_rate_limit_window_sec = 3600
         settings.gemini_api_key = ""
 
-        ai_module._user_daily_hits.clear()
-        ai_module._user_burst_hits.clear()
+        rl_module._user_daily_hits.clear()
+        rl_module._user_burst_hits.clear()
 
         _signup(client, csrf_headers, "ai-burst-user@example.com")
 
@@ -115,5 +115,5 @@ def test_ai_hunter_user_burst_limit(client, csrf_headers):
         settings.ai_rate_limit_max = prev_burst_max
         settings.ai_rate_limit_window_sec = prev_burst_window
         settings.gemini_api_key = prev_key
-        ai_module._user_daily_hits.clear()
-        ai_module._user_burst_hits.clear()
+        rl_module._user_daily_hits.clear()
+        rl_module._user_burst_hits.clear()

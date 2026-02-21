@@ -1,4 +1,4 @@
-from app.api.v1 import ai as ai_module
+from app.services import ai_rate_limiter as rl_module
 from app.core.config import settings
 
 
@@ -10,7 +10,7 @@ def test_ai_hunter_guest_daily_limit(client, csrf_headers):
         settings.ai_guest_daily_max = 1
         settings.ai_guest_daily_window_sec = 86_400
         settings.gemini_api_key = ""
-        ai_module._guest_daily_hits.clear()
+        rl_module._guest_daily_hits.clear()
 
         first = client.post(
             "/api/v1/ai/hunter",
@@ -33,4 +33,4 @@ def test_ai_hunter_guest_daily_limit(client, csrf_headers):
         settings.ai_guest_daily_max = prev_max
         settings.ai_guest_daily_window_sec = prev_window
         settings.gemini_api_key = prev_key
-        ai_module._guest_daily_hits.clear()
+        rl_module._guest_daily_hits.clear()
