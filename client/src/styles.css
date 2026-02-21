@@ -447,6 +447,61 @@ select:focus-visible,
   animation: pulse-glow 4s ease-in-out infinite;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Stat bar shimmer                                                   */
+/* ------------------------------------------------------------------ */
+
+@keyframes bar-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.shimmer-bar {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.15) 55%,
+    transparent 100%
+  );
+  width: 50%;
+  animation: bar-shimmer 2.5s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  CRT flicker                                                        */
+/* ------------------------------------------------------------------ */
+
+@keyframes crt-flicker {
+  0%, 94%, 100% { opacity: 0.2; }
+  95% { opacity: 0.12; }
+  96% { opacity: 0.25; }
+  97% { opacity: 0.18; }
+}
+
+.crt-overlay {
+  animation: crt-flicker 6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Boot progress bar                                                  */
+/* ------------------------------------------------------------------ */
+
+@keyframes boot-progress {
+  0% { width: 0%; }
+  15% { width: 20%; }
+  35% { width: 45%; }
+  55% { width: 60%; }
+  75% { width: 80%; }
+  90% { width: 95%; }
+  100% { width: 100%; }
+}
+
+.boot-progress-bar {
+  animation: boot-progress 1.8s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   *,

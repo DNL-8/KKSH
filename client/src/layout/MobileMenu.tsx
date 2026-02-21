@@ -1,8 +1,8 @@
-
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { useSfx } from "../hooks/useSfx";
 import { NAV_ITEMS } from "./Sidebar";
 import { Icon } from "../components/common/Icon";
 
@@ -23,76 +23,92 @@ interface MobileMenuProps {
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     const { globalStats, authUser } = useAuth();
     const { themeId } = useTheme();
+    const sfx = useSfx();
 
     if (!isOpen) {
         return null;
     }
 
     return (
-        <div className="animate-in fade-in fixed inset-0 z-[100] duration-500 lg:hidden" data-testid="mobile-menu-root">
+        <div className="animate-in fade-in fixed inset-0 z-[100] duration-300 lg:hidden" data-testid="mobile-menu-root">
             <button
-                className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+                className="absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-300"
                 data-testid="mobile-menu-overlay"
-                onClick={onClose}
+                onClick={() => { sfx("toggle"); onClose(); }}
                 type="button"
                 aria-label="Fechar menu"
             />
             <div
-                className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800 bg-[#0a0a0b] p-8 shadow-2xl duration-500"
+                className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-white/10 bg-[#060a12]/80 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500"
                 data-testid="mobile-menu-drawer"
             >
-                <div className="mb-14 flex items-center justify-between">
+                {/* Subtle accent glow */}
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[hsl(var(--accent)/0.15)] to-transparent pointer-events-none" />
+
+                <div className="relative mb-14 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Icon name="hexagon" className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),1)] text-3xl" />
+                        <Icon name="hexagon" className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),0.8)] text-3xl transition-transform animate-pulse-slow" />
                         <span className="text-xl font-black uppercase italic tracking-tighter text-white">
                             {themeId === "sololeveling" ? (
-                                <>System <span className="text-[hsl(var(--accent))]">Leveling</span></>
+                                <>System <span className="text-[hsl(var(--accent))] drop-shadow-[0_0_8px_rgba(var(--glow),0.5)]">Leveling</span></>
                             ) : (
-                                "Solo Dev"
+                                <>Solo <span className="text-[hsl(var(--accent))] drop-shadow-[0_0_8px_rgba(var(--glow),0.5)]">Dev</span></>
                             )}
                         </span>
                     </div>
                     <button
-                        onClick={onClose}
-                        className="rounded-2xl bg-slate-900 p-3 text-slate-600"
+                        onClick={() => { sfx("toggle"); onClose(); }}
+                        className="rounded-2xl border border-white/5 bg-slate-900/50 p-2 text-slate-400 transition-all hover:bg-slate-800 hover:text-white hover:border-[hsl(var(--accent)/0.3)] active:scale-90"
                         data-testid="mobile-menu-close"
                         aria-label="Fechar menu de navegacao"
                         type="button"
                     >
-                        <Icon name="cross" className="text-2xl" />
+                        <Icon name="cross" className="text-xl" />
                     </button>
                 </div>
-                <nav className="flex-1 space-y-3" aria-label="Navegacao principal">
-                    {ALL_NAV_ITEMS.map((item) => (
+
+                <nav className="relative flex-1 space-y-3" aria-label="Navegacao principal">
+                    {ALL_NAV_ITEMS.map((item, index) => (
                         <NavLink
                             key={item.id}
                             to={item.path}
-                            onClick={onClose}
+                            onClick={() => { sfx("navigate"); onClose(); }}
                             className={({ isActive }) =>
-                                `relative flex w-full items-center gap-5 rounded-[24px] p-5 text-xs font-black uppercase tracking-widest transition-all ${isActive
-                                    ? "bg-[hsl(var(--accent))] text-white shadow-[0_15px_30px_rgba(var(--glow),0.4)]"
-                                    : "text-slate-500 hover:bg-slate-900/50 hover:text-slate-300"
+                                `group relative flex w-full items-center gap-5 rounded-[20px] p-4 text-xs font-black uppercase tracking-widest transition-all duration-300 animate-in fade-in slide-in-from-left-4 ${isActive
+                                    ? "bg-[hsl(var(--accent)/0.15)] border border-[hsl(var(--accent)/0.3)] text-[hsl(var(--accent-light))] shadow-[0_0_20px_rgba(var(--glow),0.15)]"
+                                    : "border border-transparent text-slate-500 hover:bg-slate-900/40 hover:text-slate-200"
                                 }`
                             }
+                            style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
                         >
                             {({ isActive }) => (
                                 <>
                                     {isActive && (
-                                        <div className="absolute left-0 top-1/4 h-1/2 w-1.5 rounded-r-full bg-white shadow-[0_0_12px_#fff]" />
+                                        <div className="absolute left-0 top-1/4 h-1/2 w-1.5 rounded-r-full bg-[hsl(var(--accent))] shadow-[0_0_12px_rgba(var(--glow),1)]" />
                                     )}
-                                    <Icon name={item.icon} className="text-xl" /> {item.label}
+                                    <Icon
+                                        name={item.icon}
+                                        className={`text-[20px] transition-transform duration-300 ${isActive ? "scale-110 drop-shadow-[0_0_6px_rgba(var(--glow),0.6)]" : "group-hover:scale-105"}`}
+                                    />
+                                    {item.label}
+                                    {isActive && (
+                                        <div className="pointer-events-none absolute inset-0 rounded-[20px] bg-gradient-to-r from-[hsl(var(--accent)/0.05)] to-transparent" />
+                                    )}
                                 </>
                             )}
                         </NavLink>
                     ))}
                 </nav>
-                <div className="border-t border-slate-800 pt-8">
-                    <div className="flex items-center gap-4 rounded-3xl bg-slate-900/40 p-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-600 text-xs font-black text-black">SH</div>
-                        <div className="flex-1">
-                            <p className="text-xs font-black leading-none text-white">{authUser?.email || "Shadow Hunter"}</p>
-                            <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-slate-500">
-                                Lv. {globalStats.level} | Rank {globalStats.rank}
+
+                <div className="relative mt-auto border-t border-white/10 pt-8">
+                    <div className="group flex items-center gap-4 rounded-[24px] border border-white/5 bg-slate-900/30 p-4 transition-all hover:bg-slate-900/60 hover:border-white/10">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--accent))] to-violet-600 text-sm font-black text-white shadow-[0_0_15px_rgba(var(--glow),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--glow),0.5)] transition-all">
+                            SH
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="truncate text-[13px] font-black leading-none text-white">{authUser?.email || "Shadow Hunter"}</p>
+                            <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Lv. <span className="text-[hsl(var(--accent-light))]">{globalStats.level}</span> | Rank <span className="text-[hsl(var(--accent-light))]">{globalStats.rank}</span>
                             </p>
                         </div>
                     </div>
