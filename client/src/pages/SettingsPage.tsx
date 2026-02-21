@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
-import { Badge, DetailedToggle, HoldButton, ThemeOption } from "../components/common";
+import { Badge, DetailedToggle, HoldButton, ThemeShowcase } from "../components/common";
 import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences, type ClientPreferences } from "../contexts/PreferencesContext";
-import { useTheme, type ThemeId } from "../contexts/ThemeContext";
+
 import { ApiRequestError, resetMeState, updateProfile } from "../lib/api";
 import { LOCAL_MEDIA_DB_NAME, clearVideos } from "../lib/localVideosStore";
 import { clearFilesTelemetry, readFilesTelemetry, type FilesTelemetryEvent } from "../lib/filesTelemetry";
@@ -38,14 +38,7 @@ function matchesFilesTelemetryFilter(event: FilesTelemetryEvent, filter: FilesTe
   return event.name.endsWith(".error");
 }
 
-const THEME_PRESETS = [
-  { id: "matrix", name: "Matrix", color: "bg-[#00ff41]" },
-  { id: "naruto", name: "Naruto", color: "bg-[#ff6400]" },
-  { id: "dragonball", name: "Dragon Ball", color: "bg-[#ffd700]" },
-  { id: "sololeveling", name: "Solo Leveling", color: "bg-[#1a73e8]" },
-  { id: "hxh", name: "Hunter x Hunter", color: "bg-[#dc143c]" },
-  { id: "lotr", name: "Senhor dos Anéis", color: "bg-[#c0c0c0]" },
-];
+
 
 function deleteLocalMediaDatabase(): Promise<void> {
   if (typeof window === "undefined" || !window.indexedDB) {
@@ -70,7 +63,7 @@ export function SettingsPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { themeId, setTheme } = useTheme();
+
 
   const [dangerBusy, setDangerBusy] = useState<"logout" | "reset" | null>(null);
 
@@ -652,23 +645,12 @@ export function SettingsPage() {
             </div>
 
             <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-              <div className="mb-8 flex items-center justify-between">
+              <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-sm">Tema</h2>
                 <Icon name="refresh" className="text-[hsl(var(--accent)/0.6)] animate-spin-slow text-[20px]" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {THEME_PRESETS.map(preset => (
-                  <ThemeOption
-                    key={preset.id}
-                    testId={`theme-option-${preset.id}`}
-                    label={preset.name}
-                    color={preset.color}
-                    active={themeId === preset.id}
-                    onClick={() => setTheme(preset.id as ThemeId)}
-                  />
-                ))}
-              </div>
+              <ThemeShowcase />
             </div>
 
             <div className="rounded-[40px] bg-gradient-to-b from-[#0a0f1d]/90 to-[#03050a]/95 p-10 text-center border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl group">

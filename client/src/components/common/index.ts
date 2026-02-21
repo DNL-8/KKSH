@@ -8,6 +8,7 @@ export { ScrollToTop } from "./ScrollToTop";
 export { Skeleton } from "./Skeleton";
 export { StatPill } from "./StatPill";
 export { ThemeOption } from "./ThemeOption";
+export { ThemeShowcase } from "./ThemeShowcase";
 export { Tooltip } from "./Tooltip";
 export { ToastProvider, useToast } from "./Toast";
 export { HoldButton } from "./HoldButton";
