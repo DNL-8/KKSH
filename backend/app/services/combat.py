@@ -13,9 +13,11 @@ from app.services.backend_first import (
     save_idempotency_result,
 )
 from app.services.combat_content import CombatModule, get_combat_module
+from app.services.inventory import use_inventory_item
 from app.services.progression import apply_xp_gold, get_or_create_user_stats, progress_to_dict
 
 PLAYER_MAX_HP = 100
+WORLD_BOSS_HP = 9_999_999
 PLAYER_BASE_PERCENT_MIN = 0.08
 PLAYER_BASE_PERCENT_SPAN = 0.06
 PLAYER_ROLL_MIN = 0.8
@@ -173,8 +175,8 @@ def start_battle(
             turn_state="PLAYER_IDLE",
             player_hp=PLAYER_MAX_HP,
             player_max_hp=PLAYER_MAX_HP,
-            enemy_hp=int(module["boss"]["hp"]),
-            enemy_max_hp=int(module["boss"]["hp"]),
+            enemy_hp=WORLD_BOSS_HP,
+            enemy_max_hp=WORLD_BOSS_HP,
             enemy_rank=str(module["boss"]["rank"]).upper(),
             current_question_id=None,
             last_question_id=None,
@@ -190,7 +192,7 @@ def start_battle(
         "boss": {
             "name": module["boss"]["name"],
             "rank": module["boss"]["rank"],
-            "hp": int(module["boss"]["hp"]),
+            "hp": WORLD_BOSS_HP,
         },
         "battleState": _battle_state_payload(battle),
         "question": None,
@@ -349,9 +351,9 @@ def answer_question(
         battle.status = "victory"
         battle.turn_state = "VICTORY"
         battle.current_question_id = None
-        rank = str(battle.enemy_rank).upper()
-        reward_xp = int(VICTORY_REWARD_XP_BY_RANK.get(rank, 80))
-        reward_gold = int(VICTORY_REWARD_GOLD_BY_RANK.get(rank, 30))
+        damage_dealt = WORLD_BOSS_HP - int(battle.enemy_hp)
+        reward_xp = max(0, damage_dealt // 5)
+        reward_gold = max(0, damage_dealt // 20)
         apply_xp_gold(
             session,
             user,
@@ -362,7 +364,7 @@ def answer_question(
             event_type="combat.victory",
             source_type="combat_battle",
             source_ref=battle.id,
-            payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": rank},
+            payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank)},
         )
     else:
         enemy_damage = _roll_boss_damage(str(battle.enemy_rank))
@@ -371,6 +373,21 @@ def answer_question(
         if int(battle.player_hp) <= 0:
             battle.status = "defeat"
             battle.turn_state = "DEFEAT"
+            damage_dealt = WORLD_BOSS_HP - int(battle.enemy_hp)
+            reward_xp = max(0, (damage_dealt // 5) // 2)
+            reward_gold = max(0, (damage_dealt // 20) // 2)
+            apply_xp_gold(
+                session,
+                user,
+                xp_delta=reward_xp,
+                gold_delta=reward_gold,
+                autocommit=False,
+                persist_ledger=True,
+                event_type="combat.defeat",
+                source_type="combat_battle",
+                source_ref=battle.id,
+                payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank), "penalty": True},
+            )
         else:
             battle.turn_state = "PLAYER_IDLE"
 
@@ -384,6 +401,142 @@ def answer_question(
         "battleState": _battle_state_payload(battle),
         "progress": _progress_payload(session, user),
     }
+    return save_idempotency_result(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+        response_json=result_payload,
+        status_code=200,
+    )
+
+
+def flee_battle(
+    session: Session,
+    *,
+    user: User,
+    battle_id: str,
+    idempotency_key: str,
+) -> dict[str, Any]:
+    command_type = "combat.flee"
+    replay = idempotency_replay(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+    )
+    if replay:
+        return replay
+
+    battle = session.exec(
+        select(CombatBattle).where(CombatBattle.id == battle_id, CombatBattle.user_id == user.id)
+    ).first()
+    if not battle:
+        raise CommandError(status_code=404, code="battle_not_found", message="Battle not found")
+    if battle.status != "ongoing":
+        raise CommandError(
+            status_code=409,
+            code="invalid_turn_state",
+            message="Battle already finished",
+            details={"status": battle.status},
+        )
+
+    damage_dealt = WORLD_BOSS_HP - int(battle.enemy_hp)
+    reward_xp = max(0, damage_dealt // 5)
+    reward_gold = max(0, damage_dealt // 20)
+
+    battle.status = "victory"
+    battle.turn_state = "VICTORY"
+    battle.current_question_id = None
+    
+    apply_xp_gold(
+        session,
+        user,
+        xp_delta=reward_xp,
+        gold_delta=reward_gold,
+        autocommit=False,
+        persist_ledger=True,
+        event_type="combat.flee",
+        source_type="combat_battle",
+        source_ref=battle.id,
+        payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank), "extracted": True},
+    )
+
+    battle.updated_at = datetime.now(timezone.utc)
+    session.add(battle)
+
+    result_payload = {
+        "xpReward": reward_xp,
+        "goldReward": reward_gold,
+        "totalDamageDealt": damage_dealt,
+        "battleState": _battle_state_payload(battle),
+        "progress": _progress_payload(session, user),
+    }
+    return save_idempotency_result(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+        response_json=result_payload,
+        status_code=200,
+    )
+
+
+def consume_item_in_battle(
+    session: Session,
+    *,
+    user: User,
+    battle_id: str,
+    item_id: str,
+    idempotency_key: str,
+) -> dict[str, Any]:
+    command_type = "combat.consume"
+    replay = idempotency_replay(
+        session,
+        user_id=user.id,
+        command_type=command_type,
+        idempotency_key=idempotency_key,
+    )
+    if replay:
+        return replay
+
+    battle = session.exec(
+        select(CombatBattle).where(CombatBattle.id == battle_id, CombatBattle.user_id == user.id)
+    ).first()
+    if not battle:
+        raise CommandError(status_code=404, code="battle_not_found", message="Battle not found")
+    if battle.status != "ongoing":
+        raise CommandError(
+            status_code=409,
+            code="invalid_turn_state",
+            message="Battle already finished or inactive",
+            details={"status": battle.status},
+        )
+    if battle.turn_state not in ("PLAYER_IDLE", "PLAYER_QUIZ"):
+        raise CommandError(
+            status_code=409,
+            code="invalid_turn_state",
+            message="Cannot use item during enemy turn or attack phase",
+        )
+
+    # Consume directly from core inventory module
+    inv_result = use_inventory_item(session, user, item_id=item_id, qty=1)
+    
+    # Calculate In-Game specific healing bonuses (Coffee gives +40 HP in combat)
+    heal_amount = 0
+    if item_id == "coffee" and inv_result["consumedQty"] > 0:
+        heal_amount = 40
+    
+    battle.player_hp = min(int(battle.player_max_hp), int(battle.player_hp) + heal_amount)
+    battle.updated_at = datetime.now(timezone.utc)
+    session.add(battle)
+
+    result_payload = {
+        "healAmount": heal_amount,
+        "battleState": _battle_state_payload(battle),
+        "progress": _progress_payload(session, user),
+    }
+
     return save_idempotency_result(
         session,
         user_id=user.id,

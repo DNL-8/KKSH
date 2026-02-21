@@ -10,13 +10,17 @@ from app.models import User
 from app.schemas import (
     CombatAnswerIn,
     CombatAnswerOut,
+    CombatConsumeIn,
+    CombatConsumeOut,
+    CombatFleeIn,
+    CombatFleeOut,
     CombatQuestionIn,
     CombatQuestionOutEnvelope,
     CombatStartIn,
     CombatStartOut,
 )
 from app.services.backend_first import CommandError, require_idempotency_key
-from app.services.combat import answer_question, draw_question, start_battle
+from app.services.combat import answer_question, consume_item_in_battle, draw_question, flee_battle, start_battle
 
 router = APIRouter(prefix="/combat", tags=["combat"])
 _COMBAT_RULE = Rule(max_requests=40, window_seconds=60)
@@ -141,6 +145,98 @@ def answer_combat_question(
                     "battleId": payload.battleId,
                     "questionId": payload.questionId,
                     "result": result["result"],
+                },
+            ),
+            commit=False,
+        )
+        session.commit()
+        return result
+    except CommandError as exc:
+        session.rollback()
+        raise HTTPException(status_code=exc.status_code, detail=exc.to_http_detail()) from exc
+    except Exception:
+        session.rollback()
+        raise
+
+
+@router.post(
+    "/flee",
+    response_model=CombatFleeOut,
+    dependencies=[Depends(rate_limit("combat_flee", _COMBAT_RULE))],
+)
+def flee_from_combat(
+    payload: CombatFleeIn,
+    request: Request,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    try:
+        key = require_idempotency_key(idempotency_key)
+        result = flee_battle(
+            session,
+            user=user,
+            battle_id=payload.battleId,
+            idempotency_key=key,
+        )
+        log_event(
+            session,
+            request,
+            "combat.flee",
+            user=user,
+            metadata=command_audit_metadata(
+                command_type="combat.flee",
+                idempotency_key=key,
+                extra={
+                    "battleId": payload.battleId,
+                    "extracted": True,
+                },
+            ),
+            commit=False,
+        )
+        session.commit()
+        return result
+    except CommandError as exc:
+        session.rollback()
+        raise HTTPException(status_code=exc.status_code, detail=exc.to_http_detail()) from exc
+    except Exception:
+        session.rollback()
+        raise
+
+
+@router.post(
+    "/consume",
+    response_model=CombatConsumeOut,
+    dependencies=[Depends(rate_limit("combat_consume", _COMBAT_RULE))],
+)
+def consume_item_in_combat(
+    payload: CombatConsumeIn,
+    request: Request,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    session: Session = Depends(db_session),
+    user: User = Depends(get_current_user),
+):
+    try:
+        key = require_idempotency_key(idempotency_key)
+        result = consume_item_in_battle(
+            session,
+            user=user,
+            battle_id=payload.battleId,
+            item_id=payload.itemId,
+            idempotency_key=key,
+        )
+        log_event(
+            session,
+            request,
+            "combat.consume",
+            user=user,
+            metadata=command_audit_metadata(
+                command_type="combat.consume",
+                idempotency_key=key,
+                extra={
+                    "battleId": payload.battleId,
+                    "itemId": payload.itemId,
+                    "healAmount": result["healAmount"],
                 },
             ),
             commit=False,

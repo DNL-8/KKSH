@@ -64,3 +64,26 @@ class CombatAnswerOut(BaseModel):
     enemyDamage: int
     battleState: CombatBattleStateOut
     progress: ProgressionOut
+
+
+class CombatFleeIn(BaseModel):
+    battleId: str
+
+
+class CombatFleeOut(BaseModel):
+    xpReward: int
+    goldReward: int
+    totalDamageDealt: int
+    battleState: CombatBattleStateOut
+    progress: ProgressionOut
+
+
+class CombatConsumeIn(BaseModel):
+    battleId: str
+    itemId: str
+
+
+class CombatConsumeOut(BaseModel):
+    healAmount: int
+    battleState: CombatBattleStateOut
+    progress: ProgressionOut

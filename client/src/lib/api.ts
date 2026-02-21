@@ -261,6 +261,20 @@ export interface CombatAnswerOut {
   progress: ProgressionOut;
 }
 
+export interface CombatFleeOut {
+  xpReward: number;
+  goldReward: number;
+  totalDamageDealt: number;
+  battleState: CombatBattleStateOut;
+  progress: ProgressionOut;
+}
+
+export interface CombatConsumeOut {
+  healAmount: number;
+  battleState: CombatBattleStateOut;
+  progress: ProgressionOut;
+}
+
 export interface SessionOut {
   id: string;
   subject: string;
@@ -686,6 +700,32 @@ export async function answerCombatQuestion(
   idempotencyKey?: string,
 ): Promise<CombatAnswerOut> {
   return requestJson<CombatAnswerOut>("/api/v1/combat/answer", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fleeCombatBattle(
+  payload: { battleId: string },
+  idempotencyKey?: string,
+): Promise<CombatFleeOut> {
+  return requestJson<CombatFleeOut>("/api/v1/combat/flee", {
+    method: "POST",
+    headers: {
+      "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function consumeCombatItem(
+  payload: { battleId: string; itemId: string },
+  idempotencyKey?: string,
+): Promise<CombatConsumeOut> {
+  return requestJson<CombatConsumeOut>("/api/v1/combat/consume", {
     method: "POST",
     headers: {
       "Idempotency-Key": idempotencyKey ?? makeIdempotencyKey(),
