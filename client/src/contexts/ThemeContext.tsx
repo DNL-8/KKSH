@@ -74,19 +74,8 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         accent: "211 100% 50%",
         accentLight: "211 100% 65%",
         glow: "0, 122, 255",
-        bgImage: "",
-        bgGradient: [
-            /* Hot amber / sunset bottom-right */
-            "radial-gradient(ellipse 130% 70% at 100% 120%, rgba(255,140,20,1.0) 0%, rgba(255,100,0,0.7) 20%, transparent 55%)",
-            /* Magenta/purple accent top-left */
-            "radial-gradient(ellipse 100% 60% at -5% -5%, rgba(180,80,255,0.85) 0%, rgba(120,60,220,0.5) 30%, transparent 60%)",
-            /* Cool azure sky top-right */
-            "radial-gradient(ellipse 90% 50% at 110% 0%, rgba(60,160,255,0.90) 0%, rgba(30,130,240,0.5) 30%, transparent 60%)",
-            /* Warm lilac center blend */
-            "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(220,180,255,0.25) 0%, transparent 70%)",
-            /* Base: warm white */
-            "linear-gradient(180deg, #e8e0ff 0%, #f8e8ff 25%, #ffe8d8 65%, #ffcf80 100%)"
-        ].join(", "),
+        bgImage: "/assets/themes/ios26.jpg",
+        bgGradient: "",
         overlayColor: "rgba(255,255,255,0)",
         isLight: true,
     },

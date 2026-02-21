@@ -133,7 +133,16 @@ export function AppShell() {
   return (
     <div
       className="relative flex min-h-screen overflow-hidden font-sans text-slate-300 selection:bg-[hsl(var(--accent)/0.3)]"
-      style={isLightTheme ? { background: theme.bgGradient } : undefined}
+      style={isLightTheme
+        ? theme.bgImage
+          ? {
+            backgroundImage: `url(${theme.bgImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundAttachment: "fixed",
+          }
+          : { background: theme.bgGradient }
+        : undefined}
     >
       {/* Skip to content — visible only on keyboard focus */}
       <a
