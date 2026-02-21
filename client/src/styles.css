@@ -1648,3 +1648,80 @@ select:focus-visible,
 .theme-light .crt-overlay {
   display: none !important;
 }
+
+/* ================================================================== */
+/*  iOS 26: Sidebar + TopBar glass helpers (light theme only)         */
+/*  Nav icon styling is handled by React inline styles in Sidebar.tsx  */
+/* ================================================================== */
+
+/* ── Settings button at sidebar bottom ───────────────────────────── */
+
+.theme-light aside button[class*="rounded"] {
+  background: rgba(255, 255, 255, 0.30) !important;
+  backdrop-filter: blur(20px) saturate(2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+.theme-light aside button[class*="rounded"] i,
+.theme-light aside button[class*="rounded"] .fi,
+.theme-light aside button[class*="rounded"] span {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* ── TopBar icons ─────────────────────────────────────────────────── */
+
+.theme-light [data-testid="top-command-panel"] .fi,
+.theme-light [data-testid="top-command-panel"] i {
+  color: rgba(0, 0, 0, 0.58) !important;
+}
+
+.theme-light [data-testid="top-command-panel"] [class*="rounded-full"] {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+}
+
+
+
+
+
+/* ── Settings button at sidebar bottom ───────────────────────────── */
+
+.theme-light aside button[class*="rounded"] {
+  background: rgba(255, 255, 255, 0.30) !important;
+  backdrop-filter: blur(20px) saturate(2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+.theme-light aside button[class*="rounded"] i,
+.theme-light aside button[class*="rounded"] .fi,
+.theme-light aside button[class*="rounded"] span {
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* ── TopBar icons ─────────────────────────────────────────────────── */
+
+.theme-light [data-testid="top-command-panel"] .fi,
+.theme-light [data-testid="top-command-panel"] i {
+  color: rgba(0, 0, 0, 0.58) !important;
+}
+
+.theme-light [data-testid="top-command-panel"] [class*="rounded-full"] {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+}

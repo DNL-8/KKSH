@@ -133,16 +133,6 @@ export function AppShell() {
   return (
     <div
       className="relative flex min-h-screen overflow-hidden font-sans text-slate-300 selection:bg-[hsl(var(--accent)/0.3)]"
-      style={isLightTheme
-        ? theme.bgImage
-          ? {
-            backgroundImage: `url(${theme.bgImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundAttachment: "fixed",
-          }
-          : { background: theme.bgGradient }
-        : undefined}
     >
       {/* Skip to content — visible only on keyboard focus */}
       <a
@@ -151,7 +141,33 @@ export function AppShell() {
       >
         Pular para o conteúdo
       </a>
-      {/* Theme background image (dark themes only) */}
+      {/* Theme background — light themes use a fixed wallpaper div, dark themes use ThemeBackground */}
+      {isLightTheme && theme.bgImage && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 0,
+            backgroundImage: `url(${theme.bgImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+      {isLightTheme && !theme.bgImage && theme.bgGradient && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 0,
+            background: theme.bgGradient,
+            pointerEvents: "none",
+          }}
+        />
+      )}
       {!isLightTheme && <ThemeBackground />}
       <ScrollToTop />
       <RouteProgressBar />

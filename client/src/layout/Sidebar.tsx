@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useMatch } from "react-router-dom";
 
 import { useTheme } from "../contexts/ThemeContext";
 import { useSfx } from "../hooks/useSfx";
@@ -59,8 +59,39 @@ function SidebarTooltip({ label, visible }: { label: string; visible: boolean })
 /*  Compact icon nav item with tooltip                                */
 /* ------------------------------------------------------------------ */
 
-function CompactNavItem({ item, sfx }: { item: NavItem; sfx: ReturnType<typeof useSfx> }) {
+function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType<typeof useSfx>; isLight?: boolean }) {
     const [hovered, setHovered] = useState(false);
+    const isActive = !!useMatch(item.path);
+
+    if (isLight) {
+        return (
+            <NavLink
+                to={item.path}
+                onMouseEnter={() => { setHovered(true); sfx("tick"); }}
+                onMouseLeave={() => setHovered(false)}
+                onClick={() => sfx("navigate")}
+                className="relative flex items-center justify-center rounded-2xl transition-all duration-200"
+                style={{
+                    width: 52,
+                    height: 52,
+                    background: isActive ? "#007AFF" : "rgba(255,255,255,0.32)",
+                    backdropFilter: isActive ? "none" : "blur(20px) saturate(2)",
+                    WebkitBackdropFilter: isActive ? "none" : "blur(20px) saturate(2)",
+                    border: isActive ? "1px solid rgba(0,90,200,0.3)" : "1px solid rgba(255,255,255,0.60)",
+                    boxShadow: isActive
+                        ? "0 6px 20px rgba(0,122,255,0.45), inset 0 1.5px 0 rgba(255,255,255,0.40)"
+                        : "0 4px 12px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.88), inset 0 -1px 0 rgba(0,0,0,0.06)",
+                    transform: hovered && !isActive ? "scale(1.08)" : "scale(1)",
+                }}
+            >
+                <Icon
+                    name={item.icon}
+                    className={`text-[22px] transition-colors duration-150 ${isActive ? "text-white" : "text-black/60"}`}
+                />
+                <SidebarTooltip label={item.label} visible={hovered && !isActive} />
+            </NavLink>
+        );
+    }
 
     return (
         <NavLink
@@ -88,9 +119,7 @@ function CompactNavItem({ item, sfx }: { item: NavItem; sfx: ReturnType<typeof u
                             }`}
                     />
                     <SidebarTooltip label={item.label} visible={hovered && !isActive} />
-                    {/* Hover glow ring */}
-                    <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 pointer-events-none ${hovered && !isActive ? "opacity-100" : "opacity-0"
-                        }`}
+                    <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 pointer-events-none ${hovered && !isActive ? "opacity-100" : "opacity-0"}`}
                         style={{ boxShadow: "inset 0 0 20px rgba(var(--glow), 0.08)" }}
                     />
                 </>
@@ -103,7 +132,39 @@ function CompactNavItem({ item, sfx }: { item: NavItem; sfx: ReturnType<typeof u
 /*  Expanded nav item                                                 */
 /* ------------------------------------------------------------------ */
 
-function ExpandedNavItem({ item, index, sfx }: { item: NavItem; index: number; sfx: ReturnType<typeof useSfx> }) {
+function ExpandedNavItem({ item, index, sfx, isLight }: { item: NavItem; index: number; sfx: ReturnType<typeof useSfx>; isLight?: boolean }) {
+    const isActive = !!useMatch(item.path);
+
+    if (isLight) {
+        return (
+            <NavLink
+                to={item.path}
+                onClick={() => sfx("navigate")}
+                className="relative flex items-center w-full rounded-2xl gap-4 px-4 transition-all duration-200"
+                style={{
+                    paddingTop: 14,
+                    paddingBottom: 14,
+                    background: isActive ? "rgba(0,122,255,0.12)" : "rgba(255,255,255,0.22)",
+                    backdropFilter: "blur(16px) saturate(1.8)",
+                    WebkitBackdropFilter: "blur(16px) saturate(1.8)",
+                    border: isActive ? "1px solid rgba(0,122,255,0.28)" : "1px solid rgba(255,255,255,0.50)",
+                    boxShadow: isActive
+                        ? "0 4px 14px rgba(0,122,255,0.16), inset 0 1px 0 rgba(255,255,255,0.65)"
+                        : "0 2px 8px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.78)",
+                    marginBottom: 4,
+                }}
+            >
+                <Icon
+                    name={item.icon}
+                    className={`shrink-0 text-[22px] ${isActive ? "text-[#007AFF]" : "text-black/60"}`}
+                />
+                <span className={`whitespace-nowrap text-sm font-semibold uppercase tracking-wider ${isActive ? "text-[#007AFF]" : "text-black/70"}`}>
+                    {item.label}
+                </span>
+            </NavLink>
+        );
+    }
+
     return (
         <NavLink
             to={item.path}
@@ -151,7 +212,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
-    const { themeId } = useTheme();
+    const { themeId, isLightTheme } = useTheme();
     const sfx = useSfx();
 
     const handleToggle = useCallback(() => {
@@ -216,9 +277,9 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                 <div className={`${isSidebarOpen ? "space-y-1.5" : "flex flex-col items-center gap-4"}`}>
                     {DESKTOP_NAV_ITEMS.map((item, index) =>
                         isSidebarOpen ? (
-                            <ExpandedNavItem key={item.id} item={item} index={index} sfx={sfx} />
+                            <ExpandedNavItem key={item.id} item={item} index={index} sfx={sfx} isLight={isLightTheme} />
                         ) : (
-                            <CompactNavItem key={item.id} item={item} sfx={sfx} />
+                            <CompactNavItem key={item.id} item={item} sfx={sfx} isLight={isLightTheme} />
                         )
                     )}
                 </div>
