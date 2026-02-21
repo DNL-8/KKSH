@@ -87,7 +87,7 @@ def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers
         json=payload,
         headers=_headers(csrf_headers, idem_key),
     )
-    assert r1.status_code == 200
+    assert r1.status_code == 200, r1.json()
     body1 = r1.json()
     assert body1["applied"] is True
     assert body1["xpDelta"] > 0
