@@ -10,8 +10,8 @@ interface FilesHeaderProps {
 export function FilesHeader({ globalStats }: FilesHeaderProps) {
     return (
         <>
-            <div className="files-panel-elevated rounded-[26px] p-5 md:p-6">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="rounded-[26px] border border-white/10 bg-slate-950/60 backdrop-blur-2xl px-5 py-6 md:px-8 shadow-2xl">
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="min-w-0 space-y-2">
                         <div className="files-chip files-pulse-glow w-fit">
                             <Icon name="activity" className="text-[12px]" />
@@ -30,7 +30,7 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                         </p>
                     </div>
 
-                    <div className="files-panel flex w-full flex-wrap items-center gap-4 rounded-2xl px-4 py-3 xl:w-auto">
+                    <div className="rounded-2xl border border-white/5 bg-slate-900/40 backdrop-blur-md flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto shadow-inner">
                         <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
                         <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
                         <HudProgressBar

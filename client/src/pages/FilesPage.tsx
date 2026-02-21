@@ -218,10 +218,7 @@ export function FilesPage() {
       .filter((section) => section.lessons.length > 0);
   }, [folderSections, deferredSearchTerm]);
 
-  const filteredLessonCount = useMemo(
-    () => filteredFolderSections.reduce((acc, section) => acc + section.lessons.length, 0),
-    [filteredFolderSections],
-  );
+
 
   const {
     selectedVideo,
@@ -489,12 +486,11 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="files-panel-elevated relative overflow-hidden rounded-[40px] p-5 md:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-cyan-500/10 backdrop-blur-2xl bg-gradient-to-r from-[#030914]/90 via-[#051126]/80 to-[#030914]/90" data-testid="files-header">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-cyan-600/10 blur-[120px] mix-blend-screen" />
-        <div className="pointer-events-none absolute bottom-0 right-20 h-64 w-64 rounded-full bg-indigo-500/10 blur-[100px] mix-blend-screen" />
-        <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay" />
+      <div className="relative overflow-hidden pt-4 pb-2" data-testid="files-header">
+        <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--accent)/0.03)] blur-[120px] mix-blend-screen" />
+        <div className="pointer-events-none absolute bottom-0 right-20 h-64 w-64 rounded-full bg-indigo-500/5 blur-[100px] mix-blend-screen" />
 
-        <div className="relative z-10 space-y-6">
+        <div className="relative z-10 space-y-4">
 
           <FilesToolbar
             saving={saving}
@@ -508,9 +504,7 @@ export function FilesPage() {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             completedLessonCount={completedLessonCount}
-            filteredLessonCount={filteredLessonCount}
             completionRate={completionRate}
-            loadingCompletions={loadingCompletions}
             onOpenPicker={handleOpenPicker}
             onOpenFolderPicker={handleOpenFolderPicker}
             onOpenDirectoryPicker={handleOpenDirectoryPicker}
@@ -518,101 +512,103 @@ export function FilesPage() {
             onImportMetadataClick={() => importInputRef.current?.click()}
             onClearLibrary={handleClearAll}
             onOpenVisualSettings={handleOpenVisualSettings}
-            onToggleMobileSidebar={() => setIsSidebarMobileOpen(true)}
+            onToggleMobileSidebar={() => setIsSidebarMobileOpen((o) => !o)}
           />
 
+          {/* Badges de Status do Sistema */}
+          <div className="flex flex-wrap items-center gap-2 px-1 pt-1">
+            {isBridgeConnected && (
+              <button
+                className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300 transition-colors hover:bg-indigo-500/20 active:scale-95"
+                onClick={() => setShowBridgeBrowser(true)}
+              >
+                <Icon name="folder-search" className="text-[12px]" />
+                Browse Bridge
+              </button>
+            )}
 
-          {isBridgeConnected && (
-            <button
-              className="files-chip transition-all"
-              onClick={() => setShowBridgeBrowser(true)}
-            >
-              <Icon name="folder-search" className="text-[14px]" />
-              Browse Bridge
-            </button>
-          )}
-
-          <div className="flex flex-wrap items-center gap-3">
             {/* Local Bridge Indicator */}
-            <div className={`files-chip ${isBridgeConnected ? "" : "opacity-50 grayscale"}`}>
-              <div className={`w-2 h-2 rounded-full ${isBridgeConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-700"}`} />
-              {isBridgeConnected ? "Bridge: Online" : "Bridge: Offline"}
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-slate-800/50 text-slate-500"}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
+              Bridge {isBridgeConnected ? "Online" : "Offline"}
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`files-chip ${isPersisted ? "" : "text-amber-400"}`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
-              <div className={`w-2 h-2 rounded-full ${isPersisted ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-orange-500"}`} />
-              {isPersisted ? "HD: Persistente" : "HD: Temporario"}
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"}`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isPersisted ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"}`} />
+              HD {isPersisted ? "Persistente" : "Temporário"}
             </div>
           </div>
         </div>
 
-        <div className="mt-3 space-y-2">
+        {/* Alertas de Sistema e Erros */}
+        <div className="mt-3 space-y-2 z-10 relative">
           <ErrorBanner message={error} onClose={handleClearError} />
 
           {storageUnavailable && (
-            <div className="files-alert files-alert-warning flex items-start gap-3">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
               <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-500/80" />
               <div>
-                <p className="files-display mb-1 text-[10px] uppercase text-amber-400 font-bold tracking-widest">Aviso de Armazenamento</p>
-                Persistencia local indisponivel neste navegador. Os videos ficam somente nesta sessao.
+                <p className="mb-0.5 text-[10px] uppercase text-amber-400 font-bold tracking-widest">Aviso de Armazenamento</p>
+                <p className="text-xs text-amber-200/80 font-medium">Persistência local indisponível neste navegador. Os vídeos ficam salvos apenas nesta sessão.</p>
               </div>
             </div>
           )}
 
           {!directoryHandleSupported && (
-            <div className="files-alert files-alert-warning flex items-start gap-3">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
               <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-300" />
               <div>
-                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Compatibilidade limitada (Firefox/Safari)</p>
-                Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">BROWSE BRIDGE</span> para navegar sem limitacoes.
+                <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Compatibilidade limitada (Firefox/Safari)</p>
+                <p className="text-xs text-amber-100/70 font-medium">Seu navegador não suporta conexão direta de pastas. Inicie o backend e use o botão <span className="font-bold text-emerald-300">BROWSE BRIDGE</span> para navegar sem limitações.</p>
               </div>
             </div>
           )}
 
           {highVolumeHint && directoryHandleSupported && (
             <div
-              className="files-alert files-alert-info"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 backdrop-blur-sm"
               data-testid="high-volume-banner"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span>{highVolumeHint}</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="rounded-lg border border-cyan-400/40 bg-cyan-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-100 transition-colors hover:bg-cyan-500/30"
-                    data-testid="switch-to-directory-handle"
-                    onClick={() => void triggerDirectoryConnect()}
-                    type="button"
-                  >
-                    Conectar pasta agora
-                  </button>
-                  <button
-                    className="rounded-lg border border-slate-600/60 bg-slate-900/60 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
-                    onClick={clearHighVolumeHint}
-                    type="button"
-                  >
-                    Fechar
-                  </button>
-                </div>
+              <div className="flex items-center gap-3">
+                <Icon name="info-circle" className="text-[16px] text-cyan-400" />
+                <span className="text-xs font-medium text-cyan-100">{highVolumeHint}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[hsl(var(--accent-light))] transition-colors hover:bg-[hsl(var(--accent)/0.15)] active:scale-95 shadow-[0_0_15px_rgba(var(--glow),0.1)]"
+                  data-testid="switch-to-directory-handle"
+                  onClick={() => void triggerDirectoryConnect()}
+                  type="button"
+                >
+                  Conectar agora
+                </button>
+                <button
+                  className="rounded-xl border border-white/5 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-white/10 active:scale-95"
+                  onClick={clearHighVolumeHint}
+                  type="button"
+                >
+                  Ignorar
+                </button>
               </div>
             </div>
           )}
 
           {visibleVideos.length >= MAX_LIBRARY_VIDEOS && (
-            <div className="files-alert files-alert-warning flex items-start gap-3">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
               <Icon name="box-open" className="mt-0.5 text-[16px] text-amber-400" />
               <div>
-                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Capacidade Maxima</p>
-                Limite operacional atingido: {MAX_LIBRARY_VIDEOS} videos. Remova itens para importar novos.
+                <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Capacidade Máxima</p>
+                <p className="text-xs text-amber-100/70 font-medium">Limite operacional atingido: {MAX_LIBRARY_VIDEOS} vídeos. Remova itens para importar novos.</p>
               </div>
             </div>
           )}
 
           {rejectedFiles.length > 0 && (
-            <div className="files-alert files-alert-warning flex items-start gap-3">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
               <Icon name="trash" className="mt-0.5 text-[16px] text-amber-300" />
               <div>
-                <p className="files-display mb-1 text-[10px] uppercase text-amber-200">Filtro de Arquivos</p>
+                <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Filtro de Arquivos</p>
                 Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}
               </div>
             </div>

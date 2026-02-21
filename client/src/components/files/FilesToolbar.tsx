@@ -1,5 +1,5 @@
+import { useState, useRef, useEffect } from "react";
 import { Icon } from "../common/Icon";
-import { HIGH_VOLUME_FOLDER_THRESHOLD } from "../../lib/localVideosStore";
 import type { OrderMode } from "./types";
 import { ORDER_LABELS } from "./constants";
 
@@ -15,9 +15,7 @@ interface FilesToolbarProps {
     searchTerm: string;
     onSearchChange: (term: string) => void;
     completedLessonCount: number;
-    filteredLessonCount: number;
     completionRate: number;
-    loadingCompletions: boolean;
     onOpenPicker: () => void;
     onOpenFolderPicker: () => void;
     onOpenDirectoryPicker: () => void;
@@ -46,9 +44,7 @@ export function FilesToolbar({
     searchTerm,
     onSearchChange,
     completedLessonCount,
-    filteredLessonCount,
     completionRate,
-    loadingCompletions,
     onOpenPicker,
     onOpenFolderPicker,
     onOpenDirectoryPicker,
@@ -58,6 +54,9 @@ export function FilesToolbar({
     onOpenVisualSettings,
     onToggleMobileSidebar,
 }: FilesToolbarProps) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
     let progressText = " Carregando...";
     if (importProgress) {
         const { processed, total, speed, eta } = importProgress;
@@ -71,159 +70,187 @@ export function FilesToolbar({
         }
     }
 
+    // Close menu when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     return (
-        <div className="space-y-4 border-t border-cyan-950/70 pt-4" data-testid="files-toolbar">
-            <div className="grid gap-3 xl:grid-cols-[1.4fr_1fr_0.9fr]">
-                <div className="files-panel rounded-2xl p-3">
-                    <p className="files-display mb-2 text-[10px] uppercase text-cyan-200/80">Importacao</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            className="flex items-center gap-2 rounded-xl border border-cyan-400/50 bg-cyan-600 px-3 py-2 text-[10px] font-black uppercase text-white transition-all hover:bg-cyan-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                            data-testid="files-upload-button"
-                            disabled={saving}
-                            onClick={onOpenPicker}
-                            type="button"
-                        >
-                            {saving ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="upload" className="text-[14px]" />}
-                            {saving ? progressText : "Upload"}
-                        </button>
-                        <button
-                            className="flex items-center gap-2 rounded-xl border border-cyan-400/35 bg-[#0b1730] px-3 py-2 text-[10px] font-black uppercase text-cyan-100 transition-all hover:border-cyan-300/60 hover:bg-[#112448] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                            data-testid="files-folder-button"
-                            disabled={saving}
-                            onClick={onOpenFolderPicker}
-                            type="button"
-                        >
-                            <Icon name="folder-open" className="text-[14px]" />
-                            {saving ? progressText : `Carregar pasta (ate ${HIGH_VOLUME_FOLDER_THRESHOLD} recomendado)`}
-                        </button>
-                        {directoryHandleSupported && (
-                            <button
-                                className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-700/35 px-3 py-2 text-[10px] font-black uppercase text-emerald-100 transition-all hover:bg-emerald-600/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                                data-testid="connect-directory-handle"
-                                disabled={saving}
-                                onClick={() => void onOpenDirectoryPicker()}
-                                title="Conecta uma pasta sem copiar todos os blobs para o IndexedDB."
-                                type="button"
-                            >
-                                <Icon name="folder-open" className="text-[14px]" />
-                                Conectar pasta (alto volume)
-                            </button>
-                        )}
-                    </div>
-                </div>
+        <div className="flex flex-col gap-4 mb-4" data-testid="files-toolbar">
 
-                <div className="files-panel rounded-2xl p-3">
-                    <p className="files-display mb-2 text-[10px] uppercase text-cyan-200/80">Biblioteca</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            className="flex items-center gap-2 rounded-xl border border-slate-600 bg-[#09101f] px-3 py-2 text-[10px] font-black uppercase text-slate-200 transition-all hover:border-cyan-400/50 hover:text-cyan-200 disabled:opacity-50"
-                            disabled={loading || saving || visibleVideosCount === 0}
-                            onClick={onExportMetadata}
-                            title="Exportar lista de videos (backup leve)"
-                            type="button"
-                        >
-                            {exporting ? <Icon name="spinner" className="animate-spin text-[12px]" /> : <Icon name="download" className="text-[12px]" />}
-                            Backup
-                        </button>
-                        <button
-                            className="flex items-center gap-2 rounded-xl border border-slate-600 bg-[#09101f] px-3 py-2 text-[10px] font-black uppercase text-slate-200 transition-all hover:border-cyan-400/50 hover:text-cyan-200 disabled:opacity-50"
-                            disabled={loading || saving}
-                            onClick={onImportMetadataClick}
-                            title="Restaurar lista de videos"
-                            type="button"
-                        >
-                            <Icon name="upload" className="text-[12px]" />
-                            Restaurar
-                        </button>
-                        <button
-                            className="flex items-center gap-2 rounded-xl border border-red-500/35 bg-red-700/30 px-3 py-2 text-[10px] font-black uppercase text-red-100 transition-all hover:bg-red-700/45 disabled:cursor-not-allowed disabled:opacity-50"
-                            data-testid="clear-library"
-                            disabled={visibleVideosCount === 0 || loading || saving}
-                            onClick={() => void onClearLibrary()}
-                            type="button"
-                        >
-                            <Icon name="trash" className="text-[14px]" />
-                            Limpar
-                        </button>
-                    </div>
-                </div>
+            {/* Top row: Search and Main Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
 
-                <div className="files-panel rounded-2xl p-3">
-                    <p className="files-display mb-2 text-[10px] uppercase text-cyan-200/80">Visualizacao</p>
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="hidden min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-600 bg-[#09101f] px-3 py-2 text-[10px] font-black uppercase text-slate-200 transition-all hover:border-cyan-400/50 hover:text-cyan-200 md:flex"
-                            data-testid="files-sort-select"
-                        >
-                            <Icon name="sort-alt" className="text-[14px]" />
-                            <select
-                                className="min-w-0 flex-1 appearance-none bg-transparent pr-1 text-[10px] font-black uppercase tracking-wide text-slate-200 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                data-testid="toggle-order"
-                                disabled={visibleVideosCount === 0 || loading}
-                                onChange={(event) => onOrderModeChange(event.target.value as OrderMode)}
-                                value={orderMode}
-                            >
-                                <option value="source">{ORDER_LABELS.source}</option>
-                                <option value="newest">{ORDER_LABELS.newest}</option>
-                                <option value="oldest">{ORDER_LABELS.oldest}</option>
-                                <option value="name_asc">{ORDER_LABELS.name_asc}</option>
-                                <option value="name_desc">{ORDER_LABELS.name_desc}</option>
-                                <option value="size_desc">{ORDER_LABELS.size_desc}</option>
-                                <option value="size_asc">{ORDER_LABELS.size_asc}</option>
-                            </select>
-                        </div>
-                        <button
-                            aria-label="Abrir conteudo"
-                            className="flex items-center gap-2 rounded-xl border border-slate-600 bg-[#09101f] px-3 py-2 text-[10px] font-black uppercase text-slate-200 transition-all hover:border-cyan-400/50 hover:text-cyan-200 lg:hidden"
-                            data-testid="sidebar-mobile-toggle"
-                            disabled={visibleVideosCount === 0}
-                            onClick={onToggleMobileSidebar}
-                            type="button"
-                        >
-                            <Icon name="list" className="text-[14px]" />
-                            Conteudo
-                        </button>
-                        <button
-                            className="ml-auto hidden rounded-xl border border-slate-600 bg-[#09101f] p-2 text-slate-300 transition-all hover:border-cyan-400/50 hover:text-cyan-200 md:inline-flex"
-                            title="Configuracoes visuais"
-                            data-testid="files-open-visual-settings"
-                            onClick={onOpenVisualSettings}
-                            type="button"
-                        >
-                            <Icon name="settings" className="text-[14px]" />
-                        </button>
+                {/* Search Bar - Wider and cleaner */}
+                <div className="relative w-full sm:max-w-md group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Icon name="search" className="text-slate-500 group-focus-within:text-[hsl(var(--accent))] transition-colors text-[14px]" />
                     </div>
-                </div>
-            </div>
-
-            <div className="files-panel flex flex-col gap-2 rounded-2xl p-3 md:flex-row md:items-center md:justify-between">
-                <div className="relative w-full md:max-w-xl">
-                    <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
                     <input
-                        className="w-full rounded-xl border border-slate-600 bg-[#060d1a] py-2.5 pl-9 pr-3 text-xs font-medium text-slate-200 placeholder-slate-500 outline-none transition-colors focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-500/30"
+                        className="w-full bg-slate-900/40 border border-white/5 text-slate-200 text-sm rounded-xl focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] block pl-10 p-2.5 transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
                         data-testid="files-search-input"
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder="Pesquisar por nome ou pasta..."
-                        type="text"
+                        type="search"
                         value={searchTerm}
                     />
-                </div>
-                <div className="rounded-xl border border-cyan-950/70 bg-[#050d1d] px-3 py-2 text-xs font-semibold text-slate-300">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1">
-                            <Icon name="apps" className="text-[13px] text-cyan-300" />
-                            {completedLessonCount}/{visibleVideosCount} aula(s) concluidas ({filteredLessonCount} visiveis, {completionRate}%)
+                    {/* Badge floating inside search */}
+                    <div className="absolute inset-y-0 right-2 flex items-center pt-px">
+                        <span className="bg-slate-800/80 border border-white/5 text-slate-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                            {completedLessonCount}/{visibleVideosCount} aulas ({completionRate}%)
                         </span>
-                        {loadingCompletions && (
-                            <span className="flex items-center gap-1 text-cyan-300">
-                                <Icon name="spinner" className="animate-spin text-[12px]" />
-                                sincronizando
-                            </span>
+                    </div>
+                </div>
+
+                {/* Primary Actions */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[hsl(var(--accent))] to-cyan-500 px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-[#020617] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_20px_rgba(var(--glow),0.25)]"
+                        data-testid="files-upload-button"
+                        disabled={saving}
+                        onClick={onOpenPicker}
+                        type="button"
+                    >
+                        {saving ? <Icon name="spinner" className="animate-spin text-[14px]" /> : <Icon name="upload" className="text-[14px]" />}
+                        {saving ? progressText : "Upload"}
+                    </button>
+
+                    <button
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.05)] px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-[hsl(var(--accent-light))] transition-all hover:bg-[hsl(var(--accent)/0.1)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                        data-testid="files-folder-button"
+                        disabled={saving}
+                        onClick={onOpenFolderPicker}
+                        type="button"
+                    >
+                        <Icon name="folder-open" className="text-[14px]" />
+                        <span className="hidden sm:inline">Carregar pasta</span>
+                        <span className="sm:hidden">Pasta</span>
+                    </button>
+
+                    {/* Advanced Menu (Dropdown) */}
+                    <div className="relative" ref={menuRef}>
+                        <button
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all active:scale-95 ${isMenuOpen
+                                ? "bg-slate-800 border-white/20 text-white shadow-lg"
+                                : "bg-slate-900/40 border-white/5 text-slate-400 hover:bg-slate-800 hover:text-white"
+                                }`}
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Opcoes avancadas"
+                            type="button"
+                        >
+                            <Icon name="menu-dots-vertical" className="text-[16px]" />
+                        </button>
+
+                        {/* Dropdown Content */}
+                        {isMenuOpen && (
+                            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-white/10 bg-[#060b14]/95 backdrop-blur-xl p-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                <div className="px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                                    Biblioteca
+                                </div>
+                                <button
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+                                    disabled={loading || saving || visibleVideosCount === 0}
+                                    onClick={() => { onExportMetadata(); setIsMenuOpen(false); }}
+                                    type="button"
+                                >
+                                    {exporting ? <Icon name="spinner" className="animate-spin text-[14px] text-[hsl(var(--accent))]" /> : <Icon name="download" className="text-[14px] text-[hsl(var(--accent))]" />}
+                                    Fazer Backup (Exportar)
+                                </button>
+                                <button
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+                                    disabled={loading || saving}
+                                    onClick={() => { onImportMetadataClick(); setIsMenuOpen(false); }}
+                                    type="button"
+                                >
+                                    <Icon name="upload" className="text-[14px] text-[hsl(var(--accent))]" />
+                                    Restaurar Biblioteca
+                                </button>
+
+                                {directoryHandleSupported && (
+                                    <>
+                                        <div className="px-2 py-1.5 mt-2 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                                            Avancado
+                                        </div>
+                                        <button
+                                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+                                            disabled={saving}
+                                            onClick={() => { onOpenDirectoryPicker(); setIsMenuOpen(false); }}
+                                            type="button"
+                                        >
+                                            <Icon name="link" className="text-[14px]" />
+                                            Conectar Pasta (Alto Volume)
+                                        </button>
+                                    </>
+                                )}
+
+                                <div className="my-1 border-t border-white/5" />
+                                <button
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                                    disabled={visibleVideosCount === 0 || loading || saving}
+                                    onClick={() => { onClearLibrary(); setIsMenuOpen(false); }}
+                                    type="button"
+                                >
+                                    <Icon name="trash" className="text-[14px]" />
+                                    Limpar Tudo
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Bottom Row: Minimal view toggles */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                        <Icon name="sort-alt" className="text-[12px]" /> Ordenacao
+                    </span>
+                    <div className="relative">
+                        <select
+                            className="appearance-none bg-transparent text-xs font-bold text-slate-300 outline-none hover:text-white cursor-pointer pr-4 transition-colors disabled:opacity-50"
+                            disabled={visibleVideosCount === 0 || loading}
+                            onChange={(event) => onOrderModeChange(event.target.value as OrderMode)}
+                            value={orderMode}
+                        >
+                            <option value="source" className="bg-slate-900">{ORDER_LABELS.source}</option>
+                            <option value="newest" className="bg-slate-900">{ORDER_LABELS.newest}</option>
+                            <option value="oldest" className="bg-slate-900">{ORDER_LABELS.oldest}</option>
+                            <option value="name_asc" className="bg-slate-900">{ORDER_LABELS.name_asc}</option>
+                            <option value="name_desc" className="bg-slate-900">{ORDER_LABELS.name_desc}</option>
+                            <option value="size_desc" className="bg-slate-900">{ORDER_LABELS.size_desc}</option>
+                            <option value="size_asc" className="bg-slate-900">{ORDER_LABELS.size_asc}</option>
+                        </select>
+                        <Icon name="angle-down" className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[10px]" />
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors lg:hidden"
+                        onClick={onToggleMobileSidebar}
+                        type="button"
+                        title="Ver lista de videos"
+                    >
+                        <Icon name="list" className="text-[14px]" />
+                    </button>
+                    <button
+                        className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/5 text-slate-400 hover:text-[hsl(var(--accent))] transition-colors"
+                        onClick={onOpenVisualSettings}
+                        type="button"
+                        title="Configuracoes Visuais"
+                    >
+                        <Icon name="settings" className="text-[14px]" />
+                    </button>
+                </div>
+            </div>
+            {/* Very subtle divider to separate from content below */}
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mt-2"></div>
         </div>
     );
 }

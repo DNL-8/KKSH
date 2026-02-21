@@ -57,8 +57,8 @@ export function LessonSidebar({
   );
 
   const wrapperClasses = mobile
-    ? "h-full w-[340px] max-w-[92vw] border-l border-cyan-500/30 bg-[#061127] shadow-2xl flex flex-col"
-    : "files-panel h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px]";
+    ? "h-full w-[340px] max-w-[92vw] border-l border-white/10 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl flex flex-col"
+    : "h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl";
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -157,20 +157,20 @@ export function LessonSidebar({
     if (item.type === "header") {
       const { section, collapsed, completedCount } = item;
       return (
-        <div className="mt-2 px-3 pb-1 first:mt-0 pt-1">
-          <div className="files-panel-elevated flex items-center justify-between gap-2 rounded-t-xl px-3 py-2.5">
-            <div className="min-w-0">
-              <p className="truncate files-display text-[10px] uppercase text-slate-300" title={section.path} role="heading" aria-level={3}>
+        <div className="mt-1 px-2 first:mt-0">
+          <div className="group flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-800/20 px-3 py-2 transition-colors hover:bg-slate-800/40">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors" title={section.path} role="heading" aria-level={3}>
                 {section.path}
               </p>
-              <p className="text-[10px] font-mono text-cyan-200/70">
-                {completedCount}/{section.lessons.length}
+              <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 group-hover:text-slate-400">
+                {completedCount} / {section.lessons.length} aulas
               </p>
             </div>
             <button
               aria-expanded={!collapsed}
               aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-              className="rounded-md border border-cyan-500/30 bg-[#0b1e39] p-1.5 text-slate-300 transition-colors hover:text-cyan-200 disabled:opacity-40"
+              className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-40"
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
               type="button"
@@ -178,7 +178,6 @@ export function LessonSidebar({
               {collapsed ? <Icon name="angle-right" className="text-[14px]" /> : <Icon name="angle-down" className="text-[14px]" />}
             </button>
           </div>
-          {collapsed && <div className="h-1 rounded-b-xl border-x border-b border-cyan-900/40 bg-[#041022]" />}
         </div>
       );
     }
@@ -188,39 +187,36 @@ export function LessonSidebar({
     const lessonCompleted = isLessonCompleted(lesson);
     const itemNumber = String(lessonIndex + 1).padStart(2, "0");
     const storageLabel = formatStorageKind(lesson).toUpperCase();
-    const storageHint = lesson.storageKind === "bridge"
-      ? "STREAM"
-      : lesson.storageKind === "handle"
-        ? "HANDLE"
-        : lesson.storageKind === "chunks"
-          ? "CHUNKS"
-          : "BLOB";
 
     return (
-      <div className="px-3">
+      <div className="px-2">
         <button
-          className={`group flex w-full items-start gap-3 border-x border-cyan-900/50 bg-[#030d1d] px-3 py-3 text-left transition-all hover:bg-[#0a1b33] ${active
-            ? "bg-gradient-to-r from-cyan-500/18 to-transparent"
-            : ""
-            } last:rounded-b-xl last:border-b`}
+          className={`group relative flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-all hover:bg-white/[0.03] ${active
+            ? "bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.2)]"
+            : "border border-transparent"
+            }`}
           data-active={active ? "true" : "false"}
           aria-current={active ? "true" : undefined}
           aria-label={`Selecionar aula ${lesson.name}`}
           onClick={() => onSelectLesson(lesson.id)}
           type="button"
         >
+          {active && (
+            <div className="absolute left-0 top-1/2 -mt-3 h-6 w-1 rounded-r-full bg-[hsl(var(--accent))] shadow-[0_0_10px_rgba(var(--glow),0.8)]" />
+          )}
+
           <div
-            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-mono ${lessonCompleted
-              ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-300"
+            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-black transition-colors ${lessonCompleted
+              ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
               : active
-                ? "border-cyan-400 bg-cyan-500/20 text-cyan-200"
-                : "border-slate-700 bg-slate-900 text-slate-500"
+                ? "border-[hsl(var(--accent)/0.5)] bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
+                : "border-slate-700/50 bg-slate-800/30 text-slate-500 group-hover:border-slate-600 group-hover:text-slate-400"
               }`}
           >
             {lessonCompleted ? (
               <Icon name="check-circle" className="text-[12px]" />
             ) : active ? (
-              <span className="h-2.5 w-2.5 rounded-full bg-cyan-300" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--accent-light))] shadow-[0_0_8px_rgba(var(--glow),0.6)]" />
             ) : (
               <span>{itemNumber}</span>
             )}
@@ -228,32 +224,32 @@ export function LessonSidebar({
 
           <div className="min-w-0 flex-1">
             <p
-              className={`truncate text-sm font-medium leading-tight transition-colors ${active ? "text-cyan-200" : "text-slate-200 group-hover:text-cyan-200"
+              className={`truncate text-[13px] font-bold leading-tight transition-colors ${active ? "text-[hsl(var(--accent-light))]" : "text-slate-300 group-hover:text-white"
                 }`}
             >
-              {itemNumber}. {lesson.name}
+              {lesson.name}
             </p>
             {lessonCompleted ? (
-              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-300">
-                <span className="rounded border border-emerald-500/45 bg-emerald-500/10 px-1.5 py-0.5">
-                  Concluida (+XP)
+              <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-emerald-400/80">
+                <span className="rounded bg-emerald-500/10 px-1.5 py-0.5">
+                  Concluída (+XP)
                 </span>
               </div>
             ) : (
-              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                <span className="rounded border border-slate-700/70 bg-slate-900/85 px-1.5 py-0.5">
+              <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                <span className="rounded bg-slate-800/50 px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
                   {formatBytes(lesson.size)}
                 </span>
-                <span>{storageLabel} [{storageHint}]</span>
+                <span>{storageLabel}</span>
               </div>
             )}
           </div>
 
           {active && (
-            <div className="mt-1 flex h-5 items-end gap-0.5 self-center">
-              <span className="h-2 w-0.5 animate-pulse rounded bg-cyan-300" />
-              <span className="h-4 w-0.5 animate-pulse rounded bg-cyan-200 [animation-delay:120ms]" />
-              <span className="h-3 w-0.5 animate-pulse rounded bg-cyan-300 [animation-delay:240ms]" />
+            <div className="mt-1 flex h-4 items-end gap-0.5 self-center">
+              <span className="h-2 w-0.5 animate-pulse rounded bg-[hsl(var(--accent-light))] opacity-80" />
+              <span className="h-3.5 w-0.5 animate-pulse rounded bg-[hsl(var(--accent-light))] opacity-90 [animation-delay:120ms]" />
+              <span className="h-2.5 w-0.5 animate-pulse rounded bg-[hsl(var(--accent-light))] opacity-80 [animation-delay:240ms]" />
             </div>
           )}
         </button>
