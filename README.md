@@ -10,7 +10,7 @@ Aplicacao fullstack com backend FastAPI e frontend React + Vite + Tailwind, serv
 - Banco: Postgres (Docker) / SQLite (local)
 - Cache/rate limiting compartilhado: Redis
 - E2E: Playwright
-- CI: GitHub Actions
+- CI: GitHub Actions (Branch protection estrita, pnpm lint, typecheck, pytest 70+, pip-audit para CVEs)
 
 ## Rotas web
 
@@ -72,15 +72,14 @@ O frontend usa `POST /api/v1/ai/hunter` (sem chave no cliente). A chave Gemini f
 - A tela `Arquivos` carrega videos locais via seletor do navegador (`input file`).
 - Tambem e possivel carregar uma pasta inteira; o app importa apenas os arquivos de video encontrados.
 - Para bibliotecas grandes, use `Conectar pasta (alto volume)` (File System Access API) para catalogar por handle sem copiar todo blob para o IndexedDB.
-- O layout segue o modelo de curso: player principal + trilha lateral por pasta + abas de detalhes.
-- Ao carregar pasta, o app preserva o caminho relativo (estrutura de pastas) e organiza as aulas por pasta na trilha lateral.
-- Controles disponiveis: `Selecionar videos`, `Carregar pasta`, `Conectar pasta (alto volume)`, `Ordem` e `Limpar biblioteca`.
-- Em mobile, o painel de conteudo abre como drawer/overlay via botao `Conteudo`.
+- O layout foi totalmente refatorado sob o sistema Glassmorphism, abandonando a antiga trilha lateral. Agora, os itens dividem-se magicamente em abas ("Conteúdo" e "Uploads") com exibições em grade (Cards translúcidos limpos).
+- Controles disponiveis via Header elegante: `Selecionar Arquivos/Pastas`, ordenação flexível e botões de `Limpar biblioteca`.
+- Em mobile, o grid e todo AppShell repensa o espaço em bottom-tabs nativos pra máxima legibilidade on-the-go.
 - Os videos ficam salvos no IndexedDB local (`cmd8_local_media` / `videos`).
 - Itens podem ficar em dois modos: `Local (Blob)` ou `Conectado (Handle)`.
 - Meta operacional atual do app: ate `5000` videos catalogados por navegador/perfil.
 - Em falta de espaco de quota para blobs, a importacao continua e os excedentes entram como `sem espaco` no resumo.
-- A trilha lateral carrega em blocos por pasta (120 iniciais + `Mostrar mais`) para manter responsividade com colecoes grandes.
+- A grade de arquivos utiliza barra de paginação fixada no `Bottom` para manter altíssima responsividade com colecoes grandes de imagens/vídeos.
 - Nao ha upload de midia para o backend nesta fase.
 - Por seguranca do navegador, o app nao acessa caminho absoluto do sistema operacional.
 - O modo `Conectar pasta` exige navegador Chromium; mover/deletar arquivos no disco pode invalidar handles.
