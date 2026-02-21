@@ -140,7 +140,7 @@ function ExpandedNavItem({ item, index, sfx, isLight }: { item: NavItem; index: 
             <NavLink
                 to={item.path}
                 onClick={() => sfx("navigate")}
-                className="relative flex items-center w-full rounded-2xl gap-4 px-4 transition-all duration-200"
+                className="relative flex items-center w-full rounded-2xl gap-5 px-5 transition-all duration-200"
                 style={{
                     paddingTop: 14,
                     paddingBottom: 14,
@@ -243,7 +243,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     </Link>
                     {isSidebarOpen && (
                         <div className="animate-in fade-in slide-in-from-left-6 min-w-0 overflow-hidden duration-300">
-                            <h1 className="truncate text-xl font-black uppercase italic leading-none tracking-tight text-white">
+                            <h1 className={`truncate text-xl font-black uppercase italic leading-none tracking-tight ${isLightTheme ? "text-slate-800" : "text-white"}`}>
                                 {themeId === "sololeveling" ? (
                                     <>System <span className="text-[hsl(var(--accent))]">Leveling</span></>
                                 ) : (
