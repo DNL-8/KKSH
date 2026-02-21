@@ -18,5 +18,5 @@ email-validator==2.2.0
 google-genai>=1.0.0
 cryptography==46.0.5
 # libsql-experimental>=0.0.10
-gunicorn==21.2.0
+gunicorn==22.0.0
 # sqlalchemy-libsql>=0.1.0
