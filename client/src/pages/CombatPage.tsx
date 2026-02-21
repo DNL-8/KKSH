@@ -5,6 +5,9 @@ import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { Badge, StatPill } from "../components/common";
 import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
+import { CombatQuizModal } from "../components/combat/CombatQuizModal";
+import { CombatResultOverlay } from "../components/combat/CombatResultOverlay";
+import { CombatHUD } from "../components/combat/CombatHUD";
 import type { AppShellContextValue } from "../layout/types";
 import {
   ApiRequestError,
@@ -287,42 +290,11 @@ export function CombatPage() {
   return (
     <div className={`animate-in slide-in-from-bottom-8 duration-1000 ${shake ? "animate-shake" : ""}`} data-testid="combat-page">
       {turnState === "PLAYER_QUIZ" && currentQuestion && (
-        <div
-          className="absolute inset-0 z-50 flex items-center justify-center bg-[#02050a]/80 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300"
-          data-testid="quiz-modal"
-        >
-          <div className="w-full max-w-2xl rounded-[40px] border border-cyan-500/30 bg-[#050813]/90 p-10 shadow-[0_0_60px_rgba(34,211,238,0.15),inset_0_0_30px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-            <div className="mb-8 flex items-center justify-between border-b border-cyan-500/20 pb-6">
-              <h3 className="flex items-center gap-3 text-lg font-black uppercase tracking-widest text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]">
-                <Icon name="brain" />
-                Desafio Incursão
-              </h3>
-              <Badge color="border-cyan-500/30 bg-cyan-500/10 text-cyan-300" icon="crossed-swords">
-                Dano Crítico
-              </Badge>
-            </div>
-
-            <p className="mb-10 text-xl font-bold leading-relaxed text-white drop-shadow-md" data-testid="quiz-question-text">
-              {currentQuestion.text}
-            </p>
-
-            <div className="grid gap-4">
-              {currentQuestion.options.map((option, index) => (
-                <button
-                  key={`${currentQuestion.id}-${index}`}
-                  onClick={() => void handleAnswer(index)}
-                  className="group flex w-full items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-left transition-all duration-300 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(34,211,238,0.2),inset_0_0_10px_rgba(34,211,238,0.1)] hover:-translate-y-1 disabled:opacity-60"
-                  type="button"
-                  disabled={answering}
-                  data-testid={`quiz-option-${index}`}
-                >
-                  <span className="text-sm font-bold text-slate-300 transition-colors group-hover:text-white group-hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]">{option}</span>
-                  <Icon name="arrow-right" className="text-cyan-400 opacity-0 transition-opacity group-hover:opacity-100 text-[18px]" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <CombatQuizModal
+          question={currentQuestion}
+          answering={answering}
+          onAnswer={handleAnswer}
+        />
       )}
 
       <div className="relative flex min-h-[60vh] flex-col items-center overflow-hidden rounded-[56px] border border-red-900/30 bg-[#050506] p-6 shadow-[inset_0_0_100px_rgba(220,38,38,0.1)] md:min-h-[750px] md:p-12">
@@ -366,84 +338,14 @@ export function CombatPage() {
           </div>
         </div>
 
-        {turnState === "VICTORY" && (
-          <div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000"
-            data-testid="combat-victory-overlay"
-          >
-            <div className="absolute inset-0 bg-emerald-950/20 backdrop-blur-xl mix-blend-overlay" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050813]/80 to-[#050813]" />
-
-            <div className="relative z-10 flex flex-col items-center gap-6 text-center">
-              <div className="rounded-full bg-emerald-500/20 p-8 shadow-[0_0_100px_rgba(16,185,129,0.5),inset_0_0_30px_rgba(16,185,129,0.3)] border border-emerald-500/30">
-                <Icon name="trophy" className="text-emerald-400 text-[56px] drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]" />
-              </div>
-              <h2 className="text-5xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-emerald-200 drop-shadow-[0_0_20px_rgba(16,185,129,0.5)] md:text-7xl">Vitoria!</h2>
-              <p className="text-sm font-black uppercase tracking-[0.4em] text-emerald-300 drop-shadow-md">{bossName} derrotado</p>
-              <div className="flex gap-4 mt-2">
-                <StatPill label="XP ganho" value="Backend" color="text-yellow-400" />
-                <StatPill label="Loot" value="Sincronizado" color="text-purple-400" />
-              </div>
-              <div className="flex gap-5 mt-4">
-                <button
-                  onClick={resetBattle}
-                  className="mt-4 flex items-center gap-3 rounded-[32px] border border-emerald-500/40 bg-emerald-900/40 px-8 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all hover:bg-emerald-800/60 hover:shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:-translate-y-1"
-                  type="button"
-                  data-testid="combat-victory-retry"
-                >
-                  <Icon name="crossed-swords" className="text-[18px]" />
-                  Batalhar novamente
-                </button>
-                <button
-                  onClick={handleNextChallenge}
-                  className="mt-4 flex items-center gap-3 rounded-[32px] bg-gradient-to-r from-emerald-600 to-emerald-400 px-12 py-5 text-xs font-black uppercase tracking-[0.3em] text-black shadow-[0_20px_60px_rgba(16,185,129,0.5)] transition-all hover:scale-105 hover:shadow-[0_20px_80px_rgba(16,185,129,0.7)] active:scale-95"
-                  type="button"
-                  data-testid="combat-victory-next-module"
-                >
-                  <Icon name="bolt" className="text-[20px]" />
-                  Proximo modulo
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {turnState === "DEFEAT" && (
-          <div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000"
-            data-testid="combat-defeat-overlay"
-          >
-            <div className="absolute inset-0 bg-red-950/20 backdrop-blur-xl mix-blend-overlay" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0505]/80 to-[#0a0505]" />
-
-            <div className="relative z-10 flex flex-col items-center gap-6 text-center">
-              <div className="rounded-full bg-red-500/20 p-8 shadow-[0_0_100px_rgba(239,68,68,0.5),inset_0_0_30px_rgba(239,68,68,0.3)] border border-red-500/30">
-                <Icon name="skull" className="text-red-400 text-[56px] drop-shadow-[0_0_15px_rgba(248,113,113,0.8)]" />
-              </div>
-              <h2 className="text-5xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-red-200 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] md:text-7xl">Derrota</h2>
-              <p className="text-sm font-black uppercase tracking-[0.4em] text-red-300 drop-shadow-md">Sincronia Interrompida</p>
-              <div className="flex gap-5 mt-6">
-                <button
-                  onClick={resetBattle}
-                  className="mt-4 flex items-center gap-3 rounded-[32px] border border-red-500/40 bg-red-900/40 px-8 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-red-200 shadow-[0_0_30px_rgba(239,68,68,0.15)] transition-all hover:bg-red-800/60 hover:shadow-[0_0_40px_rgba(239,68,68,0.3)] hover:-translate-y-1"
-                  type="button"
-                  data-testid="combat-defeat-retry"
-                >
-                  <Icon name="crossed-swords" className="text-[18px]" />
-                  Tentar novamente
-                </button>
-                <button
-                  onClick={() => navigate("/revisoes")}
-                  className="mt-4 flex items-center gap-3 rounded-[32px] border border-white/5 bg-white/[0.05] backdrop-blur-md px-12 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-xl transition-all hover:bg-white/[0.1] hover:scale-105 active:scale-95"
-                  type="button"
-                  data-testid="combat-defeat-back"
-                >
-                  <Icon name="bolt" className="text-[20px]" />
-                  Voltar revisoes
-                </button>
-              </div>
-            </div>
-          </div>
+        {(turnState === "VICTORY" || turnState === "DEFEAT") && (
+          <CombatResultOverlay
+            result={turnState === "VICTORY" ? "victory" : "defeat"}
+            bossName={bossName}
+            onRetry={resetBattle}
+            onNext={handleNextChallenge}
+            onBack={() => navigate("/revisoes")}
+          />
         )}
 
         <div className="relative z-20 mt-12 w-full max-w-3xl space-y-10 text-center">
@@ -461,47 +363,14 @@ export function CombatPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-4">
-              <div className="flex items-end justify-between px-4">
-                <span className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-red-500 drop-shadow-sm">
-                  <Icon name="skull" className="text-[18px]" />
-                  HP boss
-                </span>
-                <span className="font-mono text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-red-100 drop-shadow-sm">
-                  <span data-testid="enemy-hp-value">{enemyHp}</span>/<span data-testid="enemy-hp-max">{enemyMaxHp}</span>
-                </span>
-              </div>
-              <div className="h-8 w-full overflow-hidden rounded-3xl border border-red-950/50 bg-black/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-red-950/30 backdrop-blur-sm p-1">
-                <div
-                  className={`relative h-full rounded-2xl bg-gradient-to-r from-red-900 via-red-600 to-red-400 shadow-[0_0_20px_rgba(239,68,68,0.6),inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-700 ease-out ${widthPercentClass(hpPercent)}`}
-                  data-testid="enemy-hp-bar"
-                >
-                  <div className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)]" />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-end justify-between px-4">
-                <span className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-400 drop-shadow-sm">
-                  <Icon name="shield" className="text-[18px]" />
-                  HP Operador
-                </span>
-                <span className="font-mono text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-100 drop-shadow-sm">
-                  <span data-testid="player-hp-value">{playerHp}</span>/<span data-testid="player-hp-max">{playerMaxHp}</span>
-                </span>
-              </div>
-              <div className="h-8 w-full overflow-hidden rounded-3xl border border-cyan-950/50 bg-black/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-cyan-950/30 backdrop-blur-sm p-1">
-                <div
-                  className={`relative h-full rounded-2xl bg-gradient-to-r from-blue-900 via-blue-500 to-cyan-400 shadow-[0_0_20px_rgba(59,130,246,0.6),inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-700 ease-out ${widthPercentClass(playerHpPercent)}`}
-                  data-testid="player-hp-bar"
-                >
-                  <div className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)]" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <CombatHUD
+            enemyHp={enemyHp}
+            enemyMaxHp={enemyMaxHp}
+            playerHp={playerHp}
+            playerMaxHp={playerMaxHp}
+            hpPercent={hpPercent}
+            playerHpPercent={playerHpPercent}
+          />
 
           <div className="mask-linear-fade flex h-24 flex-col items-center justify-end space-y-1 overflow-hidden font-mono text-[10px] text-slate-500" data-testid="combat-log-list">
             {combatLogs.map((log, index) => (
