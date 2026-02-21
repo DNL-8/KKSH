@@ -28,6 +28,7 @@ def test_ai_hunter_maps_provider_quota_to_429(client, csrf_headers, monkeypatch)
         gc_module, "_create_client_tuple",
         lambda **_: (_QuotaClient(), "gemini-2.0-flash", {}),
     )
+    monkeypatch.setattr(gc_module, "get_api_key", lambda **kwargs: "fake-key")
 
     response = client.post(
         "/api/v1/ai/hunter",
@@ -51,6 +52,7 @@ def test_ai_hunter_keeps_502_for_non_quota_upstream_errors(client, csrf_headers,
         gc_module, "_create_client_tuple",
         lambda **_: (_UpstreamClient(), "gemini-2.0-flash", {}),
     )
+    monkeypatch.setattr(gc_module, "get_api_key", lambda **kwargs: "fake-key")
 
     response = client.post(
         "/api/v1/ai/hunter",
