@@ -1,4 +1,5 @@
 from sqlmodel import select
+from datetime import datetime, timezone
 
 from app.core.audit import idempotency_key_hash
 from app.db import get_session
@@ -74,7 +75,7 @@ def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers
 
     payload = {
         "eventType": "video.lesson.completed",
-        "occurredAt": "2026-02-14T15:22:00Z",
+        "occurredAt": datetime.now(timezone.utc).isoformat(),
         "sourceRef": source_ref,
         "payload": {
             "minutes": 12,
@@ -87,7 +88,7 @@ def test_events_are_idempotent_and_append_single_ledger_row(client, csrf_headers
         json=payload,
         headers=_headers(csrf_headers, idem_key),
     )
-    assert r1.status_code == 200, r1.json()
+    assert r1.status_code == 200
     body1 = r1.json()
     assert body1["applied"] is True
     assert body1["xpDelta"] > 0
@@ -129,7 +130,7 @@ def test_events_require_source_ref_and_idempotency_key(client, csrf_headers):
         "/api/v1/events",
         json={
             "eventType": "video.lesson.completed",
-            "occurredAt": "2026-02-14T15:22:00Z",
+            "occurredAt": datetime.now(timezone.utc).isoformat(),
             "payload": {"minutes": 5},
         },
         headers=_headers(csrf_headers, "event-missing-source"),
@@ -141,7 +142,7 @@ def test_events_require_source_ref_and_idempotency_key(client, csrf_headers):
         "/api/v1/events",
         json={
             "eventType": "video.lesson.completed",
-            "occurredAt": "2026-02-14T15:22:00Z",
+            "occurredAt": datetime.now(timezone.utc).isoformat(),
             "sourceRef": "session:missing",
             "payload": {"minutes": 5},
         },
