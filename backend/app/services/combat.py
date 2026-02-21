@@ -14,7 +14,7 @@ from app.services.backend_first import (
 )
 from app.services.combat_content import CombatModule, get_combat_module
 from app.services.inventory import use_inventory_item
-from app.services.progression import apply_xp_gold, get_or_create_user_stats, progress_to_dict
+from app.services.progression import apply_vitals, apply_xp_gold, get_or_create_user_stats, progress_to_dict
 
 PLAYER_MAX_HP = 100
 WORLD_BOSS_HP = 9_999_999
@@ -370,6 +370,10 @@ def answer_question(
         enemy_damage = _roll_boss_damage(str(battle.enemy_rank))
         battle.player_hp = max(0, int(battle.player_hp) - enemy_damage)
         battle.current_question_id = None
+        
+        if enemy_damage > 0:
+            apply_vitals(session, user, hp_delta=-enemy_damage, autocommit=False)
+            
         if int(battle.player_hp) <= 0:
             battle.status = "defeat"
             battle.turn_state = "DEFEAT"

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { RouteProgressBar } from "../components/common/RouteProgressBar";
 import { ThemeBackground } from "../components/common/ThemeBackground";
 import { ScrollToTop } from "../components/common/ScrollToTop";
@@ -47,6 +48,7 @@ export function AppShell() {
   const location = useLocation();
   const { globalStats, authUser, openAuthPanel } = useAuth();
   const { preferences } = usePreferences();
+  const { isLightTheme, theme } = useTheme();
 
   /* Boot splash */
   useEffect(() => {
@@ -129,7 +131,10 @@ export function AppShell() {
   }
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden font-sans text-slate-300 selection:bg-[hsl(var(--accent)/0.3)]">
+    <div
+      className="relative flex min-h-screen overflow-hidden font-sans text-slate-300 selection:bg-[hsl(var(--accent)/0.3)]"
+      style={isLightTheme ? { background: theme.bgGradient } : undefined}
+    >
       {/* Skip to content — visible only on keyboard focus */}
       <a
         href="#main-content"
@@ -137,12 +142,13 @@ export function AppShell() {
       >
         Pular para o conteúdo
       </a>
-      <ThemeBackground />
+      {/* Theme background image (dark themes only) */}
+      {!isLightTheme && <ThemeBackground />}
       <ScrollToTop />
       <RouteProgressBar />
 
-      {/* CRT scanline overlay + flicker */}
-      {preferences.glitchEffects && (
+      {/* CRT scanline overlay + flicker — dark themes only */}
+      {preferences.glitchEffects && !isLightTheme && (
         <div className="crt-overlay pointer-events-none fixed inset-0 z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.01),rgba(0,255,0,0.01),rgba(0,0,255,0.01))] bg-[length:100%_2px,3px_100%] opacity-20 mix-blend-overlay" />
       )}
 

@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 /*  Theme definitions                                                 */
 /* ------------------------------------------------------------------ */
 
-export type ThemeId = "matrix" | "naruto" | "dragonball" | "sololeveling" | "hxh" | "lotr";
+export type ThemeId = "matrix" | "naruto" | "dragonball" | "sololeveling" | "hxh" | "lotr" | "ios26";
 
 interface ThemeColors {
     /** Primary accent HSL values (without `hsl()` wrapper) for CSS vars */
@@ -17,6 +17,8 @@ interface ThemeColors {
     bgGradient: string;
     /** CSS overlay color/opacity, e.g. "rgba(0,0,0,0.7)" */
     overlayColor: string;
+    /** Whether this is a light-mode theme (e.g. iOS 26 Liquid Glass) */
+    isLight?: boolean;
 }
 
 const THEMES: Record<ThemeId, ThemeColors> = {
@@ -68,6 +70,27 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         bgGradient: "linear-gradient(to top, #0a1f1d 0%, #000000 100%)",
         overlayColor: "rgba(10, 15, 20, 0.85)",
     },
+    ios26: {
+        accent: "211 100% 50%",
+        accentLight: "211 100% 65%",
+        glow: "0, 122, 255",
+        bgImage: "",
+        bgGradient: [
+            /* Hot amber / sunset bottom-right */
+            "radial-gradient(ellipse 130% 70% at 100% 120%, rgba(255,140,20,1.0) 0%, rgba(255,100,0,0.7) 20%, transparent 55%)",
+            /* Magenta/purple accent top-left */
+            "radial-gradient(ellipse 100% 60% at -5% -5%, rgba(180,80,255,0.85) 0%, rgba(120,60,220,0.5) 30%, transparent 60%)",
+            /* Cool azure sky top-right */
+            "radial-gradient(ellipse 90% 50% at 110% 0%, rgba(60,160,255,0.90) 0%, rgba(30,130,240,0.5) 30%, transparent 60%)",
+            /* Warm lilac center blend */
+            "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(220,180,255,0.25) 0%, transparent 70%)",
+            /* Base: warm white */
+            "linear-gradient(180deg, #e8e0ff 0%, #f8e8ff 25%, #ffe8d8 65%, #ffcf80 100%)"
+        ].join(", "),
+        overlayColor: "rgba(255,255,255,0)",
+        isLight: true,
+    },
+
 };
 
 const STORAGE_KEY = "cmd8_hud_theme";
@@ -80,6 +103,7 @@ interface ThemeContextValue {
     themeId: ThemeId;
     setTheme: (id: ThemeId) => void;
     theme: ThemeColors;
+    isLightTheme: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -113,6 +137,13 @@ function applyThemeVars(id: ThemeId) {
     root.style.setProperty("--accent", theme.accent);
     root.style.setProperty("--accent-light", theme.accentLight);
     root.style.setProperty("--glow", theme.glow);
+    if (theme.isLight) {
+        root.classList.add("theme-light");
+        root.style.colorScheme = "light";
+    } else {
+        root.classList.remove("theme-light");
+        root.style.colorScheme = "dark";
+    }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -129,7 +160,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         } catch { /* ignore */ }
     }, []);
 
-    const value = useMemo(() => ({ themeId, setTheme, theme: THEMES[themeId] }), [themeId, setTheme]);
+    const isLightTheme = THEMES[themeId].isLight === true;
+    const value = useMemo(() => ({ themeId, setTheme, theme: THEMES[themeId], isLightTheme }), [themeId, setTheme, isLightTheme]);
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

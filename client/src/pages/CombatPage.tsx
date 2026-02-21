@@ -72,8 +72,6 @@ export function CombatPage() {
   }, [queryClient]);
 
   // Battle State
-  const [bossName, setBossName] = useState("World Boss");
-  const [bossRank, setBossRank] = useState("S");
   const [battleId, setBattleId] = useState<string | null>(null);
   const [loginRequired, setLoginRequired] = useState(false);
   const [enemyHp, setEnemyHp] = useState(WORLD_BOSS_HP);
@@ -145,8 +143,6 @@ export function CombatPage() {
         });
         setLoginRequired(false);
         applyBattleState(result.battleState);
-        setBossName(result.boss.name);
-        setBossRank(result.boss.rank);
         setEnemyMaxHp(result.boss.hp);
         setEnemyHp(result.boss.hp);
         pushCombatLog(`Link neural estabelecido. Incursão ao Setor Iniciada.`);
@@ -210,6 +206,7 @@ export function CombatPage() {
 
         if (result.enemyDamage > 0) {
           pushCombatLog(`Dano recebido: -${result.enemyDamage} HP`);
+          void invalidateProgressCaches();
         }
 
         if (result.playerDamage > 0 || result.enemyDamage > 0) {
@@ -381,7 +378,7 @@ export function CombatPage() {
                       {mod.difficulty}
                     </span>
                     <span className="text-[10px] font-bold text-slate-500">
-                      {mod.totalQuestions} Nodes
+                      {mod.questions.length} Nodes
                     </span>
                   </div>
                 </div>

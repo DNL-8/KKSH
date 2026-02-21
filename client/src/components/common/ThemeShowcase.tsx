@@ -12,6 +12,7 @@ interface ThemeMeta {
     color: string;       // hex
     glow: string;        // rgb for shadows
     bgImage: string;
+    bgGradient?: string; // optional gradient fallback (used when bgImage is empty)
     icon: string;        // emoji
 }
 
@@ -69,6 +70,16 @@ const THEME_METAS: ThemeMeta[] = [
         glow: "192, 192, 192",
         bgImage: "/assets/themes/lotr.gif",
         icon: "💍",
+    },
+    {
+        id: "ios26",
+        name: "iOS 26 LIQUID GLASS",
+        subtitle: "Leve, Fluido e Premium",
+        color: "#007AFF",
+        glow: "0, 122, 255",
+        bgImage: "",
+        bgGradient: "radial-gradient(ellipse at 20% 0%, rgba(255,200,255,0.6) 0%, transparent 60%), radial-gradient(ellipse at 80% 10%, rgba(200,230,255,0.8) 0%, transparent 60%), linear-gradient(160deg, #f5f0ff 0%, #e8f4ff 100%)",
+        icon: "🍎",
     },
 ];
 
@@ -205,7 +216,7 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
                 <div
                     className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${isActive ? "scale-110 opacity-80" : "scale-100 opacity-40 group-hover:scale-105 group-hover:opacity-60"
                         }`}
-                    style={{ backgroundImage: `url(${meta.bgImage})` }}
+                    style={{ backgroundImage: meta.bgImage ? `url(${meta.bgImage})` : meta.bgGradient ?? undefined }}
                 />
                 {/* Spotlight follow cursor */}
                 <div

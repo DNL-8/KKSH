@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { HistoryPopover } from "../components/topbar/HistoryPopover";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
 import { useSfx } from "../hooks/useSfx";
 import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
@@ -57,6 +58,7 @@ interface TopBarProps {
 export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const { globalStats, authUser, openAuthPanel } = useAuth();
     const { preferences } = usePreferences();
+    const { isLightTheme } = useTheme();
     const location = useLocation();
     const sfx = useSfx();
     const historyPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -146,8 +148,19 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     return (
         <header className="z-40 shrink-0 px-4 pb-0 pt-4 md:px-8">
             <div
-                className="w-full rounded-[24px] border border-[hsl(var(--accent)/0.15)] bg-[linear-gradient(180deg,#040b24_0%,#030a1b_100%)] px-3 py-3 shadow-[0_20px_50px_rgba(2,12,40,0.45)] md:px-4 backdrop-blur-xl"
+                className="w-full rounded-[24px] border px-3 py-3 md:px-4 backdrop-blur-xl"
                 data-testid="top-command-panel"
+                style={isLightTheme ? {
+                    background: "rgba(255,255,255,0.48)",
+                    backdropFilter: "blur(60px) saturate(3) brightness(1.12)",
+                    WebkitBackdropFilter: "blur(60px) saturate(3) brightness(1.12)",
+                    borderColor: "rgba(255,255,255,0.75)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.04)",
+                } : {
+                    background: "linear-gradient(180deg,#040b24 0%,#030a1b 100%)",
+                    borderColor: "hsl(var(--accent)/0.15)",
+                    boxShadow: "0 20px 50px rgba(2,12,40,0.45)",
+                }}
             >
                 <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
                     <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
