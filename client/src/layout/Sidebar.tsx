@@ -224,7 +224,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
     return (
         <aside
             data-testid="shell-sidebar"
-            className={`hidden flex-col border-r border-slate-900 bg-[#02050a]/95 backdrop-blur-2xl transition-all duration-500 lg:flex ${isSidebarOpen ? "w-80" : "w-[88px]"
+            className={`hidden flex-col border-r border-white/20 liquid-glass transition-all duration-500 lg:flex ${isSidebarOpen ? "w-80" : "w-[88px]"
                 }`}
         >
             {/* Subtle accent glow at top */}
@@ -271,7 +271,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
 
                 <button
                     aria-label={isSidebarOpen ? "Ativar modo so icones" : "Ativar modo com texto"}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-[#0a111d] text-slate-600 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent)/0.05)] hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 liquid-glass-inner text-slate-800 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-white/20 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
                     data-testid="sidebar-mode-toggle"
                     onClick={handleToggle}
                     type="button"

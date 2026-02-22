@@ -249,7 +249,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                         </button>
 
                         <div
-                            className="flex min-w-0 items-center gap-3 rounded-[16px] border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 px-3 py-1.5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)]"
+                            className="flex min-w-0 items-center gap-3 rounded-[16px] border border-white/20 liquid-glass-inner px-3 py-1.5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)]"
                             data-testid="top-status-rank"
                         >
                             <div className="flex items-center gap-2 border-r border-[hsl(var(--accent)/0.2)] pr-3">
@@ -298,7 +298,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <button
                             aria-label={authUser ? "Conta conectada" : "Abrir login"}
-                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90"
+                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90"
                             data-testid="header-auth-button"
                             onClick={() => { sfx("tick"); openAuthPanel(); }}
                             type="button"

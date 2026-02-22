@@ -142,7 +142,7 @@ export function AppShell() {
         Pular para o conteúdo
       </a>
       {/* Theme background — light themes use a fixed wallpaper div, dark themes use ThemeBackground */}
-      {!isLightTheme && <ThemeBackground />}
+
       <ScrollToTop />
       <RouteProgressBar />
 

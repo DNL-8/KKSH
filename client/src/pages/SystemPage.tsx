@@ -1,6 +1,6 @@
-
-import { Icon } from '../components/common/Icon';
-import { useSystemRPG, getRank, getNextRank } from '../lib/systemStore';
+import { useState, useEffect } from "react";
+import { Icon } from "../components/common/Icon";
+import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 
 // --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
 const globalStyles = `
@@ -25,51 +25,6 @@ const globalStyles = `
   .animate-pulse-glow { animation: pulseGlow 4s ease-in-out infinite; }
   .animate-screen { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   
-  
-  /* iOS 16 Liquid Glass System */
-  .ios-bg {
-    background: radial-gradient(circle at 10% 20%, rgba(216, 241, 255, 0.4) 0%, rgba(233, 226, 255, 0.5) 90%),
-                radial-gradient(circle at 90% 80%, rgba(255, 232, 242, 0.5) 0%, rgba(220, 245, 255, 0.6) 90%),
-                linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%);
-    background-size: 200% 200%;
-    background-attachment: fixed;
-    animation: gradientFlow 15s ease infinite alternate;
-  }
-  @keyframes gradientFlow {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-  }
-  
-  .liquid-glass {
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-  }
-  
-  .liquid-glass-inner {
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(12px) saturate(120%);
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
-  }
-  
-  .liquid-btn {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    transition: all 0.3s ease;
-  }
-  .liquid-btn:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-  }
-
-
   /* Efeitos 3D Suaves */
   .card-3d-wrap {
     perspective: 1000px;
@@ -214,7 +169,7 @@ const WEEKLY_DUNGEONS = [
 
 // Componente Visual: Janela de Sistema 3D Refinada
 const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => (
-    <div className={`relative liquid-glass-inner backdrop-blur-2xl border border-cyan-500/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
+    <div className={`relative liquid-glass-inner backdrop-blur-2xl border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
         <div className="liquid-glass-inner border-b px-5 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -242,7 +197,7 @@ export function SystemPage() {
     useEffect(() => {
         let interval: any;
         if (screen === 'workout') {
-            interval = setInterval(() => setWorkoutTimer((prev) => prev + 1), 1000);
+            interval = setInterval(() => setWorkoutTimer((prev: number) => prev + 1), 1000);
         } else {
             clearInterval(interval);
         }
@@ -251,7 +206,7 @@ export function SystemPage() {
 
     const toggleBlock = (blockId: string) => {
         if (completedBlocks.includes(blockId)) {
-            setCompletedBlocks(completedBlocks.filter(id => id !== blockId));
+            setCompletedBlocks(completedBlocks.filter((id: string = "") => id !== blockId));
         } else {
             setCompletedBlocks([...completedBlocks, blockId]);
         }
@@ -274,16 +229,16 @@ export function SystemPage() {
 
         setXpGainedInfo({ blocks: xpBlocks, time: xpTime, streak: streakBonus, total: totalXpGained, simulatedMinutes });
 
-        const newXp = user.xp + totalXpGained;
+        const newXp = (user.xp || 0) + totalXpGained;
         setUser((prev: any) => ({
             xp: newXp,
-            streak: prev.streak + 1,
-            active_minutes: prev.active_minutes + simulatedMinutes,
-            completed_raids: prev.completed_raids + 1,
-            vigor: prev.vigor + (blocksCount >= 4 ? 2 : 0),
-            forca: prev.forca + (blocksCount >= 3 ? 2 : 0),
-            inteligencia: prev.inteligencia + 1,
-            agilidade: prev.agilidade + 1
+            streak: (prev.streak || 0) + 1,
+            active_minutes: (prev.active_minutes || 0) + simulatedMinutes,
+            completed_raids: (prev.completed_raids || 0) + 1,
+            vigor: (prev.vigor || 10) + (blocksCount >= 4 ? 2 : 0),
+            forca: (prev.forca || 10) + (blocksCount >= 3 ? 2 : 0),
+            inteligencia: (prev.inteligencia || 10) + 1,
+            agilidade: (prev.agilidade || 10) + 1
         }));
 
         setScreen('summary');
@@ -300,14 +255,12 @@ export function SystemPage() {
     // --- ECRÃS ---
 
     const renderOnboarding = () => (
-        <div className="min-h-[calc(100vh-10rem)] ios-bg flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden rounded-[32px] border border-cyan-900/40">
-
-
+        <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden">
             <div className="animate-screen w-full max-w-md z-10">
                 <SystemWindow title="AVISO DO SISTEMA">
                     <div className="text-center mb-8 relative">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
-                        <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                        <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float" />
                         <h1 className="text-2xl font-black tracking-widest text-slate-900 uppercase">
                             Sincronização
                         </h1>
@@ -315,7 +268,7 @@ export function SystemPage() {
                     </div>
 
                     <form onSubmit={(e) => { e.preventDefault(); setScreen('dashboard'); }} className="space-y-6">
-                        <div className="bg-slate-200/30 p-4 border border-slate-300/50 rounded-lg">
+                        <div className="liquid-glass-inner p-4 border border-white/10 rounded-lg">
                             <h3 className="text-[10px] font-mono text-cyan-500 mb-4 uppercase tracking-[0.2em] flex items-center gap-2">
                                 <Icon name="target" className="text-sm" /> Itens no Inventário
                             </h3>
@@ -326,7 +279,7 @@ export function SystemPage() {
                                     { icon: "hexagon", text: '4x Anilhas de 5kg (20kg)', color: 'text-cyan-400' },
                                     { icon: "sword", text: 'Barra Fixa (Épico)', color: 'text-purple-400' },
                                 ].map((item, idx) => (
-                                    <li key={idx} className="flex items-center gap-3 p-2 hover:liquid-glass rounded transition-colors">
+                                    <li key={idx} className="flex items-center gap-3 p-2 hover:liquid-glass-inner rounded transition-colors">
                                         <Icon name={item.icon} className={`text-base ${item.color}`} />
                                         <span className="font-medium tracking-wide">{item.text}</span>
                                     </li>
@@ -344,80 +297,65 @@ export function SystemPage() {
     );
 
     const renderDashboard = () => {
-        const rankObj = getRank(user.xp);
-        const nextRank = getNextRank(user.xp);
-        const progressToNext = Math.min(100, Math.max(0, ((user.xp - rankObj.minXp) / (nextRank.minXp - rankObj.minXp)) * 100));
+        const rankObj = getRank(user.xp || 0);
+        const nextRank = getNextRank(user.xp || 0);
+        const progressToNext = Math.min(100, Math.max(0, (((user.xp || 0) - rankObj.minXp) / (nextRank.minXp - rankObj.minXp)) * 100));
 
-        // Simular que hoje é "Segunda" para a primeira raid
         const featuredDungeon = WEEKLY_DUNGEONS[0];
         const upcomingDungeons = WEEKLY_DUNGEONS.slice(1);
 
         return (
-            <div className="min-h-[calc(100vh-10rem)] ios-bg text-slate-800 p-4 md:p-8 font-sans relative rounded-[32px] border border-cyan-900/40">
-
-
+            <div className="min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 font-sans relative">
                 <div className="animate-screen max-w-4xl mx-auto space-y-8 relative z-10 pb-10">
-
-                    {/* Cartão do Jogador */}
                     <SystemWindow title="STATUS DO JOGADOR" icon="shield">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-3xl sm:text-4xl font-black text-slate-900 uppercase tracking-widest">
-                                    {user.name}
+                                    {user.name || "Jogador"}
                                 </h2>
-                                <div className="flex items-center gap-2 mt-2 bg-slate-200/50 px-3 py-1.5 rounded-md border border-slate-300/50 w-max">
+                                <div className="flex items-center gap-2 mt-2 liquid-glass-inner px-3 py-1.5 rounded-md border border-white/10 w-max">
                                     <span className="text-[10px] font-mono text-cyan-500/80 uppercase">Classe:</span>
-                                    <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">Monarca das Sombras</span>
+                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Solo Leveler</span>
                                 </div>
                             </div>
-
-                            {/* Rank */}
                             <div className="relative group shrink-0">
-                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-slate-300 ${rankObj.glow} rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
-                                    <div className="absolute inset-0 liquid-glass opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                                    <span className={`text-4xl font-black ${rankObj.color} drop-shadow-[0_0_15px_currentColor]`}>
+                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-white/20 rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
+                                    <span className={`text-4xl font-black ${rankObj.color}`}>
                                         {rankObj.name}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Barra de XP */}
                         <div className="mt-8">
                             <div className="flex justify-between text-[10px] font-mono mb-2 uppercase tracking-widest">
-                                <span className="text-zinc-500">Energia Vital</span>
-                                <span className="text-cyan-400 font-bold">{user.xp} <span className="text-zinc-600">/ {nextRank.minXp} XP</span></span>
+                                <span className="text-slate-500">Energia Vital</span>
+                                <span className="text-cyan-600 font-bold">{user.xp || 0} <span className="text-slate-400">/ {nextRank.minXp} XP</span></span>
                             </div>
-                            <div className="w-full bg-slate-200 h-2 rounded-full border border-slate-300/50 overflow-hidden">
+                            <div className="w-full liquid-glass-inner h-2 rounded-full border border-white/10 overflow-hidden">
                                 <div
-                                    className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)] transition-all duration-1000 ease-out relative"
+                                    className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)] transition-all duration-1000 ease-out"
                                     style={{ width: `${progressToNext}%` }}
-                                >
-                                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/40 to-transparent"></div>
-                                </div>
+                                />
                             </div>
                         </div>
                     </SystemWindow>
 
-                    {/* Missão em Destaque (Próxima) */}
                     <div className="space-y-3">
-                        <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
+                        <h3 className="text-[10px] font-mono text-cyan-600 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
                             <Icon name="pulse" className="text-sm" /> Próxima Missão
                         </h3>
-
                         <div
                             onClick={() => startDungeon(featuredDungeon)}
-                            className="group cursor-pointer liquid-glass p-8 rounded-3xl shadow-lg hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all relative overflow-hidden"
+                            className="group cursor-pointer liquid-glass-inner p-8 rounded-3xl shadow-lg hover:border-cyan-400 transition-all relative overflow-hidden"
                         >
-                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors"></div>
-
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-[10px] font-black font-mono text-slate-900 bg-cyan-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                                        <span className="text-[10px] font-black font-mono text-white bg-cyan-600 px-2 py-1 rounded uppercase tracking-widest">
                                             {featuredDungeon.day}
                                         </span>
-                                        <span className="text-[10px] font-mono text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded uppercase tracking-widest">
+                                        <span className="text-[10px] font-mono text-cyan-600 border border-cyan-500/30 px-2 py-1 rounded uppercase tracking-widest">
                                             Rank {featuredDungeon.rank}
                                         </span>
                                     </div>
@@ -426,104 +364,81 @@ export function SystemPage() {
                                     </h3>
                                     <p className="text-sm text-slate-600 mt-1">{featuredDungeon.type}</p>
                                 </div>
-
                                 <div className="flex items-center gap-4 liquid-glass-inner px-4 py-3 rounded-2xl w-max">
                                     <div className="flex items-center gap-2 text-slate-800 text-sm font-bold">
-                                        <Icon name="clock" className="text-sm text-cyan-500" /> ~{featuredDungeon.estimatedMinutes}m
+                                        <Icon name="clock" className="text-sm text-cyan-600" /> ~{featuredDungeon.estimatedMinutes}m
                                     </div>
-                                    <Icon name="angle-right" className="text-2xl text-cyan-500 group-hover:translate-x-1 transition-transform" />
+                                    <Icon name="angle-right" className="text-2xl text-cyan-600 group-hover:translate-x-1 transition-transform" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Outros Portais (Scroll Horizontal/Grid) */}
                     <div className="space-y-4">
-                        <h3 className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2 mt-8">
+                        <h3 className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2 mt-8">
                             <Icon name="calendar" className="text-sm" /> Agenda Semanal
                         </h3>
-
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {upcomingDungeons.map((dungeon) => (
                                 <div
                                     key={dungeon.id}
                                     onClick={() => startDungeon(dungeon)}
-                                    className="group cursor-pointer liquid-glass0 backdrop-blur-sm border border-zinc-800 p-5 rounded-2xl hover:bg-slate-100/80 hover:border-zinc-600 transition-all flex flex-col justify-between min-h-[120px]"
+                                    className="group cursor-pointer liquid-glass-inner p-5 rounded-2xl hover:border-cyan-400 transition-all flex flex-col justify-between min-h-[120px]"
                                 >
                                     <div>
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-black font-mono text-slate-900 bg-blue-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                                            <span className="text-[10px] font-black font-mono text-white bg-blue-500 px-2 py-1 rounded uppercase tracking-widest">
                                                 {dungeon.day}
                                             </span>
-                                            <span className="text-[10px] font-mono text-purple-400">
+                                            <span className="text-[10px] font-mono text-cyan-600">
                                                 R-{dungeon.rank}
                                             </span>
                                         </div>
-                                        <h4 className="font-bold text-sm text-slate-800 uppercase tracking-wide group-hover:text-slate-900 transition-colors line-clamp-2">
+                                        <h4 className="font-bold text-sm text-slate-800 uppercase tracking-wide group-hover:text-cyan-600 transition-colors line-clamp-2">
                                             {dungeon.title}
                                         </h4>
                                     </div>
                                 </div>
                             ))}
-                            <div className="liquid-glass-inner border border-zinc-900 border-dashed p-4 rounded-xl flex items-center justify-center min-h-[120px] opacity-50">
-                                <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest text-center flex flex-col items-center gap-2">
-                                    <Icon name="lock" className="text-base" /> Domingo: Zona Segura
-                                </span>
-                            </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         );
     };
 
     const renderPreview = () => (
-        <div className="min-h-[calc(100vh-10rem)] ios-bg text-slate-800 p-4 md:p-8 flex flex-col font-sans relative rounded-[32px] border border-cyan-900/40">
-
-
+        <div className="min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 flex flex-col font-sans relative">
             <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10 pb-6">
-
-                <button onClick={() => setScreen('dashboard')} className="self-start text-[10px] font-mono text-cyan-500/70 hover:text-cyan-400 mb-8 flex items-center uppercase tracking-[0.2em] transition-transform hover:-translate-x-1 bg-cyan-500/10 px-3 py-2 rounded-lg">
+                <button onClick={() => setScreen('dashboard')} className="self-start text-[10px] font-mono text-cyan-600 hover:text-cyan-500 mb-8 flex items-center uppercase tracking-[0.2em] transition-transform hover:-translate-x-1 liquid-glass-inner px-3 py-2 rounded-lg">
                     <Icon name="angle-left" className="text-sm mr-1" /> Voltar
                 </button>
 
                 <div className="mb-8 relative">
-                    <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-purple-500 to-cyan-500 rounded-full"></div>
-                    <span className="inline-block text-[10px] font-mono text-purple-400 border border-purple-500/30 bg-purple-500/10 px-2 py-1 rounded-md uppercase tracking-widest mb-3">
-                        Rank {activeDungeon.rank} • {activeDungeon.day}
+                    <span className="inline-block text-[10px] font-mono text-purple-600 border border-purple-500/30 liquid-glass-inner px-2 py-1 rounded-md uppercase tracking-widest mb-3">
+                        Rank {activeDungeon?.rank} • {activeDungeon?.day}
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3 drop-shadow-md">
-                        {activeDungeon.title}
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3">
+                        {activeDungeon?.title}
                     </h2>
-                    <div className="flex gap-4 text-sm font-medium text-slate-600 mb-6 liquid-glass-inner p-3 rounded-lg w-max border border-slate-300/50">
-                        <span className="flex items-center gap-1.5"><Icon name="pulse" className="text-sm text-cyan-500" /> {activeDungeon.type}</span>
-                        <span className="flex items-center gap-1.5"><Icon name="clock" className="text-sm text-cyan-500" /> ~{activeDungeon.estimatedMinutes}m</span>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-blue-900/30 to-transparent border-l-2 border-blue-500 p-5 rounded-r-lg">
-                        <p className="text-[11px] font-mono text-blue-200 uppercase tracking-widest flex items-start gap-4">
-                            <Icon name="flame" className="text-xl text-blue-400 shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">Aumentar 2 reps ou adicionar carga (+5kg) se o treino anterior foi fácil. O Sistema recompensa o esforço.</span>
-                        </p>
+                    <div className="flex gap-4 text-sm font-medium text-slate-600 mb-6 liquid-glass-inner p-3 rounded-lg w-auto max-w-max border border-white/10">
+                        <span className="flex items-center gap-1.5"><Icon name="pulse" className="text-sm text-cyan-600" /> {activeDungeon?.type}</span>
+                        <span className="flex items-center gap-1.5"><Icon name="clock" className="text-sm text-cyan-600" /> ~{activeDungeon?.estimatedMinutes}m</span>
                     </div>
                 </div>
 
-                <div className="flex-1 space-y-4 overflow-y-auto mb-8 pr-2">
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em] mb-2 pl-1">
-                        Alvos da Missão
-                    </div>
-                    {activeDungeon.blocks.map((block: any, idx: number) => (
-                        <div key={block.id} className="group bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-300/50 flex gap-4 items-center hover:bg-slate-100 transition-colors">
-                            <div className="w-10 h-10 rounded-xl bg-slate-200 border border-zinc-700 flex items-center justify-center text-xs font-mono font-bold text-zinc-500 shrink-0 group-hover:border-cyan-500/50 group-hover:text-cyan-400 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
+                <div className="flex-1 space-y-4 overflow-y-auto mb-8 pr-2 custom-scrollbar">
+                    {activeDungeon?.blocks.map((block: any, idx: number) => (
+                        <div key={block.id} className="group liquid-glass-inner p-5 rounded-2xl border border-white/10 flex gap-4 items-center hover:border-cyan-400 transition-colors">
+                            <div className="w-10 h-10 rounded-xl liquid-glass-inner border border-slate-300 flex items-center justify-center text-xs font-mono font-bold text-slate-500 shrink-0">
                                 {String(idx + 1).padStart(2, '0')}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-slate-800 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
-                                <p className="text-xs font-medium text-zinc-500 mt-1 truncate">{block.desc}</p>
+                                <p className="font-bold text-slate-900 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
+                                <p className="text-xs font-medium text-slate-500 mt-1 truncate">{block.desc}</p>
                             </div>
                             <div className="shrink-0 text-right">
-                                <span className="text-[11px] font-black font-mono text-cyan-400 bg-cyan-950/40 px-3 py-1.5 rounded-lg border border-cyan-900/50 whitespace-nowrap shadow-[inset_0_0_10px_rgba(6,182,212,0.1)]">
+                                <span className="text-[11px] font-black font-mono text-cyan-600 liquid-glass-inner px-3 py-1.5 rounded-lg border border-cyan-500/20 whitespace-nowrap">
                                     {block.time}
                                 </span>
                             </div>
@@ -533,7 +448,7 @@ export function SystemPage() {
 
                 <button
                     onClick={() => { setWorkoutTimer(0); setCompletedBlocks([]); setScreen('workout'); }}
-                    className="btn-danger mt-auto w-full py-5 text-slate-900 font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
+                    className="btn-danger w-full py-5 text-white font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
                 >
                     <Icon name="sword" className="text-xl" /> Iniciar Incursão
                 </button>
@@ -549,62 +464,48 @@ export function SystemPage() {
         };
 
         return (
-            <div className="min-h-screen ios-bg text-slate-800 p-4 md:p-8 flex flex-col relative font-sans">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100%] h-[300px] bg-red-900/10 blur-[100px] pointer-events-none animate-pulse-glow"></div>
-
+            <div className="min-h-screen text-slate-800 p-4 md:p-8 flex flex-col relative font-sans">
                 <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10">
-
-                    {/* Header Fixo - Timer */}
-                    <div className="bg-slate-200/60 backdrop-blur-xl border border-red-900/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
+                    <div className="liquid-glass-inner backdrop-blur-xl border border-red-500/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
                         <div>
-                            <p className="text-[11px] font-bold font-mono text-red-500/80 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></div> Em Combate
+                            <p className="text-[11px] font-bold font-mono text-red-600 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" /> Em Combate
                             </p>
-                            <p className="text-5xl md:text-6xl font-mono font-black text-slate-900 tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+                            <p className="text-5xl md:text-6xl font-mono font-black text-slate-900 tracking-widest">
                                 {formatTime(workoutTimer)}
                             </p>
                         </div>
-
                         <button
                             onClick={() => setShowSystemAlert(true)}
-                            className="group w-16 h-16 bg-blue-950/30 rounded-full border border-blue-500/30 flex items-center justify-center hover:bg-blue-900/50 transition-all hover:scale-105"
+                            className="group w-16 h-16 liquid-glass-inner rounded-full border border-cyan-500/30 flex items-center justify-center hover:scale-105 transition-transform"
                         >
-                            <Icon name="brain" className="text-3xl text-blue-400 drop-shadow-[0_0_8px_currentColor]" />
+                            <Icon name="brain" className="text-3xl text-cyan-600" />
                         </button>
                     </div>
 
-                    {/* Lista de Tarefas */}
-                    <div className="flex-1 space-y-4 overflow-y-auto pb-24 scrollbar-hide">
-                        {activeDungeon.blocks.map((block: any) => {
+                    <div className="flex-1 space-y-4 overflow-y-auto pb-40 custom-scrollbar">
+                        {activeDungeon?.blocks.map((block: any) => {
                             const isChecked = completedBlocks.includes(block.id);
                             return (
                                 <div
                                     key={block.id}
                                     onClick={() => toggleBlock(block.id)}
                                     className={`relative p-5 md:p-6 rounded-2xl cursor-pointer transition-all duration-300 border ${isChecked
-                                        ? 'liquid-glass-inner border-cyan-500/20 opacity-50 backdrop-blur-sm'
-                                        : 'bg-white/60 border-slate-300/50 hover:bg-slate-100/80 shadow-lg hover:-translate-y-0.5'
+                                        ? 'liquid-glass-inner opacity-40'
+                                        : 'liquid-glass-inner border-white/20 hover:border-cyan-400'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
-                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg transition-colors ${isChecked ? 'text-zinc-500 line-through decoration-zinc-600' : 'text-slate-900'}`}>
+                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
                                                 {block.title}
                                             </p>
-                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-zinc-600 line-through' : 'text-slate-600'}`}>
+                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-slate-400' : 'text-slate-600'}`}>
                                                 {block.desc}
                                             </p>
-                                            <div className="mt-4">
-                                                <span className={`inline-block text-[11px] font-bold font-mono px-3 py-1.5 rounded-lg border flex items-center gap-2 w-max ${isChecked ? 'border-zinc-800 text-zinc-600 bg-transparent' : 'border-zinc-700 text-cyan-400 bg-slate-200/50'}`}>
-                                                    <Icon name="clock" className="text-xs" /> {block.time}
-                                                </span>
-                                            </div>
                                         </div>
-
-                                        {/* Checkbox Recompensa */}
-                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${isChecked ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-zinc-700 bg-slate-200'
-                                            }`}>
-                                            {isChecked && <Icon name="check" className="text-2xl text-cyan-400 drop-shadow-md" />}
+                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${isChecked ? 'border-cyan-500 bg-cyan-500/20' : 'border-slate-300'}`}>
+                                            {isChecked && <Icon name="check" className="text-2xl text-cyan-600" />}
                                         </div>
                                     </div>
                                 </div>
@@ -612,24 +513,14 @@ export function SystemPage() {
                         })}
                     </div>
 
-                    {/* Bottom Action Area */}
-                    <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/90 to-transparent p-4 md:p-6 z-20">
+                    <div className="fixed bottom-0 left-0 w-full liquid-glass-inner border-t border-white/20 p-4 md:p-6 z-20 backdrop-blur-2xl">
                         <div className="max-w-xl mx-auto">
-                            <div className="flex justify-between items-center mb-2 px-2 opacity-50 hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={() => setWorkoutTimer(timer => timer + 3000)}
-                                    className="text-[10px] font-black font-mono text-zinc-500 hover:text-red-400 uppercase tracking-widest bg-red-950/30 px-3 py-1 rounded"
-                                >
-                                    [ Debug: +50 Min ]
-                                </button>
-                            </div>
-
                             <button
                                 onClick={finishWorkout}
                                 disabled={completedBlocks.length === 0}
-                                className={`w-full py-5 rounded-2xl font-black font-mono tracking-[0.2em] text-lg uppercase transition-all flex items-center justify-center gap-2 shadow-2xl ${completedBlocks.length > 0
-                                    ? 'btn-primary text-slate-900'
-                                    : 'bg-white border border-zinc-800 text-zinc-600 cursor-not-allowed'
+                                className={`w-full py-5 rounded-2xl font-black font-mono tracking-[0.2em] text-lg uppercase transition-all ${completedBlocks.length > 0
+                                    ? 'btn-primary text-white'
+                                    : 'liquid-glass-inner text-slate-400 cursor-not-allowed'
                                     }`}
                             >
                                 Extrair Recompensas
@@ -638,28 +529,14 @@ export function SystemPage() {
                     </div>
                 </div>
 
-                {/* Modal Mentor */}
                 {showSystemAlert && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-200/80 backdrop-blur-lg p-4">
-                        <div className="animate-screen bg-blue-950/80 border-2 border-blue-500/40 rounded-3xl max-w-sm w-full p-8 shadow-[0_0_50px_rgba(59,130,246,0.3)] relative overflow-hidden">
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full"></div>
-
-                            <button onClick={() => setShowSystemAlert(false)} className="absolute top-5 right-5 text-blue-400 hover:text-slate-900 bg-blue-900/50 rounded-full p-2 transition-colors z-10">
-                                <Icon name="cross" className="text-sm" />
-                            </button>
-
-                            <div className="flex items-center gap-4 mb-6 relative z-10">
-                                <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                                    <Icon name="brain" className="text-2xl text-blue-400 drop-shadow-[0_0_10px_currentColor]" />
-                                </div>
-                                <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest">Análise Tática</h3>
-                            </div>
-
-                            <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-8 relative z-10">
-                                Descanso é onde a força é forjada. Aguarde <strong className="text-slate-900 font-black liquid-glass-inner px-2 py-0.5 rounded">60-90s</strong> entre séries pesadas para restaurar HP/Mana antes do próximo ataque.
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">
+                        <div className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl">
+                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
+                            <p className="text-slate-700 text-sm leading-relaxed mb-8">
+                                O Sistema recomenda períodos de descanso de 60-90s entre as séries para maximizar o ganho de XP e regeneração de vigor.
                             </p>
-
-                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-400 hover:brightness-110 text-slate-900 text-sm font-black font-mono uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] relative z-10">
+                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 btn-primary text-white font-black font-mono uppercase rounded-xl">
                                 Entendido
                             </button>
                         </div>
@@ -670,57 +547,31 @@ export function SystemPage() {
     };
 
     const renderSummary = () => (
-        <div className="min-h-screen ios-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-[300px] h-[300px] bg-cyan-500/10 blur-[100px] rounded-full animate-pulse-glow"></div>
-            </div>
-
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
             <div className="animate-screen max-w-sm w-full relative z-10">
-
                 <div className="text-center mb-10">
-                    <div className="w-32 h-32 mx-auto bg-gradient-to-b from-yellow-400/20 to-transparent rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(250,204,21,0.2)]">
-                        <Icon name="trophy" className="text-[64px] text-yellow-400 drop-shadow-[0_0_15px_currentColor]" />
-                    </div>
-                    <p className="text-cyan-400 font-mono text-[11px] font-bold tracking-[0.4em] uppercase mb-3">Janela de Sistema</p>
-                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                        Concluído
-                    </h2>
+                    <Icon name="trophy" className="text-[64px] text-yellow-500 mb-4" />
+                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">Concluído</h2>
                 </div>
 
-                <SystemWindow title="Recompensas Adquiridas" className="mb-10 min-h-[auto]">
-                    <div className="space-y-5 text-sm">
-                        <div className="flex justify-between items-center liquid-glass p-3 rounded-xl border border-slate-300/50">
-                            <span className="text-slate-600 uppercase font-bold tracking-wider">Inimigos Mortos</span>
-                            <span className="text-cyan-400 font-mono font-black text-base drop-shadow-md">+{xpGainedInfo.blocks} XP</span>
+                <SystemWindow title="Recompensas Adquiridas">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
+                            <span className="text-slate-600 font-bold uppercase text-xs">Ações</span>
+                            <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.blocks} XP</span>
                         </div>
-                        <div className="flex justify-between items-center liquid-glass p-3 rounded-xl border border-slate-300/50">
-                            <span className="text-slate-600 uppercase font-bold tracking-wider">Tempo em Batalha</span>
-                            <span className="text-cyan-400 font-mono font-black text-base drop-shadow-md">+{xpGainedInfo.time} XP</span>
+                        <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
+                            <span className="text-slate-600 font-bold uppercase text-xs">Tempo</span>
+                            <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.time} XP</span>
                         </div>
-                        {xpGainedInfo.streak > 0 && (
-                            <div className="flex justify-between items-center bg-orange-500/10 p-3 rounded-xl border border-orange-500/30">
-                                <span className="text-orange-400 flex items-center gap-2 uppercase font-bold tracking-wider">
-                                    <Icon name="flame" className="text-lg drop-shadow-[0_0_5px_currentColor]" /> Combo Diário
-                                </span>
-                                <span className="text-orange-400 font-mono font-black text-base drop-shadow-md">+{xpGainedInfo.streak} XP</span>
-                            </div>
-                        )}
-
-                        <div className="pt-6 mt-4 flex justify-between items-center border-t border-slate-300 relative">
-                            <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-                            <span className="text-slate-900 uppercase tracking-widest font-black text-base">Total Ganho</span>
-                            <span className="text-yellow-400 font-mono text-3xl font-black drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">
-                                +{xpGainedInfo.total} <span className="text-lg">XP</span>
-                            </span>
+                        <div className="pt-4 mt-4 border-t border-slate-200 flex justify-between items-center">
+                            <span className="text-slate-900 font-black uppercase tracking-widest">Total</span>
+                            <span className="text-yellow-600 font-mono text-3xl font-black">+{xpGainedInfo?.total} XP</span>
                         </div>
                     </div>
                 </SystemWindow>
 
-                <button
-                    onClick={resetToDashboard}
-                    className="w-full py-5 border-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-950/50 hover:text-slate-900 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] rounded-2xl font-mono font-black tracking-[0.2em] text-sm uppercase transition-all"
-                >
+                <button onClick={resetToDashboard} className="w-full mt-8 py-5 btn-primary text-white rounded-2xl font-black uppercase tracking-widest">
                     Fechar Janela
                 </button>
             </div>
@@ -729,9 +580,8 @@ export function SystemPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen ios-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-
-                <div className="text-cyan-500 animate-pulse text-xl tracking-[0.3em] font-mono font-bold z-10 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+                <div className="text-cyan-600 animate-pulse text-xl tracking-[0.3em] font-mono font-bold">
                     NEURAL SINC... [UPLINK]
                 </div>
             </div>
@@ -741,7 +591,7 @@ export function SystemPage() {
     return (
         <>
             <style>{globalStyles}</style>
-            <div className="custom-scrollbar w-full h-full overflow-clip text-slate-900 transition-colors">
+            <div className="w-full h-full text-slate-900">
                 {screen === 'onboarding' && renderOnboarding()}
                 {screen === 'dashboard' && renderDashboard()}
                 {screen === 'preview' && renderPreview()}
