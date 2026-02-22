@@ -12,7 +12,7 @@ export function SystemPage() {
         <div className={`space-y-6 pb-20 ${isLoaded ? "animate-in fade-in duration-500" : "opacity-0"}`}>
             <div className="flex items-center gap-4 mb-8">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] shadow-[0_0_15px_rgba(var(--glow),0.1)]">
-                    <Icon name="server" className="text-[32px] text-[hsl(var(--accent))]" />
+                    <Icon name="gymnastics" className="w-9 h-9" />
                 </div>
                 <div>
                     <h1 className="text-3xl font-black uppercase italic tracking-tight text-white drop-shadow-sm md:text-4xl">Sistema</h1>

@@ -23,7 +23,7 @@ const NAV_ITEMS: NavItem[] = [
     { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: "play" },
     { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: "stats" },
     { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: "microchip" },
-    { id: "sistema", label: "Sistema", path: "/sistema", icon: "server" },
+    { id: "sistema", label: "Sistema", path: "/sistema", icon: "gymnastics" },
 ];
 
 export { NAV_ITEMS };
