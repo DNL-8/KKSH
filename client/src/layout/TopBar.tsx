@@ -11,6 +11,7 @@ import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
 import { widthPercentClass } from "../lib/percentClasses";
 import { NAV_ITEMS } from "./Sidebar";
 import { Icon } from "../components/common/Icon";
+import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 
 const HISTORY_SEEN_STORAGE_KEY = "cmd8_history_seen_fingerprint_v1";
 
@@ -70,9 +71,23 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
         [location.pathname],
     );
 
-    const hpPercent = Math.max(0, Math.min(100, Math.round(globalStats.hp)));
-    const manaPercent = Math.max(0, Math.min(100, Math.round(globalStats.mana)));
-    const xpPercent = Math.max(0, Math.min(100, Math.round((globalStats.xp / globalStats.maxXp) * 100)));
+    const [systemRPG] = useSystemRPG();
+    const isSystemPage = location.pathname === "/sistema";
+
+    const hpPercent = isSystemPage
+        ? Math.max(0, Math.min(100, Math.round(systemRPG.hp)))
+        : Math.max(0, Math.min(100, Math.round(globalStats.hp)));
+
+    const manaPercent = isSystemPage
+        ? Math.max(0, Math.min(100, Math.round(systemRPG.mana)))
+        : Math.max(0, Math.min(100, Math.round(globalStats.mana)));
+
+    const activeXpPercent = isSystemPage
+        ? (systemRPG.xp - getRank(systemRPG.xp).minXp) / (getNextRank(systemRPG.xp).minXp - getRank(systemRPG.xp).minXp) * 100
+        : (globalStats.xp / globalStats.maxXp) * 100;
+
+    const xpPercent = Math.max(0, Math.min(100, Math.round(activeXpPercent || 0)));
+    const displayLevel = isSystemPage ? systemRPG.level : globalStats.level;
 
     const animHp = useAnimatedNumber(hpPercent, 600);
     const animMana = useAnimatedNumber(manaPercent, 600);
@@ -192,7 +207,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             data-testid="top-level-card"
                         >
                             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Lvl</span>
-                            <span className="text-3xl font-black leading-none text-white transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)]">{globalStats.level}</span>
+                            <span className="text-3xl font-black leading-none text-white transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)]">{displayLevel}</span>
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-2">
@@ -248,7 +263,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Rank</span>
-                                <span className="text-base font-black text-[hsl(var(--accent))] drop-shadow-[0_0_6px_rgba(var(--glow),0.4)]">{globalStats.rank}</span>
+                                <span className="text-base font-black text-[hsl(var(--accent))] drop-shadow-[0_0_6px_rgba(var(--glow),0.4)]">{isSystemPage ? getRank(systemRPG.xp).name : globalStats.rank}</span>
                             </div>
                         </div>
 

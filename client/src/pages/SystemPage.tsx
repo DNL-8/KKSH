@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../components/common/Icon';
+import { useSystemRPG } from '../lib/systemStore';
 
 // --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
 const globalStyles = `
@@ -216,15 +217,7 @@ const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA",
 export function SystemPage() {
     const [screen, setScreen] = useState('onboarding');
 
-    const [user, setUser] = useState({
-        name: 'SUNG JIN-WOO',
-        xp: 0,
-        rank: RANKS[0],
-        streak: 0,
-        activeMinutes: 0,
-        completedRaids: 0,
-        attributes: { vigor: 10, forca: 15, agilidade: 8, inteligencia: 5 }
-    });
+    const [user, setUser] = useSystemRPG();
 
     const [activeDungeon, setActiveDungeon] = useState<any>(null);
     const [workoutTimer, setWorkoutTimer] = useState(0);
@@ -276,9 +269,7 @@ export function SystemPage() {
 
         const newXp = user.xp + totalXpGained;
         setUser(prev => ({
-            ...prev,
             xp: newXp,
-            rank: getRank(newXp),
             streak: prev.streak + 1,
             activeMinutes: prev.activeMinutes + simulatedMinutes,
             completedRaids: prev.completedRaids + 1,
@@ -349,8 +340,9 @@ export function SystemPage() {
     );
 
     const renderDashboard = () => {
+        const rankObj = getRank(user.xp);
         const nextRank = getNextRank(user.xp);
-        const progressToNext = Math.min(100, Math.max(0, ((user.xp - user.rank.minXp) / (nextRank.minXp - user.rank.minXp)) * 100));
+        const progressToNext = Math.min(100, Math.max(0, ((user.xp - rankObj.minXp) / (nextRank.minXp - rankObj.minXp)) * 100));
 
         // Simular que hoje é "Segunda" para a primeira raid
         const featuredDungeon = WEEKLY_DUNGEONS[0];
@@ -377,10 +369,10 @@ export function SystemPage() {
 
                             {/* Rank */}
                             <div className="relative group shrink-0">
-                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${user.rank.bg} border border-white/10 ${user.rank.glow} rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
+                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-white/10 ${rankObj.glow} rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
                                     <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                                    <span className={`text-4xl font-black ${user.rank.color} drop-shadow-[0_0_15px_currentColor]`}>
-                                        {user.rank.name}
+                                    <span className={`text-4xl font-black ${rankObj.color} drop-shadow-[0_0_15px_currentColor]`}>
+                                        {rankObj.name}
                                     </span>
                                 </div>
                             </div>
