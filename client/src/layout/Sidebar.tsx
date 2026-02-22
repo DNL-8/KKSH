@@ -236,10 +236,21 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                 <div className={`flex min-w-0 items-center ${isSidebarOpen ? "gap-3" : "justify-center"}`}>
                     <Link
                         to="/hub"
-                        className="group relative flex h-12 w-12 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
+                        className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isLightTheme
+                                ? "border border-white/60 bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white/70"
+                                : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
+                            }`}
                     >
-                        <div className="absolute inset-0 rounded-2xl bg-[hsl(var(--accent)/0.2)] opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
-                        <Icon name="hexagon" className="relative z-10 text-[hsl(var(--accent))] text-2xl transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.8)]" />
+                        {!isLightTheme && (
+                            <div className="absolute inset-0 rounded-2xl bg-[hsl(var(--accent)/0.2)] opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
+                        )}
+                        <Icon
+                            name="hexagon"
+                            className={`relative z-10 text-2xl transition-transform duration-300 group-hover:scale-110 ${isLightTheme
+                                    ? "text-[#007AFF] drop-shadow-sm"
+                                    : "text-[hsl(var(--accent))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.8)]"
+                                }`}
+                        />
                     </Link>
                     {isSidebarOpen && (
                         <div className="animate-in fade-in slide-in-from-left-6 min-w-0 overflow-hidden duration-300">

@@ -995,21 +995,7 @@ select:focus-visible,
   box-shadow: none !important;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Active navigation — iOS blue pill                                  */
-/* ------------------------------------------------------------------ */
 
-.theme-light [aria-current="page"],
-.theme-light .active-ios26 {
-  background: var(--lg-blue) !important;
-  color: white !important;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.40), var(--lg-specular);
-}
-
-.theme-light nav a:not([aria-current="page"]) {
-  color: var(--lg-text-secondary);
-}
 
 /* Sidebar active indicator */
 .theme-light aside [class*="bg-\[hsl(var(--accent)\/0.1\)"] {
@@ -1366,14 +1352,7 @@ select:focus-visible,
   background: rgba(0, 0, 0, 0.25);
 }
 
-/* iOS pill active nav item */
-.theme-light [aria-current="page"],
-.theme-light .active-ios26 {
-  background: var(--lg-blue) !important;
-  color: white !important;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.35);
-}
+
 
 /* iOS-style primary button */
 .theme-light .btn-ios-primary {
