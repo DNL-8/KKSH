@@ -39,6 +39,10 @@ const NotFoundPage = lazy(async () => {
   const mod = await import("./pages/NotFoundPage");
   return { default: mod.NotFoundPage };
 });
+const SystemPage = lazy(async () => {
+  const mod = await import("./pages/SystemPage");
+  return { default: mod.SystemPage };
+});
 
 export function AppRouter() {
   return (
@@ -63,6 +67,7 @@ export function AppRouter() {
             <Route path="/arquivos" element={<FilesPage />} />
             <Route path="/evolucao" element={<EvolutionPage />} />
             <Route path="/ia" element={<AiPage />} />
+            <Route path="/sistema" element={<SystemPage />} />
             <Route path="/config" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

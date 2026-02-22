@@ -23,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
     { id: "arquivos", label: "Arquivos de Sincronia", path: "/arquivos", icon: "play" },
     { id: "evolucao", label: "Status de Evolucao", path: "/evolucao", icon: "stats" },
     { id: "ia", label: "Nucleo do Sistema", path: "/ia", icon: "microchip" },
+    { id: "sistema", label: "Sistema", path: "/sistema", icon: "server" },
 ];
 
 export { NAV_ITEMS };
@@ -237,8 +238,8 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     <Link
                         to="/hub"
                         className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isLightTheme
-                                ? "border border-white/60 bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white/70"
-                                : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
+                            ? "border border-white/60 bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white/70"
+                            : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
                             }`}
                     >
                         {!isLightTheme && (
@@ -247,8 +248,8 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                         <Icon
                             name="hexagon"
                             className={`relative z-10 text-2xl transition-transform duration-300 group-hover:scale-110 ${isLightTheme
-                                    ? "text-[#007AFF] drop-shadow-sm"
-                                    : "text-[hsl(var(--accent))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.8)]"
+                                ? "text-[#007AFF] drop-shadow-sm"
+                                : "text-[hsl(var(--accent))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.8)]"
                                 }`}
                         />
                     </Link>
