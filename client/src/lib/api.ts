@@ -841,3 +841,47 @@ export async function submitDrillReview(payload: DrillReviewIn, idempotencyKey?:
   });
 }
 
+// ------------------------------------------------------------------
+// SYSTEM RPG FITNESS
+// ------------------------------------------------------------------
+
+export interface SystemRPGStatsOut {
+  name: string;
+  xp: number;
+  level: number;
+  hp: number;
+  mana: number;
+  streak: number;
+  active_minutes: number;
+  completed_raids: number;
+  vigor: number;
+  forca: number;
+  agilidade: number;
+  inteligencia: number;
+}
+
+export interface SystemRPGStatsUpdate {
+  name?: string;
+  xp?: number;
+  level?: number;
+  hp?: number;
+  mana?: number;
+  streak?: number;
+  active_minutes?: number;
+  completed_raids?: number;
+  vigor?: number;
+  forca?: number;
+  agilidade?: number;
+  inteligencia?: number;
+}
+
+export async function getSystemRpgStats(): Promise<SystemRPGStatsOut> {
+  return requestJson<SystemRPGStatsOut>("/api/v1/system-rpg", { method: "GET" });
+}
+
+export async function patchSystemRpgStats(payload: SystemRPGStatsUpdate): Promise<SystemRPGStatsOut> {
+  return requestJson<SystemRPGStatsOut>("/api/v1/system-rpg", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}

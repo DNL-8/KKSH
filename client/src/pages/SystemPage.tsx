@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../components/common/Icon';
-import { useSystemRPG } from '../lib/systemStore';
+import { useSystemRPG, getRank, getNextRank } from '../lib/systemStore';
 
 // --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
 const globalStyles = `
@@ -25,25 +25,50 @@ const globalStyles = `
   .animate-pulse-glow { animation: pulseGlow 4s ease-in-out infinite; }
   .animate-screen { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   
-  /* Sistema Holográfico Refinado */
-  .hologram-bg {
-    background-color: transparent;
-    background-image: 
-      radial-gradient(circle at 50% 0%, rgba(8, 145, 178, 0.1) 0%, transparent 50%),
-      linear-gradient(rgba(8, 145, 178, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(8, 145, 178, 0.03) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
+  
+  /* iOS 16 Liquid Glass System */
+  .ios-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(216, 241, 255, 0.4) 0%, rgba(233, 226, 255, 0.5) 90%),
+                radial-gradient(circle at 90% 80%, rgba(255, 232, 242, 0.5) 0%, rgba(220, 245, 255, 0.6) 90%),
+                linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%);
+    background-size: 200% 200%;
     background-attachment: fixed;
+    animation: gradientFlow 15s ease infinite alternate;
+  }
+  @keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
   }
   
-  .scanline {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 15vh;
-    background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.05), transparent);
-    animation: scanline 10s linear infinite;
-    pointer-events: none;
-    z-index: 100;
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
   }
+  
+  .liquid-glass-inner {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  }
+  
+  .liquid-btn {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+  }
+  .liquid-btn:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  }
+
 
   /* Efeitos 3D Suaves */
   .card-3d-wrap {
@@ -79,16 +104,6 @@ const globalStyles = `
 `;
 
 // --- CONSTANTES E REGRAS DO JOGO ---
-const RANKS = [
-    { name: 'F', minXp: 0, color: 'text-zinc-400', glow: 'shadow-[0_0_15px_rgba(161,161,170,0.4)]', border: 'border-zinc-600', bg: 'from-zinc-800 to-zinc-950' },
-    { name: 'E', minXp: 50, color: 'text-slate-200', glow: 'shadow-[0_0_20px_rgba(226,232,240,0.5)]', border: 'border-slate-500', bg: 'from-slate-700 to-slate-950' },
-    { name: 'D', minXp: 150, color: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(52,211,153,0.5)]', border: 'border-emerald-500', bg: 'from-emerald-900 to-zinc-950' },
-    { name: 'C', minXp: 400, color: 'text-cyan-400', glow: 'shadow-[0_0_25px_rgba(34,211,238,0.6)]', border: 'border-cyan-500', bg: 'from-cyan-900 to-zinc-950' },
-    { name: 'B', minXp: 800, color: 'text-purple-400', glow: 'shadow-[0_0_30px_rgba(168,85,247,0.6)]', border: 'border-purple-500', bg: 'from-purple-900 to-zinc-950' },
-    { name: 'A', minXp: 1500, color: 'text-red-500', glow: 'shadow-[0_0_35px_rgba(239,68,68,0.7)]', border: 'border-red-500', bg: 'from-red-900 to-zinc-950' },
-    { name: 'S', minXp: 3000, color: 'text-yellow-400', glow: 'shadow-[0_0_40px_rgba(250,204,21,0.8)]', border: 'border-yellow-400', bg: 'from-yellow-900 to-zinc-950' },
-];
-
 const WEEKLY_DUNGEONS = [
     {
         id: 'seg',
@@ -199,9 +214,9 @@ const WEEKLY_DUNGEONS = [
 
 // Componente Visual: Janela de Sistema 3D Refinada
 const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => (
-    <div className={`relative bg-zinc-950/80 backdrop-blur-2xl border border-cyan-500/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
+    <div className={`relative ios-bg/80 backdrop-blur-2xl border border-cyan-500/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-        <div className="bg-black/40 border-b border-white/5 px-5 py-3 flex justify-between items-center">
+        <div className="liquid-glass-inner border-b px-5 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <Icon name={icon} className="text-sm text-cyan-400 opacity-80" />
                 <span className="text-cyan-400 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] font-semibold">{title}</span>
@@ -217,20 +232,12 @@ const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA",
 export function SystemPage() {
     const [screen, setScreen] = useState('onboarding');
 
-    const [user, setUser] = useSystemRPG();
-
+    const [user, setUser, isLoading] = useSystemRPG();
     const [activeDungeon, setActiveDungeon] = useState<any>(null);
     const [workoutTimer, setWorkoutTimer] = useState(0);
     const [completedBlocks, setCompletedBlocks] = useState<any[]>([]);
     const [xpGainedInfo, setXpGainedInfo] = useState<any>(null);
     const [showSystemAlert, setShowSystemAlert] = useState(false);
-
-    const getRank = (xp: number) => [...RANKS].reverse().find(r => xp >= r.minXp) || RANKS[0];
-
-    const getNextRank = (xp: number) => {
-        const currentIdx = RANKS.findIndex(r => r.name === getRank(xp).name);
-        return currentIdx < RANKS.length - 1 ? RANKS[currentIdx + 1] : RANKS[RANKS.length - 1];
-    };
 
     useEffect(() => {
         let interval: any;
@@ -268,18 +275,15 @@ export function SystemPage() {
         setXpGainedInfo({ blocks: xpBlocks, time: xpTime, streak: streakBonus, total: totalXpGained, simulatedMinutes });
 
         const newXp = user.xp + totalXpGained;
-        setUser(prev => ({
+        setUser((prev: any) => ({
             xp: newXp,
             streak: prev.streak + 1,
-            activeMinutes: prev.activeMinutes + simulatedMinutes,
-            completedRaids: prev.completedRaids + 1,
-            attributes: {
-                ...prev.attributes,
-                vigor: prev.attributes.vigor + (blocksCount >= 4 ? 2 : 0),
-                forca: prev.attributes.forca + (blocksCount >= 3 ? 2 : 0),
-                inteligencia: prev.attributes.inteligencia + 1,
-                agilidade: prev.attributes.agilidade + 1
-            }
+            active_minutes: prev.active_minutes + simulatedMinutes,
+            completed_raids: prev.completed_raids + 1,
+            vigor: prev.vigor + (blocksCount >= 4 ? 2 : 0),
+            forca: prev.forca + (blocksCount >= 3 ? 2 : 0),
+            inteligencia: prev.inteligencia + 1,
+            agilidade: prev.agilidade + 1
         }));
 
         setScreen('summary');
@@ -296,33 +300,33 @@ export function SystemPage() {
     // --- ECRÃS ---
 
     const renderOnboarding = () => (
-        <div className="min-h-[calc(100vh-10rem)] hologram-bg flex flex-col items-center justify-center p-6 text-zinc-300 font-sans relative overflow-hidden rounded-[32px] border border-cyan-900/40">
-            <div className="scanline"></div>
+        <div className="min-h-[calc(100vh-10rem)] ios-bg flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden rounded-[32px] border border-cyan-900/40">
+
 
             <div className="animate-screen w-full max-w-md z-10">
                 <SystemWindow title="AVISO DO SISTEMA">
                     <div className="text-center mb-8 relative">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
                         <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-                        <h1 className="text-2xl font-black tracking-widest text-white uppercase">
+                        <h1 className="text-2xl font-black tracking-widest text-slate-900 uppercase">
                             Sincronização
                         </h1>
                         <p className="mt-2 text-xs text-cyan-400/60 font-mono tracking-widest">NOVO ARSENAL DETETADO</p>
                     </div>
 
                     <form onSubmit={(e) => { e.preventDefault(); setScreen('dashboard'); }} className="space-y-6">
-                        <div className="bg-black/30 p-4 border border-white/5 rounded-lg">
+                        <div className="bg-slate-200/30 p-4 border border-slate-300/50 rounded-lg">
                             <h3 className="text-[10px] font-mono text-cyan-500 mb-4 uppercase tracking-[0.2em] flex items-center gap-2">
                                 <Icon name="target" className="text-sm" /> Itens no Inventário
                             </h3>
-                            <ul className="text-sm text-zinc-400 space-y-3">
+                            <ul className="text-sm text-slate-600 space-y-3">
                                 {[
                                     { icon: "dumbbell", text: 'Barra 1,50m', color: 'text-cyan-400' },
                                     { icon: "dumbbell", text: 'Barra curta 20cm (Halter)', color: 'text-cyan-400' },
                                     { icon: "hexagon", text: '4x Anilhas de 5kg (20kg)', color: 'text-cyan-400' },
                                     { icon: "sword", text: 'Barra Fixa (Épico)', color: 'text-purple-400' },
                                 ].map((item, idx) => (
-                                    <li key={idx} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded transition-colors">
+                                    <li key={idx} className="flex items-center gap-3 p-2 hover:liquid-glass rounded transition-colors">
                                         <Icon name={item.icon} className={`text-base ${item.color}`} />
                                         <span className="font-medium tracking-wide">{item.text}</span>
                                     </li>
@@ -330,7 +334,7 @@ export function SystemPage() {
                             </ul>
                         </div>
 
-                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-black uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-white uppercase tracking-[0.2em] flex items-center justify-center gap-2">
                             Aceder ao Sistema <Icon name="angle-right" className="text-xl" />
                         </button>
                     </form>
@@ -349,8 +353,8 @@ export function SystemPage() {
         const upcomingDungeons = WEEKLY_DUNGEONS.slice(1);
 
         return (
-            <div className="min-h-[calc(100vh-10rem)] hologram-bg text-zinc-300 p-4 md:p-8 font-sans relative rounded-[32px] border border-cyan-900/40">
-                <div className="scanline"></div>
+            <div className="min-h-[calc(100vh-10rem)] ios-bg text-slate-800 p-4 md:p-8 font-sans relative rounded-[32px] border border-cyan-900/40">
+
 
                 <div className="animate-screen max-w-4xl mx-auto space-y-8 relative z-10 pb-10">
 
@@ -358,10 +362,10 @@ export function SystemPage() {
                     <SystemWindow title="STATUS DO JOGADOR" icon="shield">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-widest">
+                                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 uppercase tracking-widest">
                                     {user.name}
                                 </h2>
-                                <div className="flex items-center gap-2 mt-2 bg-black/50 px-3 py-1.5 rounded-md border border-white/5 w-max">
+                                <div className="flex items-center gap-2 mt-2 bg-slate-200/50 px-3 py-1.5 rounded-md border border-slate-300/50 w-max">
                                     <span className="text-[10px] font-mono text-cyan-500/80 uppercase">Classe:</span>
                                     <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">Monarca das Sombras</span>
                                 </div>
@@ -369,8 +373,8 @@ export function SystemPage() {
 
                             {/* Rank */}
                             <div className="relative group shrink-0">
-                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-white/10 ${rankObj.glow} rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
-                                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-slate-300 ${rankObj.glow} rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
+                                    <div className="absolute inset-0 liquid-glass opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
                                     <span className={`text-4xl font-black ${rankObj.color} drop-shadow-[0_0_15px_currentColor]`}>
                                         {rankObj.name}
                                     </span>
@@ -384,7 +388,7 @@ export function SystemPage() {
                                 <span className="text-zinc-500">Energia Vital</span>
                                 <span className="text-cyan-400 font-bold">{user.xp} <span className="text-zinc-600">/ {nextRank.minXp} XP</span></span>
                             </div>
-                            <div className="w-full bg-black h-2 rounded-full border border-white/5 overflow-hidden">
+                            <div className="w-full bg-slate-200 h-2 rounded-full border border-slate-300/50 overflow-hidden">
                                 <div
                                     className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)] transition-all duration-1000 ease-out relative"
                                     style={{ width: `${progressToNext}%` }}
@@ -403,28 +407,28 @@ export function SystemPage() {
 
                         <div
                             onClick={() => startDungeon(featuredDungeon)}
-                            className="group cursor-pointer bg-gradient-to-br from-cyan-950/40 to-blue-900/20 backdrop-blur-xl border border-cyan-500/30 p-8 rounded-3xl shadow-lg hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all relative overflow-hidden"
+                            className="group cursor-pointer liquid-glass p-8 rounded-3xl shadow-lg hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all relative overflow-hidden"
                         >
                             <div className="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors"></div>
 
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-[10px] font-black font-mono text-black bg-cyan-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                                        <span className="text-[10px] font-black font-mono text-white bg-cyan-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.5)]">
                                             {featuredDungeon.day}
                                         </span>
                                         <span className="text-[10px] font-mono text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded uppercase tracking-widest">
                                             Rank {featuredDungeon.rank}
                                         </span>
                                     </div>
-                                    <h3 className="text-3xl font-bold text-white uppercase tracking-wide">
+                                    <h3 className="text-3xl font-bold text-slate-900 uppercase tracking-wide">
                                         {featuredDungeon.title}
                                     </h3>
-                                    <p className="text-sm text-zinc-400 mt-1">{featuredDungeon.type}</p>
+                                    <p className="text-sm text-slate-600 mt-1">{featuredDungeon.type}</p>
                                 </div>
 
-                                <div className="flex items-center gap-4 bg-black/40 px-4 py-3 rounded-xl border border-white/5 w-max">
-                                    <div className="flex items-center gap-2 text-zinc-300 text-sm font-bold">
+                                <div className="flex items-center gap-4 liquid-glass-inner px-4 py-3 rounded-2xl w-max">
+                                    <div className="flex items-center gap-2 text-slate-800 text-sm font-bold">
                                         <Icon name="clock" className="text-sm text-cyan-500" /> ~{featuredDungeon.estimatedMinutes}m
                                     </div>
                                     <Icon name="angle-right" className="text-2xl text-cyan-500 group-hover:translate-x-1 transition-transform" />
@@ -444,24 +448,24 @@ export function SystemPage() {
                                 <div
                                     key={dungeon.id}
                                     onClick={() => startDungeon(dungeon)}
-                                    className="group cursor-pointer bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-5 rounded-2xl hover:bg-zinc-800/80 hover:border-zinc-600 transition-all flex flex-col justify-between min-h-[120px]"
+                                    className="group cursor-pointer liquid-glass0 backdrop-blur-sm border border-zinc-800 p-5 rounded-2xl hover:bg-slate-100/80 hover:border-zinc-600 transition-all flex flex-col justify-between min-h-[120px]"
                                 >
                                     <div>
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                                            <span className="text-[10px] font-black font-mono text-white bg-blue-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                                                 {dungeon.day}
                                             </span>
                                             <span className="text-[10px] font-mono text-purple-400">
                                                 R-{dungeon.rank}
                                             </span>
                                         </div>
-                                        <h4 className="font-bold text-sm text-zinc-200 uppercase tracking-wide group-hover:text-white transition-colors line-clamp-2">
+                                        <h4 className="font-bold text-sm text-slate-800 uppercase tracking-wide group-hover:text-slate-900 transition-colors line-clamp-2">
                                             {dungeon.title}
                                         </h4>
                                     </div>
                                 </div>
                             ))}
-                            <div className="bg-black/40 border border-zinc-900 border-dashed p-4 rounded-xl flex items-center justify-center min-h-[120px] opacity-50">
+                            <div className="liquid-glass-inner border border-zinc-900 border-dashed p-4 rounded-xl flex items-center justify-center min-h-[120px] opacity-50">
                                 <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest text-center flex flex-col items-center gap-2">
                                     <Icon name="lock" className="text-base" /> Domingo: Zona Segura
                                 </span>
@@ -475,8 +479,8 @@ export function SystemPage() {
     };
 
     const renderPreview = () => (
-        <div className="min-h-[calc(100vh-10rem)] hologram-bg text-zinc-300 p-4 md:p-8 flex flex-col font-sans relative rounded-[32px] border border-cyan-900/40">
-            <div className="scanline"></div>
+        <div className="min-h-[calc(100vh-10rem)] ios-bg text-slate-800 p-4 md:p-8 flex flex-col font-sans relative rounded-[32px] border border-cyan-900/40">
+
 
             <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10 pb-6">
 
@@ -489,10 +493,10 @@ export function SystemPage() {
                     <span className="inline-block text-[10px] font-mono text-purple-400 border border-purple-500/30 bg-purple-500/10 px-2 py-1 rounded-md uppercase tracking-widest mb-3">
                         Rank {activeDungeon.rank} • {activeDungeon.day}
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-wider mb-3 drop-shadow-md">
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3 drop-shadow-md">
                         {activeDungeon.title}
                     </h2>
-                    <div className="flex gap-4 text-sm font-medium text-zinc-400 mb-6 bg-black/40 p-3 rounded-lg w-max border border-white/5">
+                    <div className="flex gap-4 text-sm font-medium text-slate-600 mb-6 liquid-glass-inner p-3 rounded-lg w-max border border-slate-300/50">
                         <span className="flex items-center gap-1.5"><Icon name="pulse" className="text-sm text-cyan-500" /> {activeDungeon.type}</span>
                         <span className="flex items-center gap-1.5"><Icon name="clock" className="text-sm text-cyan-500" /> ~{activeDungeon.estimatedMinutes}m</span>
                     </div>
@@ -510,12 +514,12 @@ export function SystemPage() {
                         Alvos da Missão
                     </div>
                     {activeDungeon.blocks.map((block: any, idx: number) => (
-                        <div key={block.id} className="group bg-zinc-900/60 backdrop-blur-sm p-5 rounded-2xl border border-white/5 flex gap-4 items-center hover:bg-zinc-800 transition-colors">
-                            <div className="w-10 h-10 rounded-xl bg-black border border-zinc-700 flex items-center justify-center text-xs font-mono font-bold text-zinc-500 shrink-0 group-hover:border-cyan-500/50 group-hover:text-cyan-400 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
+                        <div key={block.id} className="group bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-300/50 flex gap-4 items-center hover:bg-slate-100 transition-colors">
+                            <div className="w-10 h-10 rounded-xl bg-slate-200 border border-zinc-700 flex items-center justify-center text-xs font-mono font-bold text-zinc-500 shrink-0 group-hover:border-cyan-500/50 group-hover:text-cyan-400 group-hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
                                 {String(idx + 1).padStart(2, '0')}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-zinc-200 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
+                                <p className="font-bold text-slate-800 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
                                 <p className="text-xs font-medium text-zinc-500 mt-1 truncate">{block.desc}</p>
                             </div>
                             <div className="shrink-0 text-right">
@@ -529,7 +533,7 @@ export function SystemPage() {
 
                 <button
                     onClick={() => { setWorkoutTimer(0); setCompletedBlocks([]); setScreen('workout'); }}
-                    className="btn-danger mt-auto w-full py-5 text-white font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
+                    className="btn-danger mt-auto w-full py-5 text-slate-900 font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
                 >
                     <Icon name="sword" className="text-xl" /> Iniciar Incursão
                 </button>
@@ -545,18 +549,18 @@ export function SystemPage() {
         };
 
         return (
-            <div className="min-h-screen hologram-bg text-zinc-300 p-4 md:p-8 flex flex-col relative font-sans">
+            <div className="min-h-screen ios-bg text-slate-800 p-4 md:p-8 flex flex-col relative font-sans">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100%] h-[300px] bg-red-900/10 blur-[100px] pointer-events-none animate-pulse-glow"></div>
 
                 <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10">
 
                     {/* Header Fixo - Timer */}
-                    <div className="bg-black/60 backdrop-blur-xl border border-red-900/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
+                    <div className="bg-slate-200/60 backdrop-blur-xl border border-red-900/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
                         <div>
                             <p className="text-[11px] font-bold font-mono text-red-500/80 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
                                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></div> Em Combate
                             </p>
-                            <p className="text-5xl md:text-6xl font-mono font-black text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+                            <p className="text-5xl md:text-6xl font-mono font-black text-slate-900 tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
                                 {formatTime(workoutTimer)}
                             </p>
                         </div>
@@ -578,27 +582,27 @@ export function SystemPage() {
                                     key={block.id}
                                     onClick={() => toggleBlock(block.id)}
                                     className={`relative p-5 md:p-6 rounded-2xl cursor-pointer transition-all duration-300 border ${isChecked
-                                        ? 'bg-black/40 border-cyan-500/20 opacity-50 backdrop-blur-sm'
-                                        : 'bg-zinc-900/60 border-white/5 hover:bg-zinc-800/80 shadow-lg hover:-translate-y-0.5'
+                                        ? 'liquid-glass-inner border-cyan-500/20 opacity-50 backdrop-blur-sm'
+                                        : 'bg-white/60 border-slate-300/50 hover:bg-slate-100/80 shadow-lg hover:-translate-y-0.5'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
-                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg transition-colors ${isChecked ? 'text-zinc-500 line-through decoration-zinc-600' : 'text-zinc-100'}`}>
+                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg transition-colors ${isChecked ? 'text-zinc-500 line-through decoration-zinc-600' : 'text-slate-900'}`}>
                                                 {block.title}
                                             </p>
-                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-zinc-600 line-through' : 'text-zinc-400'}`}>
+                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-zinc-600 line-through' : 'text-slate-600'}`}>
                                                 {block.desc}
                                             </p>
                                             <div className="mt-4">
-                                                <span className={`inline-block text-[11px] font-bold font-mono px-3 py-1.5 rounded-lg border flex items-center gap-2 w-max ${isChecked ? 'border-zinc-800 text-zinc-600 bg-transparent' : 'border-zinc-700 text-cyan-400 bg-black/50'}`}>
+                                                <span className={`inline-block text-[11px] font-bold font-mono px-3 py-1.5 rounded-lg border flex items-center gap-2 w-max ${isChecked ? 'border-zinc-800 text-zinc-600 bg-transparent' : 'border-zinc-700 text-cyan-400 bg-slate-200/50'}`}>
                                                     <Icon name="clock" className="text-xs" /> {block.time}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {/* Checkbox Recompensa */}
-                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${isChecked ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-zinc-700 bg-black'
+                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${isChecked ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-zinc-700 bg-slate-200'
                                             }`}>
                                             {isChecked && <Icon name="check" className="text-2xl text-cyan-400 drop-shadow-md" />}
                                         </div>
@@ -624,8 +628,8 @@ export function SystemPage() {
                                 onClick={finishWorkout}
                                 disabled={completedBlocks.length === 0}
                                 className={`w-full py-5 rounded-2xl font-black font-mono tracking-[0.2em] text-lg uppercase transition-all flex items-center justify-center gap-2 shadow-2xl ${completedBlocks.length > 0
-                                    ? 'btn-primary text-black'
-                                    : 'bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed'
+                                    ? 'btn-primary text-white'
+                                    : 'bg-white border border-zinc-800 text-zinc-600 cursor-not-allowed'
                                     }`}
                             >
                                 Extrair Recompensas
@@ -636,11 +640,11 @@ export function SystemPage() {
 
                 {/* Modal Mentor */}
                 {showSystemAlert && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-lg p-4">
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-200/80 backdrop-blur-lg p-4">
                         <div className="animate-screen bg-blue-950/80 border-2 border-blue-500/40 rounded-3xl max-w-sm w-full p-8 shadow-[0_0_50px_rgba(59,130,246,0.3)] relative overflow-hidden">
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-3xl rounded-full"></div>
 
-                            <button onClick={() => setShowSystemAlert(false)} className="absolute top-5 right-5 text-blue-400 hover:text-white bg-blue-900/50 rounded-full p-2 transition-colors z-10">
+                            <button onClick={() => setShowSystemAlert(false)} className="absolute top-5 right-5 text-blue-400 hover:text-slate-900 bg-blue-900/50 rounded-full p-2 transition-colors z-10">
                                 <Icon name="cross" className="text-sm" />
                             </button>
 
@@ -648,14 +652,14 @@ export function SystemPage() {
                                 <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
                                     <Icon name="brain" className="text-2xl text-blue-400 drop-shadow-[0_0_10px_currentColor]" />
                                 </div>
-                                <h3 className="text-base font-black font-mono text-white uppercase tracking-widest">Análise Tática</h3>
+                                <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest">Análise Tática</h3>
                             </div>
 
-                            <p className="text-blue-100/90 text-sm md:text-base leading-relaxed mb-8 relative z-10">
-                                Descanso é onde a força é forjada. Aguarde <strong className="text-white font-black bg-blue-900/50 px-2 py-0.5 rounded">60-90s</strong> entre séries pesadas para restaurar HP/Mana antes do próximo ataque.
+                            <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-8 relative z-10">
+                                Descanso é onde a força é forjada. Aguarde <strong className="text-slate-900 font-black liquid-glass-inner px-2 py-0.5 rounded">60-90s</strong> entre séries pesadas para restaurar HP/Mana antes do próximo ataque.
                             </p>
 
-                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:brightness-110 text-black text-sm font-black font-mono uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] relative z-10">
+                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-400 hover:brightness-110 text-white text-sm font-black font-mono uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] relative z-10">
                                 Entendido
                             </button>
                         </div>
@@ -666,8 +670,8 @@ export function SystemPage() {
     };
 
     const renderSummary = () => (
-        <div className="min-h-screen hologram-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-            <div className="scanline"></div>
+        <div className="min-h-screen ios-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-[300px] h-[300px] bg-cyan-500/10 blur-[100px] rounded-full animate-pulse-glow"></div>
             </div>
@@ -679,19 +683,19 @@ export function SystemPage() {
                         <Icon name="trophy" className="text-[64px] text-yellow-400 drop-shadow-[0_0_15px_currentColor]" />
                     </div>
                     <p className="text-cyan-400 font-mono text-[11px] font-bold tracking-[0.4em] uppercase mb-3">Janela de Sistema</p>
-                    <h2 className="text-5xl font-black text-white uppercase tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
                         Concluído
                     </h2>
                 </div>
 
                 <SystemWindow title="Recompensas Adquiridas" className="mb-10 min-h-[auto]">
                     <div className="space-y-5 text-sm">
-                        <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span className="text-zinc-400 uppercase font-bold tracking-wider">Inimigos Mortos</span>
+                        <div className="flex justify-between items-center liquid-glass p-3 rounded-xl border border-slate-300/50">
+                            <span className="text-slate-600 uppercase font-bold tracking-wider">Inimigos Mortos</span>
                             <span className="text-cyan-400 font-mono font-black text-base drop-shadow-md">+{xpGainedInfo.blocks} XP</span>
                         </div>
-                        <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span className="text-zinc-400 uppercase font-bold tracking-wider">Tempo em Batalha</span>
+                        <div className="flex justify-between items-center liquid-glass p-3 rounded-xl border border-slate-300/50">
+                            <span className="text-slate-600 uppercase font-bold tracking-wider">Tempo em Batalha</span>
                             <span className="text-cyan-400 font-mono font-black text-base drop-shadow-md">+{xpGainedInfo.time} XP</span>
                         </div>
                         {xpGainedInfo.streak > 0 && (
@@ -703,9 +707,9 @@ export function SystemPage() {
                             </div>
                         )}
 
-                        <div className="pt-6 mt-4 flex justify-between items-center border-t border-white/10 relative">
+                        <div className="pt-6 mt-4 flex justify-between items-center border-t border-slate-300 relative">
                             <div className="absolute top-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-                            <span className="text-white uppercase tracking-widest font-black text-base">Total Ganho</span>
+                            <span className="text-slate-900 uppercase tracking-widest font-black text-base">Total Ganho</span>
                             <span className="text-yellow-400 font-mono text-3xl font-black drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">
                                 +{xpGainedInfo.total} <span className="text-lg">XP</span>
                             </span>
@@ -715,7 +719,7 @@ export function SystemPage() {
 
                 <button
                     onClick={resetToDashboard}
-                    className="w-full py-5 border-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-950/50 hover:text-white hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] rounded-2xl font-mono font-black tracking-[0.2em] text-sm uppercase transition-all"
+                    className="w-full py-5 border-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-950/50 hover:text-slate-900 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] rounded-2xl font-mono font-black tracking-[0.2em] text-sm uppercase transition-all"
                 >
                     Fechar Janela
                 </button>
@@ -723,10 +727,21 @@ export function SystemPage() {
         </div>
     );
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen ios-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+
+                <div className="text-cyan-500 animate-pulse text-xl tracking-[0.3em] font-mono font-bold z-10 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
+                    NEURAL SINC... [UPLINK]
+                </div>
+            </div>
+        );
+    }
+
     return (
         <>
             <style>{globalStyles}</style>
-            <div className="custom-scrollbar w-full h-full overflow-clip text-slate-800 dark:text-zinc-100 transition-colors">
+            <div className="custom-scrollbar w-full h-full overflow-clip text-slate-900 ios-bg transition-colors">
                 {screen === 'onboarding' && renderOnboarding()}
                 {screen === 'dashboard' && renderDashboard()}
                 {screen === 'preview' && renderPreview()}

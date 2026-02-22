@@ -9,7 +9,7 @@ from __future__ import annotations
 from .base import utcnow  # noqa: F401
 
 # user domain
-from .user import User, UserInventory, UserSettings, UserStats  # noqa: F401
+from .user import SystemRPGStats, User, UserInventory, UserSettings, UserStats  # noqa: F401
 
 # study domain
 from .study import StudyBlock, StudyPlan, StudySession, Subject  # noqa: F401

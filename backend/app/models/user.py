@@ -96,3 +96,34 @@ class UserInventory(SQLModel, table=True):
     item_id: str = Field(index=True)
     qty: int = Field(default=0)
     updated_at: datetime = Field(default_factory=utcnow)
+
+
+class SystemRPGStats(SQLModel, table=True):
+    __tablename__ = "system_rpg_stats"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(
+        sa_column=Column(
+            String,
+            ForeignKey("users.id", ondelete="CASCADE"),
+            index=True,
+            unique=True,
+            nullable=False,
+        )
+    )
+    name: str = Field(default="SUNG JIN-WOO")
+    xp: int = Field(default=0)
+    level: int = Field(default=1)
+    hp: int = Field(default=100)
+    mana: int = Field(default=100)
+    streak: int = Field(default=0)
+    active_minutes: int = Field(default=0)
+    completed_raids: int = Field(default=0)
+    
+    # Attributes
+    vigor: int = Field(default=10)
+    forca: int = Field(default=15)
+    agilidade: int = Field(default=8)
+    inteligencia: int = Field(default=5)
+    
+    updated_at: datetime = Field(default_factory=utcnow)

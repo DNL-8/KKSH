@@ -21,6 +21,7 @@ from app.api.v1 import (
     study_blocks,
     study_plan,
     subjects,
+    system_rpg,
     webhooks,
     weekly_quests,
 )
@@ -54,3 +55,5 @@ api_router.include_router(settings.router, tags=["settings"], prefix="/settings"
 api_router.include_router(subjects.router, tags=["subjects"], prefix="/subjects")
 
 api_router.include_router(onboarding.router, tags=["onboarding"], prefix="/onboarding")
+
+api_router.include_router(system_rpg.router)
