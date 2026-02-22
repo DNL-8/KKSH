@@ -64,7 +64,7 @@ export function SystemCard({
     const style = toneMap[tone];
 
     return (
-        <article className={`group relative overflow-hidden rounded-[30px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 transition-all duration-500 hover:-translate-y-2 hover:border-white/10 ${style.glow}`}>
+        <article className={`group relative overflow-hidden rounded-[30px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 transition-all duration-500 hover:-translate-y-2 hover:border-slate-300/50 ${style.glow}`}>
             <div className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full blur-3xl transition-opacity duration-500 opacity-0 group-hover:opacity-100 ${style.bg}`} />
 
             <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border ${style.border} ${style.bg} relative z-10 transition-transform duration-500 group-hover:scale-110`}>
@@ -72,14 +72,14 @@ export function SystemCard({
             </div>
 
             <div className="relative z-10">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 transition-colors group-hover:text-slate-400">{title}</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 transition-colors group-hover:text-slate-600">{title}</div>
                 <div data-testid={valueTestId} className="mt-2 text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400 drop-shadow-sm">
                     {value}
                 </div>
                 <div className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500/80">{sub}</div>
 
                 {showBar && (
-                    <div className="mt-5 h-2 overflow-hidden rounded-full border border-white/5 bg-black/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] relative">
+                    <div className="mt-5 h-2 overflow-hidden rounded-full border border-slate-300/50 liquid-glass-inner shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] relative">
                         <div
                             className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r ${style.barGradient} transition-all duration-1000 ease-out`}
                             style={{ width: `${progress}%` }}
@@ -90,7 +90,7 @@ export function SystemCard({
                 {action && <div className="mt-4">{action}</div>}
 
                 {footer && (
-                    <div className="mt-4 border-t border-white/5 pt-4">
+                    <div className="mt-4 border-t border-slate-300/50 pt-4">
                         {footer}
                     </div>
                 )}

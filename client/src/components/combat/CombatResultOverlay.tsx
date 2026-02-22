@@ -80,7 +80,7 @@ export function CombatResultOverlay({ result, bossName, onRetry, onNext, onBack 
                     </button>
                     <button
                         onClick={onBack}
-                        className="mt-4 flex items-center gap-3 rounded-[32px] border border-white/5 bg-white/[0.05] backdrop-blur-md px-12 py-5 text-xs font-black uppercase tracking-[0.3em] text-white shadow-xl transition-all hover:bg-white/[0.1] hover:scale-105 active:scale-95"
+                        className="mt-4 flex items-center gap-3 rounded-[32px] border border-slate-300/50 bg-white/[0.05] backdrop-blur-md px-12 py-5 text-xs font-black uppercase tracking-[0.3em] text-slate-900 shadow-xl transition-all hover:bg-white/[0.1] hover:scale-105 active:scale-95"
                         type="button"
                         data-testid="combat-defeat-back"
                     >

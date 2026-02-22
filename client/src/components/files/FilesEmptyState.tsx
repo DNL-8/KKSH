@@ -23,8 +23,8 @@ export function FilesEmptyState({
 }: FilesEmptyStateProps) {
     if (loading) {
         return (
-            <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-white/5 bg-slate-900/40 backdrop-blur-md">
-                <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-400">
+            <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-300/50 liquid-glass/40 backdrop-blur-md">
+                <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-600">
                     <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
                     Carregando biblioteca local...
                 </div>
@@ -48,7 +48,7 @@ export function FilesEmptyState({
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
                 <button
-                    className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-cyan-400/50 bg-cyan-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.2)] backdrop-blur-md transition-all hover:bg-cyan-500/30 hover:text-white hover:border-cyan-400 active:scale-95"
+                    className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-cyan-400/50 bg-cyan-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.2)] backdrop-blur-md transition-all hover:bg-cyan-500/30 hover:text-slate-900 hover:border-cyan-400 active:scale-95"
                     onClick={onOpenPicker}
                     type="button"
                 >
@@ -56,7 +56,7 @@ export function FilesEmptyState({
                     Selecionar vídeos
                 </button>
                 <button
-                    className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-indigo-400/50 bg-indigo-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-indigo-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] backdrop-blur-md transition-all hover:bg-indigo-500/30 hover:text-white hover:border-indigo-400 active:scale-95"
+                    className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-indigo-400/50 bg-indigo-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-indigo-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] backdrop-blur-md transition-all hover:bg-indigo-500/30 hover:text-slate-900 hover:border-indigo-400 active:scale-95"
                     onClick={onOpenFolderPicker}
                     type="button"
                 >
@@ -66,7 +66,7 @@ export function FilesEmptyState({
             </div>
             {directoryHandleSupported && (
                 <button
-                    className="mt-4 flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-8 py-3.5 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md transition-all hover:bg-emerald-500/30 hover:text-white hover:border-emerald-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-4 flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-8 py-3.5 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md transition-all hover:bg-emerald-500/30 hover:text-slate-900 hover:border-emerald-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={saving}
                     onClick={onOpenDirectoryPicker}
                     type="button"

@@ -55,7 +55,7 @@ export function BootSplash() {
                 </div>
 
                 <div className="space-y-1.5 pt-4">
-                    <div className="h-1 w-full overflow-hidden rounded-full border border-[hsl(var(--accent)/0.3)] bg-slate-900 shadow-[0_0_15px_rgba(var(--glow),0.2)]">
+                    <div className="h-1 w-full overflow-hidden rounded-full border border-[hsl(var(--accent)/0.3)] liquid-glass shadow-[0_0_15px_rgba(var(--glow),0.2)]">
                         {/* CSS animated progress bar matching the boot time */}
                         <div className="boot-progress-bar h-full bg-[hsl(var(--accent))] shadow-[0_0_10px_rgba(var(--glow),0.8)]" />
                     </div>

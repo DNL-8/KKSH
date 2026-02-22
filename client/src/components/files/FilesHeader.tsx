@@ -10,7 +10,7 @@ interface FilesHeaderProps {
 export function FilesHeader({ globalStats }: FilesHeaderProps) {
     return (
         <>
-            <div className="rounded-[26px] border border-white/10 bg-slate-950/60 backdrop-blur-2xl px-5 py-6 md:px-8 shadow-2xl">
+            <div className="rounded-[26px] border border-slate-300/50 bg-slate-950/60 backdrop-blur-2xl px-5 py-6 md:px-8 shadow-2xl">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="min-w-0 space-y-2">
                         <div className="files-chip files-pulse-glow w-fit">
@@ -22,15 +22,15 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                             <Icon name="angle-right" className="text-[10px]" />
                             <span>biblioteca local</span>
                         </p>
-                        <h2 className="files-display text-2xl font-extrabold uppercase tracking-[0.14em] text-white md:text-4xl">
+                        <h2 className="files-display text-2xl font-extrabold uppercase tracking-[0.14em] text-slate-900 md:text-4xl">
                             Arquivos <span className="text-cyan-300">Avulsos</span>
                         </h2>
-                        <p className="max-w-2xl text-xs text-slate-400 md:text-sm">
+                        <p className="max-w-2xl text-xs text-slate-600 md:text-sm">
                             Player local com progresso RPG, trilha por pasta e conclusao com XP em tempo real.
                         </p>
                     </div>
 
-                    <div className="rounded-2xl border border-white/5 bg-slate-900/40 backdrop-blur-md flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto shadow-inner">
+                    <div className="rounded-2xl border border-slate-300/50 liquid-glass/40 backdrop-blur-md flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto shadow-inner">
                         <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
                         <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
                         <HudProgressBar

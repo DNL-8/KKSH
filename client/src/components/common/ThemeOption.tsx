@@ -16,7 +16,7 @@ export function ThemeOption({ color, active, onClick, label, testId }: ThemeOpti
             : "border-transparent opacity-40 group-hover:scale-105 group-hover:opacity-100"
         }`}
       />
-      <span className={`text-[10px] font-black uppercase tracking-widest ${active ? "text-white" : "text-slate-600"}`}>
+      <span className={`text-[10px] font-black uppercase tracking-widest ${active ? "text-slate-900" : "text-slate-600"}`}>
         {label}
       </span>
     </button>

@@ -150,7 +150,7 @@ export function HistoryPopover({
     >
       <div className="flex items-center justify-between border-b border-slate-800/70 px-4 py-3">
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wider text-white">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
             Historico
           </h3>
           <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">
@@ -158,7 +158,7 @@ export function HistoryPopover({
           </p>
         </div>
         <button
-          className="rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-slate-800"
+          className="rounded-lg border border-slate-700 liquid-glass/60 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-800 transition-colors hover:liquid-glass-inner"
           onClick={onClose}
           type="button"
         >
@@ -172,7 +172,7 @@ export function HistoryPopover({
             aria-selected={activeTab === "changes"}
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "changes"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
+              : "liquid-glass/70 text-slate-600 hover:text-slate-200"
               }`}
             data-testid="history-tab-changes"
             onClick={() => setActiveTab("changes")}
@@ -185,7 +185,7 @@ export function HistoryPopover({
             aria-selected={activeTab === "activity"}
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "activity"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "bg-slate-900/70 text-slate-400 hover:text-slate-200"
+              : "liquid-glass/70 text-slate-600 hover:text-slate-200"
               }`}
             data-testid="history-tab-activity"
             onClick={() => {
@@ -217,7 +217,7 @@ export function HistoryPopover({
                   {release.items.map((item, index) => (
                     <li
                       key={`${release.id}-item-${index + 1}`}
-                      className="text-[11px] text-slate-300"
+                      className="text-[11px] text-slate-800"
                     >
                       - {item}
                     </li>
@@ -235,11 +235,11 @@ export function HistoryPopover({
         <div className="max-h-[420px] overflow-auto p-4">
           {!authUser ? (
             <div className="space-y-3" data-testid="history-login-cta">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-600">
                 Faca login para ver sua atividade recente no sistema.
               </p>
               <button
-                className="rounded-xl border border-[hsl(var(--accent)/0.35)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-white transition-all hover:brightness-110"
+                className="rounded-xl border border-[hsl(var(--accent)/0.35)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-900 transition-all hover:brightness-110"
                 onClick={onOpenAuth}
                 type="button"
               >
@@ -247,7 +247,7 @@ export function HistoryPopover({
               </button>
             </div>
           ) : activityQuery.isLoading ? (
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
               <Icon name="spinner" className="animate-spin text-sm" />
               Carregando atividade...
             </div>
@@ -268,10 +268,10 @@ export function HistoryPopover({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-white">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-900">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-[11px] text-slate-400">
+                      <p className="mt-1 text-[11px] text-slate-600">
                         {item.meta}
                       </p>
                     </div>

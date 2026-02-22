@@ -118,7 +118,7 @@ function ToastNotification({ toast, onClose }: { toast: ToastItem; onClose: () =
             <p className="flex-1 text-sm font-semibold">{toast.message}</p>
             <button
                 onClick={onClose}
-                className="shrink-0 rounded-lg p-1 transition-colors hover:bg-white/10"
+                className="shrink-0 rounded-lg p-1 transition-colors hover:liquid-glass-inner"
                 type="button"
                 aria-label="Fechar notificacao"
             >

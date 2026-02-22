@@ -20,16 +20,16 @@ export function ProgressBar({
   return (
     <div className="group w-full space-y-1.5">
       <div className="flex items-end justify-between text-[10px] font-black uppercase tracking-widest">
-        <span className="flex items-center gap-1.5 text-slate-500 transition-colors group-hover:text-slate-300">
+        <span className="flex items-center gap-1.5 text-slate-500 transition-colors group-hover:text-slate-800">
           <span className={`h-3 w-1.5 rounded-full ${color}`} />
           {label}
         </span>
         <div className="text-right">
-          {showValue && <span className="block font-mono leading-none text-white">{value}%</span>}
+          {showValue && <span className="block font-mono leading-none text-slate-900">{value}%</span>}
           {subLabel && <span className="text-[8px] leading-none text-slate-600">{subLabel}</span>}
         </div>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800/50 bg-slate-900/50 p-0.5 shadow-inner">
+      <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800/50 liquid-glass/50 p-0.5 shadow-inner">
         <div
           className={`relative h-full rounded-full transition-all duration-700 ease-out ${color} ${glow} ${widthPercentClass(percentInt(value))}`}
         >

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 import { Icon } from '../components/common/Icon';
 import { useSystemRPG, getRank, getNextRank } from '../lib/systemStore';
 
@@ -214,7 +214,7 @@ const WEEKLY_DUNGEONS = [
 
 // Componente Visual: Janela de Sistema 3D Refinada
 const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => (
-    <div className={`relative ios-bg/80 backdrop-blur-2xl border border-cyan-500/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
+    <div className={`relative liquid-glass-inner backdrop-blur-2xl border border-cyan-500/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
         <div className="liquid-glass-inner border-b px-5 py-3 flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -334,7 +334,7 @@ export function SystemPage() {
                             </ul>
                         </div>
 
-                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-white uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-slate-900 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
                             Aceder ao Sistema <Icon name="angle-right" className="text-xl" />
                         </button>
                     </form>
@@ -414,7 +414,7 @@ export function SystemPage() {
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-[10px] font-black font-mono text-white bg-cyan-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                                        <span className="text-[10px] font-black font-mono text-slate-900 bg-cyan-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.5)]">
                                             {featuredDungeon.day}
                                         </span>
                                         <span className="text-[10px] font-mono text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded uppercase tracking-widest">
@@ -452,7 +452,7 @@ export function SystemPage() {
                                 >
                                     <div>
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-black font-mono text-white bg-blue-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                                            <span className="text-[10px] font-black font-mono text-slate-900 bg-blue-500 px-2 py-1 rounded uppercase tracking-widest shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                                                 {dungeon.day}
                                             </span>
                                             <span className="text-[10px] font-mono text-purple-400">
@@ -628,7 +628,7 @@ export function SystemPage() {
                                 onClick={finishWorkout}
                                 disabled={completedBlocks.length === 0}
                                 className={`w-full py-5 rounded-2xl font-black font-mono tracking-[0.2em] text-lg uppercase transition-all flex items-center justify-center gap-2 shadow-2xl ${completedBlocks.length > 0
-                                    ? 'btn-primary text-white'
+                                    ? 'btn-primary text-slate-900'
                                     : 'bg-white border border-zinc-800 text-zinc-600 cursor-not-allowed'
                                     }`}
                             >
@@ -659,7 +659,7 @@ export function SystemPage() {
                                 Descanso é onde a força é forjada. Aguarde <strong className="text-slate-900 font-black liquid-glass-inner px-2 py-0.5 rounded">60-90s</strong> entre séries pesadas para restaurar HP/Mana antes do próximo ataque.
                             </p>
 
-                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-400 hover:brightness-110 text-white text-sm font-black font-mono uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] relative z-10">
+                            <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-400 hover:brightness-110 text-slate-900 text-sm font-black font-mono uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] relative z-10">
                                 Entendido
                             </button>
                         </div>
@@ -741,7 +741,7 @@ export function SystemPage() {
     return (
         <>
             <style>{globalStyles}</style>
-            <div className="custom-scrollbar w-full h-full overflow-clip text-slate-900 ios-bg transition-colors">
+            <div className="custom-scrollbar w-full h-full overflow-clip text-slate-900 transition-colors">
                 {screen === 'onboarding' && renderOnboarding()}
                 {screen === 'dashboard' && renderDashboard()}
                 {screen === 'preview' && renderPreview()}

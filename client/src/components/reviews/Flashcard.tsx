@@ -73,13 +73,13 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                 >
                     {/* FRONTAL FACE (Question) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden]">
-                        <div className="flex flex-col h-full w-full rounded-[40px] border border-white/10 bg-gradient-to-br from-[#0a0f1d] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
+                        <div className="flex flex-col h-full w-full rounded-[40px] border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
 
-                            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+                            <div className="flex items-center justify-between border-b border-slate-300/50 pb-4 mb-6">
                                 <span className="text-xs font-black uppercase tracking-widest text-[#3b82f6]">
                                     {drill.subject}
                                 </span>
-                                <span title="Dificuldade / Facilidade Atual" className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-bold text-slate-400">
+                                <span title="Dificuldade / Facilidade Atual" className="flex items-center gap-2 rounded-full border border-slate-300/50 bg-white/[0.03] px-3 py-1 text-[10px] font-bold text-slate-600">
                                     <Icon name="brain" className="text-purple-400" /> Nível {Math.round(drill.ease * 10)}
                                 </span>
                             </div>
@@ -100,13 +100,13 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
 
                     {/* TRASEIRA FACE (Answer) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                        <div className="flex flex-col h-full w-full rounded-[40px] border border-white/10 bg-gradient-to-br from-[#12182c] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
+                        <div className="flex flex-col h-full w-full rounded-[40px] border border-slate-300/50 bg-gradient-to-br from-[#12182c] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
 
-                            <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+                            <div className="flex items-center justify-between border-b border-slate-300/50 pb-4 mb-6">
                                 <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
                                     Resposta
                                 </span>
-                                <button type="button" onClick={onSkip} className="p-2 text-slate-500 hover:text-white transition-colors">
+                                <button type="button" onClick={onSkip} className="p-2 text-slate-500 hover:text-slate-900 transition-colors">
                                     <Icon name="ellipsis-h" />
                                 </button>
                             </div>
@@ -119,7 +119,7 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                             </div>
 
                             {/* Feedback Actions (Good/Again) */}
-                            <div className="grid grid-cols-2 gap-4 mt-4 pt-6 border-t border-white/5">
+                            <div className="grid grid-cols-2 gap-4 mt-4 pt-6 border-t border-slate-300/50">
                                 <button
                                     onClick={() => submitResult("again")}
                                     className="group relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-red-900/40 bg-red-900/10 p-4 transition-all hover:-translate-y-1 hover:border-red-500/50 hover:bg-red-500/20 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] active:scale-95"

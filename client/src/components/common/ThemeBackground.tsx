@@ -22,7 +22,7 @@ export function ThemeBackground() {
                     />
                 )}
                 {/* Subtle slow zoom animation for immersion */}
-                <div className="absolute inset-0 animate-pulse-slow bg-black/10" />
+                <div className="absolute inset-0 animate-pulse-slow liquid-glass/10" />
             </div>
 
             {/* Overlay Color Layer */}

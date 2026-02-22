@@ -23,7 +23,7 @@ export function ErrorBanner({ message, onClose }: ErrorBannerProps) {
             <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg bg-white/5 p-2 text-red-300 transition-all hover:bg-white/10 hover:text-white"
+                className="rounded-lg liquid-glass-inner p-2 text-red-300 transition-all hover:liquid-glass-inner hover:text-slate-900"
                 aria-label="Fechar mensagem de erro"
             >
                 <Icon name="cross" className="text-[16px]" />

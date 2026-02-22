@@ -18,12 +18,12 @@ export function StatBar({ label, percent, gradientClass, sub, valueTestId }: Sta
         <div className="space-y-2 group">
             <div className="flex justify-between items-end">
                 <div className="flex flex-col">
-                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors">{label}</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-800 group-hover:text-slate-900 transition-colors">{label}</span>
                     <span className="text-[9px] text-slate-500 uppercase tracking-widest">{sub}</span>
                 </div>
                 <span data-testid={valueTestId} className="text-xs font-mono font-bold" style={{ color: shadowColor, textShadow: `0 0 10px ${shadowColor}` }}>{percent}%</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full border border-white/5 bg-black/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] relative">
+            <div className="h-2 overflow-hidden rounded-full border border-slate-300/50 liquid-glass/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] relative">
                 <div
                     className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-700 ease-out`}
                     style={{

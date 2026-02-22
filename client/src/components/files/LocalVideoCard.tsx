@@ -42,9 +42,9 @@ export function LocalVideoCard({ video, src, onDelete }: LocalVideoCardProps) {
       <div className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
-            <h3 className="truncate text-sm font-black tracking-tight text-white">{video.name}</h3>
+            <h3 className="truncate text-sm font-black tracking-tight text-slate-900">{video.name}</h3>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{video.type || "video/*"}</p>
-            <p className="inline-flex max-w-full items-center gap-1 truncate text-[10px] font-bold tracking-wider text-slate-400" title={relativePath}>
+            <p className="inline-flex max-w-full items-center gap-1 truncate text-[10px] font-bold tracking-wider text-slate-600" title={relativePath}>
               <Icon name="folder-tree" className="shrink-0 text-[11px]" />
               {relativePath}
             </p>
@@ -58,11 +58,11 @@ export function LocalVideoCard({ video, src, onDelete }: LocalVideoCardProps) {
         <div className="grid grid-cols-2 gap-3 text-[10px] uppercase tracking-wider text-slate-500">
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
             <p className="font-black text-slate-600">Tamanho</p>
-            <p className="mt-1 font-mono text-slate-300">{formatBytes(video.size)}</p>
+            <p className="mt-1 font-mono text-slate-800">{formatBytes(video.size)}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
             <p className="font-black text-slate-600">Adicionado</p>
-            <p className="mt-1 font-mono text-slate-300">{formatCreatedAt(video.createdAt)}</p>
+            <p className="mt-1 font-mono text-slate-800">{formatCreatedAt(video.createdAt)}</p>
           </div>
         </div>
 

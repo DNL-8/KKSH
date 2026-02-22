@@ -93,7 +93,7 @@ export function FilesToolbar({
                         <Icon name="search" className="text-slate-500 group-focus-within:text-[hsl(var(--accent))] transition-colors text-[14px]" />
                     </div>
                     <input
-                        className="w-full bg-slate-900/40 border border-white/5 text-slate-200 text-sm rounded-xl focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] block pl-10 p-2.5 transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
+                        className="w-full liquid-glass/40 border border-slate-300/50 text-slate-200 text-sm rounded-xl focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] block pl-10 p-2.5 transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
                         data-testid="files-search-input"
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder="Pesquisar por nome ou pasta..."
@@ -102,7 +102,7 @@ export function FilesToolbar({
                     />
                     {/* Badge floating inside search */}
                     <div className="absolute inset-y-0 right-2 flex items-center pt-px">
-                        <span className="bg-slate-800/80 border border-white/5 text-slate-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                        <span className="liquid-glass-inner/80 border border-slate-300/50 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
                             {completedLessonCount}/{visibleVideosCount} aulas ({completionRate}%)
                         </span>
                     </div>
@@ -137,8 +137,8 @@ export function FilesToolbar({
                     <div className="relative" ref={menuRef}>
                         <button
                             className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all active:scale-95 ${isMenuOpen
-                                ? "bg-slate-800 border-white/20 text-white shadow-lg"
-                                : "bg-slate-900/40 border-white/5 text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "liquid-glass-inner border-slate-300/50 text-slate-900 shadow-lg"
+                                : "liquid-glass/40 border-slate-300/50 text-slate-600 hover:liquid-glass-inner hover:text-slate-900"
                                 }`}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Opcoes avancadas"
@@ -149,12 +149,12 @@ export function FilesToolbar({
 
                         {/* Dropdown Content */}
                         {isMenuOpen && (
-                            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-white/10 bg-[#060b14]/95 backdrop-blur-xl p-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                                <div className="px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-slate-300/50 bg-[#060b14]/95 backdrop-blur-xl p-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                <div className="px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-300/50">
                                     Biblioteca
                                 </div>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-50"
                                     disabled={loading || saving || visibleVideosCount === 0}
                                     onClick={() => { onExportMetadata(); setIsMenuOpen(false); }}
                                     type="button"
@@ -163,7 +163,7 @@ export function FilesToolbar({
                                     Fazer Backup (Exportar)
                                 </button>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-50"
                                     disabled={loading || saving}
                                     onClick={() => { onImportMetadataClick(); setIsMenuOpen(false); }}
                                     type="button"
@@ -174,7 +174,7 @@ export function FilesToolbar({
 
                                 {directoryHandleSupported && (
                                     <>
-                                        <div className="px-2 py-1.5 mt-2 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5">
+                                        <div className="px-2 py-1.5 mt-2 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-300/50">
                                             Avancado
                                         </div>
                                         <button
@@ -189,7 +189,7 @@ export function FilesToolbar({
                                     </>
                                 )}
 
-                                <div className="my-1 border-t border-white/5" />
+                                <div className="my-1 border-t border-slate-300/50" />
                                 <button
                                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
                                     disabled={visibleVideosCount === 0 || loading || saving}
@@ -213,18 +213,18 @@ export function FilesToolbar({
                     </span>
                     <div className="relative">
                         <select
-                            className="appearance-none bg-transparent text-xs font-bold text-slate-300 outline-none hover:text-white cursor-pointer pr-4 transition-colors disabled:opacity-50"
+                            className="appearance-none bg-transparent text-xs font-bold text-slate-800 outline-none hover:text-slate-900 cursor-pointer pr-4 transition-colors disabled:opacity-50"
                             disabled={visibleVideosCount === 0 || loading}
                             onChange={(event) => onOrderModeChange(event.target.value as OrderMode)}
                             value={orderMode}
                         >
-                            <option value="source" className="bg-slate-900">{ORDER_LABELS.source}</option>
-                            <option value="newest" className="bg-slate-900">{ORDER_LABELS.newest}</option>
-                            <option value="oldest" className="bg-slate-900">{ORDER_LABELS.oldest}</option>
-                            <option value="name_asc" className="bg-slate-900">{ORDER_LABELS.name_asc}</option>
-                            <option value="name_desc" className="bg-slate-900">{ORDER_LABELS.name_desc}</option>
-                            <option value="size_desc" className="bg-slate-900">{ORDER_LABELS.size_desc}</option>
-                            <option value="size_asc" className="bg-slate-900">{ORDER_LABELS.size_asc}</option>
+                            <option value="source" className="liquid-glass">{ORDER_LABELS.source}</option>
+                            <option value="newest" className="liquid-glass">{ORDER_LABELS.newest}</option>
+                            <option value="oldest" className="liquid-glass">{ORDER_LABELS.oldest}</option>
+                            <option value="name_asc" className="liquid-glass">{ORDER_LABELS.name_asc}</option>
+                            <option value="name_desc" className="liquid-glass">{ORDER_LABELS.name_desc}</option>
+                            <option value="size_desc" className="liquid-glass">{ORDER_LABELS.size_desc}</option>
+                            <option value="size_asc" className="liquid-glass">{ORDER_LABELS.size_asc}</option>
                         </select>
                         <Icon name="angle-down" className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[10px]" />
                     </div>
@@ -232,7 +232,7 @@ export function FilesToolbar({
 
                 <div className="flex items-center gap-2">
                     <button
-                        className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors lg:hidden"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg hover:liquid-glass-inner text-slate-600 hover:text-slate-900 transition-colors lg:hidden"
                         onClick={onToggleMobileSidebar}
                         type="button"
                         title="Ver lista de videos"
@@ -240,7 +240,7 @@ export function FilesToolbar({
                         <Icon name="list" className="text-[14px]" />
                     </button>
                     <button
-                        className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/5 text-slate-400 hover:text-[hsl(var(--accent))] transition-colors"
+                        className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg hover:liquid-glass-inner text-slate-600 hover:text-[hsl(var(--accent))] transition-colors"
                         onClick={onOpenVisualSettings}
                         type="button"
                         title="Configuracoes Visuais"

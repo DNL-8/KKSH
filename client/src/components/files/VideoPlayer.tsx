@@ -350,7 +350,7 @@ export function VideoPlayer({
 
   if (!video) {
     return (
-      <div className="files-panel flex h-[320px] items-center justify-center rounded-[26px] text-sm font-semibold text-slate-400 md:h-[440px]">
+      <div className="files-panel flex h-[320px] items-center justify-center rounded-[26px] text-sm font-semibold text-slate-600 md:h-[440px]">
         Nenhuma aula selecionada.
       </div>
     );
@@ -408,8 +408,8 @@ export function VideoPlayer({
 
       {!playing && !playerError && hasSource && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/35 bg-black/60 backdrop-blur-sm">
-            <Icon name="play" className="ml-1 text-white text-[32px]" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/35 liquid-glass/60 backdrop-blur-sm">
+            <Icon name="play" className="ml-1 text-slate-900 text-[32px]" />
           </div>
         </div>
       )}
@@ -435,7 +435,7 @@ export function VideoPlayer({
       )}
 
       <button
-        className="absolute right-4 top-4 z-30 rounded-2xl border border-white/10 bg-black/40 p-2 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-black/60 hover:text-cyan-300"
+        className="absolute right-4 top-4 z-30 rounded-2xl border border-slate-300/50 liquid-glass-inner p-2 text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:liquid-glass/60 hover:text-cyan-300"
         onClick={() => {
           setShowHotkeys((current) => !current);
           revealControls();
@@ -459,7 +459,7 @@ export function VideoPlayer({
       )}
 
       <button
-        className="absolute right-4 top-1/2 z-30 hidden md:block -translate-y-1/2 rounded-2xl border border-white/10 bg-black/40 p-2.5 text-white/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-black/60 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-45"
+        className="absolute right-4 top-1/2 z-30 hidden md:block -translate-y-1/2 rounded-2xl border border-slate-300/50 liquid-glass-inner p-2.5 text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:liquid-glass/60 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-45"
         disabled={!hasSource}
         onClick={() => void togglePictureInPicture()}
         title="Mini player"
@@ -471,7 +471,7 @@ export function VideoPlayer({
       <div
         className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-[#01030a]/95 via-[#030d1f]/60 to-transparent pt-16 px-4 pb-4 md:px-6 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${controlsVisible ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-6"}`}
       >
-        <div className="group/slider relative mb-4 h-1.5 w-full cursor-pointer rounded-full border border-cyan-500/20 bg-black/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] hover:h-2.5 transition-all" onClick={onProgressClick}>
+        <div className="group/slider relative mb-4 h-1.5 w-full cursor-pointer rounded-full border border-cyan-500/20 liquid-glass/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] hover:h-2.5 transition-all" onClick={onProgressClick}>
           <div className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)] ${widthPercentClass(progressPercent)}`}>
             <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 scale-0 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(34,211,238,1)] transition-transform group-hover/slider:scale-100" />
           </div>
@@ -481,7 +481,7 @@ export function VideoPlayer({
           <div className="flex items-center gap-2 md:gap-3">
             <div className="flex items-center gap-1 rounded-[16px] border border-cyan-500/20 bg-[#040f25]/40 px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:bg-[#040f25]/70">
               <button
-                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!hasSource}
                 onClick={togglePlay}
                 type="button"
@@ -489,7 +489,7 @@ export function VideoPlayer({
                 {playing ? <Icon name="pause" className="text-[16px]" /> : <Icon name="play" className="ml-0.5 text-[16px]" />}
               </button>
               <button
-                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
                 onClick={toggleMute}
                 disabled={soundLocked || !hasSource}
                 title={soundLocked ? "Efeitos sonoros desativados em Configuracoes" : "Som"}
@@ -521,7 +521,7 @@ export function VideoPlayer({
 
           <div className="flex items-center gap-1 rounded-[16px] border border-cyan-500/20 bg-[#040f25]/40 px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all hover:bg-[#040f25]/70">
             <button
-              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
               title="Legenda indisponivel para este arquivo"
               disabled
               type="button"
@@ -531,7 +531,7 @@ export function VideoPlayer({
 
             <div className="relative">
               <button
-                className={`rounded-xl p-2.5 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45 ${settingsOpen ? "bg-cyan-500/30 text-white" : "text-cyan-100"}`}
+                className={`rounded-xl p-2.5 transition-colors hover:bg-cyan-500/20 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-45 ${settingsOpen ? "bg-cyan-500/30 text-slate-900" : "text-cyan-100"}`}
                 disabled={!hasSource}
                 onClick={() => setSettingsOpen((current) => !current)}
                 title="Velocidade e configuracoes"
@@ -558,7 +558,7 @@ export function VideoPlayer({
 
             {pipSupported && (
               <button
-                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!hasSource}
                 onClick={() => void togglePictureInPicture()}
                 title="Picture in Picture"
@@ -569,7 +569,7 @@ export function VideoPlayer({
             )}
 
             <button
-              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-white"
+              className="rounded-xl p-2.5 text-cyan-100 transition-colors hover:bg-cyan-500/20 hover:text-slate-900"
               onClick={() => void toggleFullscreen()}
               title="Tela cheia"
               type="button"

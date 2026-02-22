@@ -119,12 +119,12 @@ export function ReviewsPage() {
       return (
         <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
           <Icon name="check-circle" className="text-6xl text-emerald-500 mb-4" />
-          <p className="text-xl font-black uppercase tracking-widest text-slate-300">
+          <p className="text-xl font-black uppercase tracking-widest text-slate-800">
             Não há cartões pendentes!
           </p>
           <button
             onClick={() => setIsSessionActive(false)}
-            className="mt-8 rounded-full bg-white/10 px-8 py-3 text-sm font-bold uppercase tracking-widest text-white hover:bg-white/20 transition-all"
+            className="mt-8 rounded-full liquid-glass-inner px-8 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 hover:bg-white/20 transition-all"
           >
             Voltar ao Dashboard
           </button>
@@ -137,7 +137,7 @@ export function ReviewsPage() {
         <div className="mb-8 flex items-center justify-between px-4">
           <button
             onClick={() => setIsSessionActive(false)}
-            className="text-slate-500 hover:text-white transition-colors"
+            className="text-slate-500 hover:text-slate-900 transition-colors"
           >
             <Icon name="arrow-left" className="text-2xl" />
           </button>
@@ -147,13 +147,13 @@ export function ReviewsPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                 Progresso
               </span>
-              <span className="text-sm font-bold text-slate-300">
+              <span className="text-sm font-bold text-slate-800">
                 {currentIndex + 1} / {currentQueue.length}
               </span>
             </div>
 
             {/* Progress Bar */}
-            <div className="h-2 w-32 overflow-hidden rounded-full bg-white/5">
+            <div className="h-2 w-32 overflow-hidden rounded-full liquid-glass-inner">
               <div
                 className="h-full bg-blue-500 transition-all duration-500"
                 style={{ width: `${((currentIndex + 1) / currentQueue.length) * 100}%` }}
@@ -184,7 +184,7 @@ export function ReviewsPage() {
 
         {/* Main Hero Overview */}
         <div className="space-y-8 lg:col-span-8">
-          <div className="group relative overflow-hidden rounded-[40px] border border-white/5 bg-gradient-to-br from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-2xl p-10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] transition-all duration-700 hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:border-white/10">
+          <div className="group relative overflow-hidden rounded-[40px] border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-2xl p-10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] transition-all duration-700 hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:border-slate-300/50">
             <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/40 to-blue-900/20 opacity-80 mix-blend-overlay" />
             <div className="pointer-events-none absolute -right-20 -bottom-20 h-96 w-96 rounded-full bg-blue-600/10 blur-[100px] transition-opacity duration-1000 group-hover:opacity-100 opacity-60" />
 
@@ -200,14 +200,14 @@ export function ReviewsPage() {
                   Revisões Diárias
                 </h2>
 
-                <p className="max-w-md text-sm font-medium leading-relaxed text-slate-400">
+                <p className="max-w-md text-sm font-medium leading-relaxed text-slate-600">
                   O algoritmo de repetição espaçada analisa automaticamente sua curva de esquecimento. Cartões maduros exigem menos revisões.
                 </p>
 
-                <div className="flex gap-8 border-t border-white/5 pt-6 mt-6">
+                <div className="flex gap-8 border-t border-slate-300/50 pt-6 mt-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Total Respondidos</span>
-                    <span className="text-2xl font-black text-white">
+                    <span className="text-2xl font-black text-slate-900">
                       {isPending ? "..." : stats?.totalAnswered || 0}
                     </span>
                   </div>
@@ -221,7 +221,7 @@ export function ReviewsPage() {
               </div>
 
               <div className="flex flex-col justify-end gap-4 min-w-[220px]">
-                <div className="rounded-3xl border border-white/5 bg-black/40 p-6 text-center">
+                <div className="rounded-3xl border border-slate-300/50 liquid-glass-inner p-6 text-center">
                   <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
                     Vencidos Hoje
                   </div>
@@ -273,7 +273,7 @@ export function ReviewsPage() {
             ].map((mat) => (
               <div
                 key={mat.id}
-                className="group flex flex-col gap-4 rounded-3xl border border-white/5 bg-white/[0.02] p-6 text-left transition-all duration-300 backdrop-blur-md hover:border-white/10 hover:bg-white/[0.04] hover:-translate-y-1"
+                className="group flex flex-col gap-4 rounded-3xl border border-slate-300/50 bg-white/[0.02] p-6 text-left transition-all duration-300 backdrop-blur-md hover:border-slate-300/50 hover:bg-white/[0.04] hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3">
                   <div className={`rounded-xl bg-${mat.color}-500/10 p-2 text-${mat.color}-400 group-hover:bg-${mat.color}-500/20 transition-colors`}>
@@ -281,10 +281,10 @@ export function ReviewsPage() {
                   </div>
                   <div>
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-500/80">Estágio</div>
-                    <div className="font-black uppercase italic tracking-wide text-slate-300">{mat.title}</div>
+                    <div className="font-black uppercase italic tracking-wide text-slate-800">{mat.title}</div>
                   </div>
                 </div>
-                <div className="mt-2 text-4xl font-black text-white group-hover:scale-105 transition-transform origin-left">
+                <div className="mt-2 text-4xl font-black text-slate-900 group-hover:scale-105 transition-transform origin-left">
                   {isPending ? "..." : mat.value}
                 </div>
                 <div className="text-xs font-medium text-slate-500">{mat.desc}</div>
@@ -296,8 +296,8 @@ export function ReviewsPage() {
 
         {/* Action History / Insights Column */}
         <div className="space-y-8 lg:col-span-4">
-          <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/80 to-[#050813]/90 backdrop-blur-xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.4)] flex flex-col h-full">
-            <h3 className="mb-6 border-b border-white/5 pb-4 text-xs font-black uppercase tracking-[0.2em] text-slate-300">
+          <div className="rounded-[40px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/80 to-[#050813]/90 backdrop-blur-xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.4)] flex flex-col h-full">
+            <h3 className="mb-6 border-b border-slate-300/50 pb-4 text-xs font-black uppercase tracking-[0.2em] text-slate-800">
               Métricas de Retenção
             </h3>
 
@@ -316,9 +316,9 @@ export function ReviewsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+              <div className="flex flex-col gap-2 pt-4 border-t border-slate-300/50">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tempo Médio de Resposta</span>
-                <div className="text-3xl font-light text-white flex items-baseline gap-2">
+                <div className="text-3xl font-light text-slate-900 flex items-baseline gap-2">
                   {stats?.avgTimeMs ? (stats.avgTimeMs / 1000).toFixed(1) : "0.0"} <span className="text-sm text-slate-500 font-bold uppercase">segundos</span>
                 </div>
               </div>

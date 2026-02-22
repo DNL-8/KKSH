@@ -76,17 +76,17 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
     }, [currentPath, scanFolder]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center liquid-glass/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
             <div className="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#090b10]">
-                <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/50 p-4">
+                <div className="flex items-center justify-between border-b border-slate-800 liquid-glass/50 p-4">
                     <div className="flex items-center gap-3">
                         <button
-                            className="rounded-lg p-2 hover:bg-slate-800 disabled:opacity-50"
+                            className="rounded-lg p-2 hover:liquid-glass-inner disabled:opacity-50"
                             disabled={!currentPath}
                             onClick={goBack}
                             type="button"
                         >
-                            <Icon name="arrow-left" className="text-slate-400" />
+                            <Icon name="arrow-left" className="text-slate-600" />
                         </button>
                         <h2 className="max-w-md truncate font-bold text-slate-200">
                             {currentPath || "Select Drive"}
@@ -105,7 +105,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                             </button>
                         )}
                         <button
-                            className="rounded-lg p-2 text-slate-400 hover:bg-red-900/20 hover:text-red-400"
+                            className="rounded-lg p-2 text-slate-600 hover:bg-red-900/20 hover:text-red-400"
                             onClick={onClose}
                             type="button"
                         >
@@ -124,7 +124,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                             {drives.map((drive) => (
                                 <button
                                     key={drive}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/50 p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-700 liquid-glass-inner/50 p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
                                     onClick={() => void browse(drive)}
                                     type="button"
                                 >
@@ -139,7 +139,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                                 <div
                                     key={`${item.path}::${item.name}`}
                                     className={`cursor-pointer rounded-lg border border-transparent p-3 transition-colors ${item.is_dir
-                                        ? "text-blue-200 hover:bg-slate-800/80"
+                                        ? "text-blue-200 hover:liquid-glass-inner/80"
                                         : isVideo(item.name)
                                             ? "text-emerald-100 hover:border-emerald-500/30 hover:bg-emerald-900/20"
                                             : "cursor-not-allowed text-slate-500 opacity-50"

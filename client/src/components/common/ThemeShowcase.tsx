@@ -246,7 +246,7 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
             </div>
 
             {/* Card body */}
-            <div className={`relative p-4 transition-colors duration-500 ${isActive ? "bg-black/80" : "bg-[#080a10]/90"
+            <div className={`relative p-4 transition-colors duration-500 ${isActive ? "liquid-glass/80" : "bg-[#080a10]/90"
                 }`}>
                 {/* Name + subtitle */}
                 <div className="flex items-center gap-2.5 mb-1.5">
@@ -259,14 +259,14 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
                         }}
                     />
                     <span
-                        className={`text-xs font-black uppercase tracking-[0.15em] transition-colors duration-300 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                        className={`text-xs font-black uppercase tracking-[0.15em] transition-colors duration-300 ${isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-200"
                             }`}
                         style={isActive ? { textShadow: `0 0 20px rgba(${meta.glow}, 0.5)` } : {}}
                     >
                         {meta.name}
                     </span>
                 </div>
-                <p className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? "text-slate-300" : "text-slate-600 group-hover:text-slate-500"
+                <p className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? "text-slate-800" : "text-slate-600 group-hover:text-slate-500"
                     }`}>
                     {meta.subtitle}
                 </p>

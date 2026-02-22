@@ -50,11 +50,11 @@ export function BentoMini({ icon, title, val, sub, color, onClick, children }: B
           </div>
         </div>
         <div className="space-y-1">
-          <h4 className="mb-1 text-[10px] font-black uppercase leading-none tracking-[0.2em] text-slate-400 group-hover:text-slate-300">
+          <h4 className="mb-1 text-[10px] font-black uppercase leading-none tracking-[0.2em] text-slate-600 group-hover:text-slate-800">
             {title}
           </h4>
-          <div className="truncate text-xl font-black tracking-tight text-white">{val}</div>
-          <div className="text-[10px] font-bold uppercase tracking-tighter text-slate-400">{sub}</div>
+          <div className="truncate text-xl font-black tracking-tight text-slate-900">{val}</div>
+          <div className="text-[10px] font-bold uppercase tracking-tighter text-slate-600">{sub}</div>
         </div>
         {children}
       </div>

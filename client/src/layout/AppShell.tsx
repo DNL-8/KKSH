@@ -132,7 +132,7 @@ export function AppShell() {
 
   return (
     <div
-      className="relative flex min-h-screen overflow-hidden font-sans text-slate-300 selection:bg-[hsl(var(--accent)/0.3)]"
+      className="relative flex min-h-screen overflow-hidden font-sans text-slate-800 selection:bg-[hsl(var(--accent)/0.3)] ios-bg-root"
     >
       {/* Skip to content — visible only on keyboard focus */}
       <a
@@ -142,32 +142,6 @@ export function AppShell() {
         Pular para o conteúdo
       </a>
       {/* Theme background — light themes use a fixed wallpaper div, dark themes use ThemeBackground */}
-      {isLightTheme && theme.bgImage && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 0,
-            backgroundImage: `url(${theme.bgImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            pointerEvents: "none",
-          }}
-        />
-      )}
-      {isLightTheme && !theme.bgImage && theme.bgGradient && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 0,
-            background: theme.bgGradient,
-            pointerEvents: "none",
-          }}
-        />
-      )}
       {!isLightTheme && <ThemeBackground />}
       <ScrollToTop />
       <RouteProgressBar />
@@ -180,11 +154,9 @@ export function AppShell() {
       <Sidebar isSidebarOpen={isSidebarOpen} onToggle={toggleSidebar} />
 
       <div className="relative flex h-screen flex-1 flex-col overflow-hidden">
-        {/* Dynamic Grid background mapped to theme accent */}
-        <div className="animate-grid-drift pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,hsl(var(--accent)/0.06)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--accent)/0.06)_1px,transparent_1px)] bg-[size:60px_60px] opacity-60" />
+        {/* Dynamic Grid background — made subtle for glass theme */}
+        <div className="animate-grid-drift pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] opacity-30" />
 
-        {/* Global animated vignette */}
-        <div className="pointer-events-none fixed inset-0 z-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.9)] animate-pulse-slow mix-blend-multiply" />
 
         <TopBar onMobileMenuOpen={() => setIsMobileMenuOpen(true)} />
 

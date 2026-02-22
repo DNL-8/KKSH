@@ -114,10 +114,10 @@ export function SettingsPage() {
       <div className="mx-auto max-w-4xl space-y-8 pb-20">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
-            <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-white md:text-6xl" data-text="SISTEMA">
+            <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-slate-900 md:text-6xl" data-text="SISTEMA">
               SISTEMA
             </h1>
-            <p className="flex items-center gap-2 font-mono text-sm text-slate-400">
+            <p className="flex items-center gap-2 font-mono text-sm text-slate-600">
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               CONFIGURACAO DO TERMINAL DO USUARIO
             </p>
@@ -125,7 +125,7 @@ export function SettingsPage() {
           <div className="flex gap-3">
             <button
               onClick={() => void handleSave()}
-              className="flex items-center gap-3 rounded-[20px] bg-slate-800/80 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] transition-all hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 backdrop-blur-md border border-white/5"
+              className="flex items-center gap-3 rounded-[20px] liquid-glass-inner/80 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] transition-all hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 backdrop-blur-md border border-slate-300/50"
               type="button"
             >
               <Icon name="disk" className="text-[16px]" />

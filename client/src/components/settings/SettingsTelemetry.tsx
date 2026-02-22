@@ -134,20 +134,20 @@ export function SettingsTelemetry() {
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                     <Icon name="database" className="text-[24px]" />
                 </div>
-                <h2 className="text-lg font-black uppercase tracking-widest text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                     Telemetria de Arquivos
                 </h2>
             </div>
 
-            <div className="rounded-[40px] border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all">
+            <div className="rounded-[40px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all">
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <p className="text-[13px] text-slate-400 max-w-lg leading-relaxed font-medium">
+                    <p className="text-[13px] text-slate-600 max-w-lg leading-relaxed font-medium">
                         Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={refreshFilesTelemetry}
-                            className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/[0.08] hover:text-white"
+                            className="rounded-xl border border-slate-300/50 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-800 transition-all hover:bg-white/[0.08] hover:text-slate-900"
                             type="button"
                         >
                             Atualizar
@@ -174,7 +174,7 @@ export function SettingsTelemetry() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</p>
-                        <p className="mt-1 text-xl font-black text-white">{filesTelemetryStats.total}</p>
+                        <p className="mt-1 text-xl font-black text-slate-900">{filesTelemetryStats.total}</p>
                     </div>
                     <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-red-300/70">Erros</p>
@@ -202,7 +202,7 @@ export function SettingsTelemetry() {
                                 aria-pressed={isActive}
                                 className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${isActive
                                     ? "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
-                                    : "border-slate-700 bg-slate-900/70 text-slate-300 hover:bg-slate-800"
+                                    : "border-slate-700 liquid-glass/70 text-slate-800 hover:liquid-glass-inner"
                                     }`}
                             >
                                 {filterOption.label} ({count})
@@ -226,10 +226,10 @@ export function SettingsTelemetry() {
                                     <code className="text-[10px] font-black uppercase tracking-wider text-cyan-300">{event.name}</code>
                                     <span className="text-[10px] font-mono text-slate-500">{new Date(event.at).toLocaleString("pt-BR")}</span>
                                 </div>
-                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
-                                    <span className="rounded border border-slate-700 bg-slate-900/60 px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
+                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
+                                    <span className="rounded border border-slate-700 liquid-glass/60 px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
                                     {typeof event.payload.durationMs === "number" && (
-                                        <span className="rounded border border-slate-700 bg-slate-900/60 px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
+                                        <span className="rounded border border-slate-700 liquid-glass/60 px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
                                     )}
                                     {event.payload.error && (
                                         <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-red-300">erro: {String(event.payload.error)}</span>

@@ -528,7 +528,7 @@ export function FilesPage() {
             )}
 
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-slate-800/50 text-slate-500"}`}>
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner/50 text-slate-500"}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
               Bridge {isBridgeConnected ? "Online" : "Offline"}
             </div>
@@ -595,7 +595,7 @@ export function FilesPage() {
             <div className="files-panel rounded-[24px] p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-black tracking-tight text-white">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
+                  <h3 className="text-lg font-black tracking-tight text-slate-900">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Pasta: {selectedVideo?.relativePath ?? "-"}
                   </p>
@@ -611,7 +611,7 @@ export function FilesPage() {
                   <button
                     className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
                       ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      : "border-cyan-500/40 bg-cyan-600 text-white hover:bg-cyan-500"
+                      : "border-cyan-500/40 bg-cyan-600 text-slate-900 hover:bg-cyan-500"
                       } disabled:cursor-not-allowed disabled:opacity-60`}
                     data-testid="complete-lesson-button"
                     disabled={
@@ -637,7 +637,7 @@ export function FilesPage() {
                               : "Concluir aula (+XP)"}
                   </button>
                   <button
-                    className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-400 transition-colors hover:text-slate-200"
+                    className="rounded-xl border border-slate-700 liquid-glass p-2 text-slate-600 transition-colors hover:text-slate-200"
                     title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
                     data-testid="files-toggle-metadata-panel"
                     onClick={handleToggleMetadataPanel}
@@ -685,7 +685,7 @@ export function FilesPage() {
                     <Icon name="file-video" className="text-[20px]" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-300">Material de Apoio</h4>
+                    <h4 className="text-sm font-bold text-slate-800">Material de Apoio</h4>
                     <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
                   </div>
                 </div>
@@ -705,7 +705,7 @@ export function FilesPage() {
           >
             {/* Backdrop */}
             <div
-              className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 liquid-glass/70 backdrop-blur-sm transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"}`}
               onClick={() => setIsSidebarMobileOpen(false)}
               aria-hidden="true"
             />

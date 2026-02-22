@@ -23,7 +23,7 @@ export function CombatHUD({ enemyHp, enemyMaxHp, playerHp, playerMaxHp, hpPercen
                         <span data-testid="enemy-hp-value">{enemyHp}</span>/<span data-testid="enemy-hp-max">{enemyMaxHp}</span>
                     </span>
                 </div>
-                <div className="h-8 w-full overflow-hidden rounded-3xl border border-red-950/50 bg-black/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-red-950/30 backdrop-blur-sm p-1">
+                <div className="h-8 w-full overflow-hidden rounded-3xl border border-red-950/50 liquid-glass/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-red-950/30 backdrop-blur-sm p-1">
                     <div
                         className={`relative h-full rounded-2xl bg-gradient-to-r from-red-900 via-red-600 to-red-400 shadow-[0_0_20px_rgba(239,68,68,0.6),inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-700 ease-out ${widthPercentClass(hpPercent)}`}
                         data-testid="enemy-hp-bar"
@@ -43,7 +43,7 @@ export function CombatHUD({ enemyHp, enemyMaxHp, playerHp, playerMaxHp, hpPercen
                         <span data-testid="player-hp-value">{playerHp}</span>/<span data-testid="player-hp-max">{playerMaxHp}</span>
                     </span>
                 </div>
-                <div className="h-8 w-full overflow-hidden rounded-3xl border border-cyan-950/50 bg-black/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-cyan-950/30 backdrop-blur-sm p-1">
+                <div className="h-8 w-full overflow-hidden rounded-3xl border border-cyan-950/50 liquid-glass/80 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] ring-2 ring-cyan-950/30 backdrop-blur-sm p-1">
                     <div
                         className={`relative h-full rounded-2xl bg-gradient-to-r from-blue-900 via-blue-500 to-cyan-400 shadow-[0_0_20px_rgba(59,130,246,0.6),inset_0_2px_4px_rgba(255,255,255,0.4)] transition-all duration-700 ease-out ${widthPercentClass(playerHpPercent)}`}
                         data-testid="player-hp-bar"

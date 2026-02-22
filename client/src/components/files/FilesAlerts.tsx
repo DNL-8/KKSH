@@ -68,7 +68,7 @@ export function FilesAlerts({
                             Conectar agora
                         </button>
                         <button
-                            className="rounded-xl border border-white/5 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors hover:bg-white/10 active:scale-95"
+                            className="rounded-xl border border-slate-300/50 liquid-glass-inner px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-800 transition-colors hover:liquid-glass-inner active:scale-95"
                             onClick={onClearHighVolumeHint}
                             type="button"
                         >

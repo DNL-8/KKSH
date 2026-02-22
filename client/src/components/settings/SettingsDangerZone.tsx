@@ -24,7 +24,7 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
                 <div className="space-y-5">
                     <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                         <div>
-                            <h3 className="font-bold text-white text-[15px] mb-1 drop-shadow-sm">Resetar Progresso Local</h3>
+                            <h3 className="font-bold text-slate-900 text-[15px] mb-1 drop-shadow-sm">Resetar Progresso Local</h3>
                             <p className="text-[13px] text-red-200/60 font-medium">Limpa dados locais e zera progresso da conta. Nao apaga o usuario.</p>
                         </div>
                         <HoldButton
@@ -33,19 +33,19 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
                             loading={dangerBusy === "reset"}
                             holdDuration={1000}
                             progressLabel="CONFIRMANDO"
-                            className="w-full rounded-[16px] border border-red-400/50 bg-red-600 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.8)]"
+                            className="w-full rounded-[16px] border border-red-400/50 bg-red-600 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.8)]"
                         />
                     </div>
 
                     <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                         <div>
-                            <h3 className="font-bold text-white text-[15px] mb-1 drop-shadow-sm">Encerrar Sessao</h3>
+                            <h3 className="font-bold text-slate-900 text-[15px] mb-1 drop-shadow-sm">Encerrar Sessao</h3>
                             <p className="text-[13px] text-red-200/60 font-medium">Desconecta do terminal com seguranca.</p>
                         </div>
                         <button
                             onClick={handleLogout}
                             disabled={dangerBusy === "logout"}
-                            className="flex items-center justify-center gap-3 w-full rounded-[16px] border border-red-500/30 bg-black/40 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-950/50 hover:border-red-500/60 hover:text-red-300 hover:shadow-[0_0_20px_rgba(220,38,38,0.2)] active:scale-95 md:w-auto shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                            className="flex items-center justify-center gap-3 w-full rounded-[16px] border border-red-500/30 liquid-glass-inner px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-950/50 hover:border-red-500/60 hover:text-red-300 hover:shadow-[0_0_20px_rgba(220,38,38,0.2)] active:scale-95 md:w-auto shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
                             type="button"
                         >
                             <Icon name="trash" className="text-[18px]" />

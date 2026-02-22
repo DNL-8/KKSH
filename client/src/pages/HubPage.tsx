@@ -177,13 +177,13 @@ export function HubPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-4 rounded-3xl border border-white/5 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+        <section className="lg:col-span-4 rounded-3xl border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
           <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-[60px]" />
           <div className="mb-6 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Icon name="pulse" className="text-blue-400" />Biometria Hunter</div>
             <div className="flex items-center gap-2">
-              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700/50 p-1.5 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"><Icon name="settings" /></button>
-              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700/50 p-1.5 text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
+              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700/50 p-1.5 text-slate-600 hover:text-slate-900 hover:liquid-glass-inner transition-colors"><Icon name="settings" /></button>
+              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700/50 p-1.5 text-slate-600 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
             </div>
           </div>
           <div className="mb-6 flex items-center gap-5 relative z-10">
@@ -196,13 +196,13 @@ export function HubPage() {
               <div className="mt-1 inline-flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-300">
                 <Icon name="shield-check" className="text-xs" /> Nivel {level} • Rank {rank}
               </div>
-              <div className="mt-3 flex gap-3 text-slate-400">
-                <div className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1"><Icon name="bolt" className="text-xs text-yellow-400" /><span className="text-[9px] font-bold">120K</span></div>
-                <div className="flex items-center gap-1.5 rounded bg-white/5 px-2 py-1"><Icon name="brain" className="text-xs text-purple-400" /><span className="text-[9px] font-bold">INT</span></div>
+              <div className="mt-3 flex gap-3 text-slate-600">
+                <div className="flex items-center gap-1.5 rounded liquid-glass-inner px-2 py-1"><Icon name="bolt" className="text-xs text-yellow-400" /><span className="text-[9px] font-bold">120K</span></div>
+                <div className="flex items-center gap-1.5 rounded liquid-glass-inner px-2 py-1"><Icon name="brain" className="text-xs text-purple-400" /><span className="text-[9px] font-bold">INT</span></div>
               </div>
             </div>
           </div>
-          <div className="space-y-5 rounded-2xl border border-white/5 bg-black/40 p-5 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] relative z-10">
+          <div className="space-y-5 rounded-2xl border border-slate-300/50 liquid-glass-inner p-5 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] relative z-10">
             <StatBar label="PYTHON" percent={attributes.python} gradientClass="from-blue-600 via-blue-500 to-cyan-400" sub="Automacao & Scripting" valueTestId="hub-attr-python-stat" />
             <StatBar label="SQL" percent={attributes.sql} gradientClass="from-cyan-600 via-cyan-500 to-blue-400" sub="Querying & Database" />
             <StatBar label="EXCEL" percent={attributes.excel} gradientClass="from-emerald-600 via-emerald-500 to-teal-400" sub="Analise & Dashboards" />
@@ -213,7 +213,7 @@ export function HubPage() {
           </button>
         </section>
 
-        <section className={`lg:col-span-8 rounded-3xl border border-white/5 bg-gradient-to-br from-[#02050a]/95 to-[#050101]/95 backdrop-blur-2xl p-8 relative overflow-hidden transition-all duration-700 ${activeQuest ? "shadow-[0_0_50px_rgba(220,38,38,0.1)]" : "shadow-[0_0_50px_rgba(34,211,238,0.05)]"}`}>
+        <section className={`lg:col-span-8 rounded-3xl border border-slate-300/50 bg-gradient-to-br from-[#02050a]/95 to-[#050101]/95 backdrop-blur-2xl p-8 relative overflow-hidden transition-all duration-700 ${activeQuest ? "shadow-[0_0_50px_rgba(220,38,38,0.1)]" : "shadow-[0_0_50px_rgba(34,211,238,0.05)]"}`}>
           <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay" />
           {activeQuest && (
             <>
@@ -232,8 +232,8 @@ export function HubPage() {
               </div>
               <span className="text-[10px] uppercase tracking-widest text-slate-500/80 font-mono">Protocolo: {activeQuest ? `QST_${activeQuest.id.slice(0, 8).toUpperCase()}` : "QST_IDLE"}</span>
             </div>
-            <div className="mb-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-              <span className="text-white">Rank {(activeQuest?.rank ?? "F").toUpperCase()}</span>
+            <div className="mb-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-slate-600">
+              <span className="text-slate-900">Rank {(activeQuest?.rank ?? "F").toUpperCase()}</span>
               <span className="text-slate-600">•</span>
               <span className={activeQuest ? "text-red-400" : "text-cyan-400"}>{threatLabel}</span>
             </div>
@@ -242,36 +242,36 @@ export function HubPage() {
               {missionTitle}
             </h1>
 
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-400/90 font-medium">
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-600/90 font-medium">
               {activeQuest?.objective ?? activeQuest?.description ?? "Aguardando sincronizacao de dados diários. Conclua sessoes de foco ou revise conteudos para liberar a incursao."}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-blue-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-300/50 bg-white/[0.02] px-4 py-3 text-sm text-blue-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 <div className="rounded bg-blue-500/20 p-1.5"><Icon name="brain" className="text-blue-400" /></div>
                 <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Materia</span><span className="font-bold">{activeQuest?.subject ?? "Geral"}</span></div>
               </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-red-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-300/50 bg-white/[0.02] px-4 py-3 text-sm text-red-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 <div className="rounded bg-red-500/20 p-1.5"><Icon name="shield" className="text-red-400" /></div>
                 <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Dificuldade</span><span className="font-bold">{(activeQuest?.difficulty ?? "medio").toUpperCase()}</span></div>
               </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-purple-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-300/50 bg-white/[0.02] px-4 py-3 text-sm text-purple-300 backdrop-blur-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 <div className="rounded bg-purple-500/20 p-1.5"><Icon name="sparkles" className="text-purple-400" /></div>
                 <div className="flex flex-col"><span className="text-[9px] uppercase tracking-wider text-slate-500">Loot (XP)</span><span className="font-bold">+{activeQuest?.rewardXp ?? 0} XP</span></div>
               </div>
             </div>
 
             <div className="mt-10">
-              <div className="mb-3 flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
+              <div className="mb-3 flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-600">
                 <span>Sincronizacao Concluida</span>
                 <span data-testid="hub-mission-progress" className={`${activeQuest ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]" : "text-slate-500"} font-mono`}>{missionProgress}</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full border border-white/10 bg-black/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] relative">
+              <div className="h-3 overflow-hidden rounded-full border border-slate-300/50 liquid-glass/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] relative">
                 <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out ${widthPercentClass(missionPercent)} ${activeQuest ? "bg-gradient-to-r from-red-900 via-red-500 to-red-400 shadow-[0_0_15px_rgba(239,68,68,0.6)]" : "bg-slate-700"}`} />
               </div>
             </div>
 
-            <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className={`mt-10 flex w-full md:w-auto items-center justify-center gap-3 rounded-2xl border px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${activeQuest ? "border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md" : "border-slate-700 bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white"}`}>
+            <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className={`mt-10 flex w-full md:w-auto items-center justify-center gap-3 rounded-2xl border px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${activeQuest ? "border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md" : "border-slate-700 liquid-glass-inner/50 text-slate-600 hover:bg-slate-700 hover:text-slate-900"}`}>
               <Icon name="sword" className="text-lg" /> Iniciar Incursao
             </button>
           </div>
@@ -282,7 +282,7 @@ export function HubPage() {
         <SystemCard icon="layers" tone="orange" title="Masmorra Ativa" value={`${dueReviews} Revisoes`} sub={`${openDailyQuests} Missoes em Aberto`} valueTestId="hub-system-masmorra-value" />
         <SystemCard icon="terminal" tone="blue" title="Protocolo Treino" value={`${todayMinutes}/${dailyTarget} min`} sub={`${todayPercent}% da Meta Diaria`} showBar progress={todayPercent} valueTestId="hub-system-training-value" />
         <SystemCard icon="cpu" tone="cyan" title="Nucleo Central" value={missionSource} sub={`Semana ${weekMinutes}/${weeklyTarget} min`} valueTestId="hub-system-core-value" action={<button type="button" onClick={() => navigateTo("/ia")} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-[10px] font-black uppercase tracking-wider text-cyan-300"><Icon name="grid" className="text-xs mr-2" />Sincronizado</button>} />
-        <SystemCard icon="chart-histogram" tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} • ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-white/10 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
+        <SystemCard icon="chart-histogram" tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} • ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-slate-300/50 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { getSystemRpgStats, patchSystemRpgStats, SystemRPGStatsOut, SystemRPGSta
 const SYSTEM_RPG_QUERY_KEY = ["system_rpg_stats"];
 
 export const RANKS = [
-    { name: 'F', minXp: 0, color: 'text-zinc-400', glow: 'shadow-[0_0_15px_rgba(161,161,170,0.4)]', border: 'border-zinc-600', bg: 'from-zinc-800 to-zinc-950' },
+    { name: 'F', minXp: 0, color: 'text-slate-600', glow: 'shadow-[0_0_15px_rgba(161,161,170,0.4)]', border: 'border-zinc-600', bg: 'from-zinc-800 to-zinc-950' },
     { name: 'E', minXp: 800, color: 'text-slate-200', glow: 'shadow-[0_0_20px_rgba(226,232,240,0.5)]', border: 'border-slate-500', bg: 'from-slate-700 to-slate-950' }, // ~ 5 dias perfeitos
     { name: 'D', minXp: 2500, color: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(52,211,153,0.5)]', border: 'border-emerald-500', bg: 'from-emerald-900 to-zinc-950' }, // ~ 15 dias
     { name: 'C', minXp: 5000, color: 'text-cyan-400', glow: 'shadow-[0_0_25px_rgba(34,211,238,0.6)]', border: 'border-cyan-500', bg: 'from-cyan-900 to-zinc-950' }, // ~ 30 dias

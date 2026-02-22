@@ -87,7 +87,7 @@ function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType
             >
                 <Icon
                     name={item.icon}
-                    className={`text-[22px] transition-colors duration-150 ${isActive ? "text-white" : "text-black/60"}`}
+                    className={`text-[22px] transition-colors duration-150 ${isActive ? "text-slate-900" : "text-black/60"}`}
                 />
                 <SidebarTooltip label={item.label} visible={hovered && !isActive} />
             </NavLink>
@@ -103,7 +103,7 @@ function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType
             className={({ isActive }) =>
                 `group relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${isActive
                     ? "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))] shadow-[0_0_18px_rgba(var(--glow),0.35)]"
-                    : "text-slate-600 hover:bg-slate-900/70 hover:text-slate-300 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
+                    : "text-slate-600 hover:liquid-glass/70 hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
                 }`
             }
         >
@@ -176,7 +176,7 @@ function ExpandedNavItem({ item, index, sfx, isLight }: { item: NavItem; index: 
                 animate-in fade-in slide-in-from-left-4
                 ${isActive
                     ? "bg-gradient-to-r from-[hsl(var(--accent)/0.15)] to-transparent text-[hsl(var(--accent-light))] border-r-2 border-[hsl(var(--accent))]"
-                    : "text-slate-500 hover:bg-slate-900/40 hover:text-slate-200"
+                    : "text-slate-500 hover:liquid-glass/40 hover:text-slate-200"
                 }`
             }
             style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
@@ -255,7 +255,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     </Link>
                     {isSidebarOpen && (
                         <div className="animate-in fade-in slide-in-from-left-6 min-w-0 overflow-hidden duration-300">
-                            <h1 className={`truncate text-xl font-black uppercase italic leading-none tracking-tight ${isLightTheme ? "text-slate-800" : "text-white"}`}>
+                            <h1 className={`truncate text-xl font-black uppercase italic leading-none tracking-tight ${isLightTheme ? "text-slate-800" : "text-slate-900"}`}>
                                 {themeId === "sololeveling" ? (
                                     <>System <span className="text-[hsl(var(--accent))]">Leveling</span></>
                                 ) : (
@@ -271,7 +271,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
 
                 <button
                     aria-label={isSidebarOpen ? "Ativar modo so icones" : "Ativar modo com texto"}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-[#0a111d] text-slate-400 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent)/0.05)] hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-[#0a111d] text-slate-600 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent)/0.05)] hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
                     data-testid="sidebar-mode-toggle"
                     onClick={handleToggle}
                     type="button"
@@ -308,11 +308,11 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                         `group relative flex items-center transition-all duration-300 ${isSidebarOpen
                             ? `w-full rounded-2xl bg-[#0a111d]/50 border border-slate-800/50 gap-4 p-3 hover:border-slate-700 hover:bg-[#0a111d] ${isActive
                                 ? "border-[hsl(var(--accent)/0.4)] bg-[hsl(var(--accent)/0.05)] shadow-[0_0_20px_rgba(var(--glow),0.1)]"
-                                : "text-slate-400 hover:text-[hsl(var(--accent-light))]"
+                                : "text-slate-600 hover:text-[hsl(var(--accent-light))]"
                             }`
                             : `mx-auto flex h-11 w-11 justify-center rounded-xl ${isActive
                                 ? "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))] shadow-[0_0_18px_rgba(var(--glow),0.35)]"
-                                : "text-slate-600 hover:bg-slate-900/70 hover:text-slate-300 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
+                                : "text-slate-600 hover:liquid-glass/70 hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
                             }`
                         }`
                     }
@@ -327,8 +327,8 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                                 />
                             )}
                             <div
-                                className={`flex shrink-0 items-center justify-center text-white transition-all duration-300 group-hover:scale-105 ${isSidebarOpen
-                                    ? "h-11 w-11 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500 to-violet-500 shadow-2xl group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
+                                className={`flex shrink-0 items-center justify-center text-slate-900 transition-all duration-300 group-hover:scale-105 ${isSidebarOpen
+                                    ? "h-11 w-11 rounded-2xl border border-slate-300/50 bg-gradient-to-br from-indigo-500 to-violet-500 shadow-2xl group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
                                     : ""
                                     }`}
                             >
@@ -336,7 +336,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                             </div>
                             {isSidebarOpen && (
                                 <div className="animate-in fade-in overflow-hidden text-left" data-testid="sidebar-config-card">
-                                    <p className={`mb-1 truncate text-sm font-black leading-none ${isActive ? "text-[hsl(var(--accent-light))]" : "text-white"}`}>
+                                    <p className={`mb-1 truncate text-sm font-black leading-none ${isActive ? "text-[hsl(var(--accent-light))]" : "text-slate-900"}`}>
                                         Ajustes de Nucleo
                                     </p>
                                     <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-500">

@@ -36,7 +36,7 @@ const SESSION_PAGE_LIMIT = 200;
 const MAX_SESSION_PAGES = 6;
 
 export const HEATMAP_INTENSITY_CLASS: Record<RaidCellVM["intensity"], string> = {
-    0: "bg-white/[0.02] border border-white/5",
+    0: "bg-white/[0.02] border border-slate-300/50",
     1: "bg-cyan-900/60 border border-cyan-900/40",
     2: "bg-cyan-600/80 border border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.6)]",
     3: "bg-cyan-400 border border-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.6)] hover:shadow-[0_0_15px_rgba(34,211,238,0.8)]",

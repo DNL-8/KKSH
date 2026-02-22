@@ -64,7 +64,7 @@ export function Tooltip({ content, children, placement = "top", delay = 200 }: T
             {visible && (
                 <div
                     role="tooltip"
-                    className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-slate-200 shadow-xl animate-in fade-in duration-200 ${positionClasses[placement]}`}
+                    className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg border border-slate-700 liquid-glass px-3 py-1.5 text-[11px] font-semibold text-slate-200 shadow-xl animate-in fade-in duration-200 ${positionClasses[placement]}`}
                 >
                     {content}
                 </div>

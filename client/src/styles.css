@@ -19,7 +19,22 @@ body {
   margin: 0;
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   background: #020203;
-  color: #cbd5e1;
+  /* Fallback */
+  color: #1e293b;
+}
+
+body.theme-light {
+  color: #0f172a;
+}
+
+/* Base Liquid Glass */
+.ios-bg-root {
+  background: radial-gradient(circle at 10% 20%, rgba(216, 241, 255, 0.4) 0%, rgba(233, 226, 255, 0.5) 90%),
+    radial-gradient(circle at 90% 80%, rgba(255, 232, 242, 0.5) 0%, rgba(220, 245, 255, 0.6) 90%),
+    linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%);
+  background-size: 200% 200%;
+  background-attachment: fixed;
+  animation: gradientFlow 15s ease infinite alternate;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -785,9 +800,9 @@ select:focus-visible,
 /* ------------------------------------------------------------------ */
 
 /* All dark backgrounds → true liquid glass */
-.theme-light [class*="bg-black"],
-.theme-light [class*="bg-slate-900"],
-.theme-light [class*="bg-slate-800"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass-inner"],
 .theme-light [class*="bg-slate-950"],
 .theme-light [class*="bg-\[\#080a10\]"],
 .theme-light [class*="bg-\[\#0a0f1d\]"],
@@ -805,10 +820,10 @@ select:focus-visible,
 }
 
 /* Very dark overlays → fully transparent */
-.theme-light [class*="bg-black\/6"],
-.theme-light [class*="bg-black\/7"],
-.theme-light [class*="bg-black\/8"],
-.theme-light [class*="bg-black\/9"] {
+.theme-light [class*="liquid-glass\/6"],
+.theme-light [class*="liquid-glass\/7"],
+.theme-light [class*="liquid-glass\/8"],
+.theme-light [class*="liquid-glass\/9"] {
   background: rgba(255, 255, 255, 0.0) !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
@@ -866,8 +881,8 @@ select:focus-visible,
 /*  Typography                                                         */
 /* ------------------------------------------------------------------ */
 
-.theme-light [class*="text-slate-300"],
-.theme-light [class*="text-slate-400"] {
+.theme-light [class*="text-slate-800"],
+.theme-light [class*="text-slate-600"] {
   color: var(--lg-text-secondary) !important;
 }
 
@@ -876,7 +891,7 @@ select:focus-visible,
   color: var(--lg-text-tertiary) !important;
 }
 
-.theme-light [class*="text-white"] {
+.theme-light [class*="text-slate-900"] {
   color: var(--lg-text-on-glass) !important;
 }
 
@@ -988,8 +1003,8 @@ select:focus-visible,
 /* Progress bar tracks (very dark bg) → light frosted */
 .theme-light [class*="bg-\[\#020718\]"],
 .theme-light [class*="bg-gray-900"],
-.theme-light [class*="bg-zinc-900"],
-.theme-light [class*="bg-zinc-800"] {
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass"] {
   background: rgba(0, 0, 0, 0.08) !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
@@ -1011,7 +1026,7 @@ select:focus-visible,
 /*  iOS-style pill buttons                                             */
 /* ------------------------------------------------------------------ */
 
-.theme-light button:not([class*="text-red"]):not([class*="text-white"]) {
+.theme-light button:not([class*="text-red"]):not([class*="text-slate-900"]) {
   transition: all 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -1104,9 +1119,9 @@ select:focus-visible,
 }
 
 /* Glass grain noise texture (SVG-based, no extra files needed) */
-.theme-light [class*="bg-black"],
-.theme-light [class*="bg-slate-900"],
-.theme-light [class*="bg-slate-800"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass-inner"],
 .theme-light [class*="bg-slate-950"],
 .theme-light [class*="bg-\[\#080a10\]"],
 .theme-light [class*="bg-\[\#0a0f1d\]"],
@@ -1120,9 +1135,9 @@ select:focus-visible,
 }
 
 /* Iridescent top-edge specular */
-.theme-light [class*="bg-black"]::before,
-.theme-light [class*="bg-slate-900"]::before,
-.theme-light [class*="bg-slate-800"]::before,
+.theme-light [class*="liquid-glass"]::before,
+.theme-light [class*="liquid-glass"]::before,
+.theme-light [class*="liquid-glass-inner"]::before,
 .theme-light [class*="bg-slate-950"]::before,
 .theme-light [class*="bg-\[\#080a10\]"]::before,
 .theme-light [class*="bg-\[\#0a0f1d\]"]::before,
@@ -1171,8 +1186,8 @@ select:focus-visible,
   }
 }
 
-.theme-light [class*="bg-black"]::after,
-.theme-light [class*="bg-slate-900"]::after,
+.theme-light [class*="liquid-glass"]::after,
+.theme-light [class*="liquid-glass"]::after,
 .theme-light [class*="bg-slate-950"]::after {
   content: "";
   position: absolute;
@@ -1191,15 +1206,15 @@ select:focus-visible,
 }
 
 /* Stagger sweep delays per card type */
-.theme-light [class*="bg-slate-900"]:nth-child(2)::after {
+.theme-light [class*="liquid-glass"]:nth-child(2)::after {
   --sweep-delay: 1.5;
 }
 
-.theme-light [class*="bg-slate-900"]:nth-child(3)::after {
+.theme-light [class*="liquid-glass"]:nth-child(3)::after {
   --sweep-delay: 3;
 }
 
-.theme-light [class*="bg-slate-900"]:nth-child(4)::after {
+.theme-light [class*="liquid-glass"]:nth-child(4)::after {
   --sweep-delay: 4.5;
 }
 
@@ -1237,7 +1252,7 @@ select:focus-visible,
 }
 
 /* Bump backdrop-filter on all glass cards even higher */
-.theme-light [class*="bg-black"],
+.theme-light [class*="liquid-glass"],
 .theme-light [class*="bg-slate-"],
 .theme-light [class*="bg-\[\#0"] {
   backdrop-filter: blur(60px) saturate(3.5) brightness(1.08) !important;
@@ -1317,13 +1332,13 @@ select:focus-visible,
 }
 
 /* Override dark text to light-mode text in light theme */
-.theme-light .text-slate-300,
-.theme-light .text-slate-400,
+.theme-light .text-slate-800,
+.theme-light .text-slate-600,
 .theme-light .text-slate-500 {
   color: var(--lg-text-secondary) !important;
 }
 
-.theme-light .text-white {
+.theme-light .text-slate-900 {
   color: var(--lg-text-primary) !important;
 }
 
@@ -1431,9 +1446,9 @@ select:focus-visible,
 /* ================================================================== */
 
 /* --- All dark card backgrounds → glass white --- */
-.theme-light [class*="bg-black"],
-.theme-light [class*="bg-slate-900"],
-.theme-light [class*="bg-slate-800"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass"],
+.theme-light [class*="liquid-glass-inner"],
 .theme-light [class*="bg-slate-950"],
 .theme-light [class*="bg-\[\#080a10\]"],
 .theme-light [class*="bg-\[\#0a0f1d\]"],
@@ -1449,9 +1464,9 @@ select:focus-visible,
 }
 
 /* --- Keep very dark overlays (not cards) transparent --- */
-.theme-light .bg-black\/60,
-.theme-light .bg-black\/80,
-.theme-light .bg-black\/90 {
+.theme-light .liquid-glass\/60,
+.theme-light .liquid-glass\/80,
+.theme-light .liquid-glass\/90 {
   background: rgba(0, 0, 0, 0.0) !important;
   backdrop-filter: none !important;
 }
@@ -1467,8 +1482,8 @@ select:focus-visible,
 }
 
 /* --- Text color overrides for inner components --- */
-.theme-light [class*="text-slate-300"],
-.theme-light [class*="text-slate-400"] {
+.theme-light [class*="text-slate-800"],
+.theme-light [class*="text-slate-600"] {
   color: rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -1477,7 +1492,7 @@ select:focus-visible,
   color: rgba(0, 0, 0, 0.4) !important;
 }
 
-.theme-light [class*="text-white"] {
+.theme-light [class*="text-slate-900"] {
   color: rgba(0, 0, 0, 0.88) !important;
 }
 
@@ -1535,14 +1550,14 @@ select:focus-visible,
 /* --- Dark stat bar tracks → light gray --- */
 .theme-light [class*="bg-\[\#020718\]"],
 .theme-light [class*="bg-gray-900"],
-.theme-light [class*="bg-zinc-900"] {
+.theme-light [class*="liquid-glass"] {
   background: rgba(0, 0, 0, 0.06) !important;
   backdrop-filter: none !important;
 }
 
 /* --- Popups/Tooltips → glass white --- */
 .theme-light [class*="bg-\[\#0a0f1d\]\/95"],
-.theme-light [class*="bg-slate-900\/"] {
+.theme-light [class*="liquid-glass\/"] {
   background: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(20px) !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
@@ -1566,8 +1581,8 @@ select:focus-visible,
 }
 
 /* --- Sidebar compact icons: hover bg → glass tint --- */
-.theme-light aside .hover\:bg-slate-900\/70:hover,
-.theme-light aside .hover\:bg-slate-900\/40:hover {
+.theme-light aside .hover\:liquid-glass\/70:hover,
+.theme-light aside .hover\:liquid-glass\/40:hover {
   background: rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -1703,4 +1718,36 @@ select:focus-visible,
   -webkit-backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(255, 255, 255, 0.75) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+}
+
+/* iOS 16 Liquid Glass System */
+.ios-bg {
+  /* Removido para evitar stacking, usar apenas no container pai se necessário ou usar .ios-bg-root */
+  background: transparent;
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(32px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+}
+
+.liquid-glass-inner {
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(16px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(130%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important;
 }

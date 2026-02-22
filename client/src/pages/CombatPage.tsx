@@ -296,13 +296,13 @@ export function CombatPage() {
 
         {/* World Boss Header */}
         <div className="flex flex-col items-center mt-10 mb-16 relative z-10 text-center">
-          <Badge color="bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.6)] text-white mb-6 uppercase tracking-widest text-[10px] animate-pulse" icon="skull">
+          <Badge color="bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.6)] text-slate-900 mb-6 uppercase tracking-widest text-[10px] animate-pulse" icon="skull">
             World Raid Ativa
           </Badge>
           <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]">
             Dano Absoluto
           </h1>
-          <p className="max-w-xl text-slate-400 font-medium text-sm mt-6">
+          <p className="max-w-xl text-slate-600 font-medium text-sm mt-6">
             O algoritmo mestre está corrompendo as fundações. Insira-se na interface, cause o máximo de dano possível e extraia antes que seus vitais zerem.
           </p>
         </div>
@@ -312,30 +312,30 @@ export function CombatPage() {
           <div className="p-8 rounded-[40px] border border-red-500/20 bg-gradient-to-b from-[#110505] to-[#050000] shadow-[0_20px_60px_rgba(220,38,38,0.15)] flex flex-col md:flex-row items-center gap-10">
             <div className="relative flex-shrink-0">
               <div className="absolute inset-0 bg-red-600/20 blur-[60px] rounded-full animate-pulse-slow"></div>
-              <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border border-red-500/30 flex items-center justify-center bg-black/50 relative z-10">
+              <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border border-red-500/30 flex items-center justify-center liquid-glass-inner relative z-10">
                 <Icon name="skull" className="text-red-500 text-6xl md:text-8xl opacity-80" />
               </div>
             </div>
             <div className="flex-1 w-full space-y-4">
               <div className="flex justify-between items-end">
                 <div>
-                  <h3 className="text-3xl font-black uppercase italic text-white tracking-tighter">O Devorador de Arrays</h3>
+                  <h3 className="text-3xl font-black uppercase italic text-slate-900 tracking-tighter">O Devorador de Arrays</h3>
                   <div className="text-[10px] font-bold text-red-400 tracking-widest uppercase">Endless Protocol</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-black text-white decoration-red-500 underline decoration-4 underline-offset-4">9,999,999</div>
+                  <div className="text-2xl font-black text-slate-900 decoration-red-500 underline decoration-4 underline-offset-4">9,999,999</div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-1">Global HP</div>
                 </div>
               </div>
 
-              <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5 relative">
+              <div className="h-4 w-full liquid-glass rounded-full overflow-hidden border border-slate-300/50 relative">
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)] w-[50%] animate-[scan_2s_ease-in-out_infinite]" />
                 <div className="h-full bg-gradient-to-r from-red-600 to-orange-500 w-[100%] rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
               </div>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <StatPill label="ATK" value="???" color="text-red-500" />
-                <StatPill label="ARMOR" value="MAX" color="text-slate-400" />
+                <StatPill label="ARMOR" value="MAX" color="text-slate-600" />
                 <StatPill label="PHASE" value="OMEGA" color="text-fuchsia-400" />
               </div>
             </div>
@@ -346,11 +346,11 @@ export function CombatPage() {
         <div className="max-w-6xl mx-auto w-full px-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
-              <h4 className="text-2xl font-black uppercase italic tracking-tighter text-white">Selecione um Setor</h4>
+              <h4 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900">Selecione um Setor</h4>
               <p className="text-xs text-slate-500 font-medium">Temas teóricos definirão os padrões de ataque.</p>
             </div>
             {loginRequired && (
-              <button onClick={openAuthPanel} className="bg-red-500 hover:bg-red-400 text-white px-6 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+              <button onClick={openAuthPanel} className="bg-red-500 hover:bg-red-400 text-slate-900 px-6 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)]">
                 Conectar para Lutar
               </button>
             )}
@@ -362,18 +362,18 @@ export function CombatPage() {
                 key={mod.id}
                 onClick={() => setSelectedModuleId(mod.id)}
                 className={`text-left group relative overflow-hidden rounded-[32px] p-6 transition-all duration-300 ${selectedModuleId === mod.id
-                  ? "bg-white/10 border-white/20 shadow-[0_10px_40px_rgba(255,255,255,0.05)] ring-2 ring-white/30"
-                  : "bg-black/40 border-white/5 hover:bg-white/5 hover:border-white/10"
+                  ? "liquid-glass-inner border-slate-300/50 shadow-[0_10px_40px_rgba(255,255,255,0.05)] ring-2 ring-white/30"
+                  : "liquid-glass-inner border-slate-300/50 hover:liquid-glass-inner hover:border-slate-300/50"
                   } border backdrop-blur-md`}
               >
                 <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-30 ${mod.color} group-hover:opacity-60 transition-opacity`} />
                 <div className="relative z-10 flex flex-col h-full">
                   <div className="mb-4">
                     <Icon name="bolt" className={`${mod.color} text-2xl mb-4`} />
-                    <h5 className="text-lg font-black uppercase tracking-tight text-white mb-1">{mod.title}</h5>
-                    <p className="text-xs text-slate-400 line-clamp-2">{mod.description}</p>
+                    <h5 className="text-lg font-black uppercase tracking-tight text-slate-900 mb-1">{mod.title}</h5>
+                    <p className="text-xs text-slate-600 line-clamp-2">{mod.description}</p>
                   </div>
-                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-white/10">
+                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-slate-300/50">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${mod.color}`}>
                       {mod.difficulty}
                     </span>
@@ -390,7 +390,7 @@ export function CombatPage() {
             <button
               onClick={initBattle}
               disabled={loadingBattle}
-              className="group relative overflow-hidden bg-red-600 text-white rounded-[40px] px-16 py-6 font-black tracking-[0.3em] uppercase transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(220,38,38,0.5)] hover:shadow-[0_30px_60px_rgba(220,38,38,0.8)]"
+              className="group relative overflow-hidden bg-red-600 text-slate-900 rounded-[40px] px-16 py-6 font-black tracking-[0.3em] uppercase transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(220,38,38,0.5)] hover:shadow-[0_30px_60px_rgba(220,38,38,0.8)]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
               <span className="relative flex items-center gap-3">
@@ -427,7 +427,7 @@ export function CombatPage() {
             <Icon name="skull" className="text-3xl animate-pulse" />
           </div>
           <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white leading-none">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
               O Devorador de Arrays
             </h2>
             <div className="text-[10px] font-bold tracking-widest text-red-400 mt-1">SETOR: {activeModule.title}</div>
@@ -437,9 +437,9 @@ export function CombatPage() {
         <div className="flex-1 w-full max-w-2xl px-4 md:px-0">
           <div className="flex justify-between items-end mb-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">HP do World Boss</span>
-            <span className="text-sm font-black text-white">{enemyHp.toLocaleString()} / {enemyMaxHp.toLocaleString()}</span>
+            <span className="text-sm font-black text-slate-900">{enemyHp.toLocaleString()} / {enemyMaxHp.toLocaleString()}</span>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-900 border border-white/5 relative">
+          <div className="h-3 w-full overflow-hidden rounded-full liquid-glass border border-slate-300/50 relative">
             <div className={`h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-1000 ${widthPercentClass(hpPercent)}`} />
           </div>
         </div>
@@ -450,7 +450,7 @@ export function CombatPage() {
         <div className="group relative z-10 cursor-crosshair">
           {damagePopup && (
             <div
-              className={`animate-out slide-out-to-top-12 fade-out absolute -top-32 left-1/2 z-30 -translate-x-1/2 text-7xl font-black italic duration-1000 ${damagePopup.type === "miss" ? "text-slate-400 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]" :
+              className={`animate-out slide-out-to-top-12 fade-out absolute -top-32 left-1/2 z-30 -translate-x-1/2 text-7xl font-black italic duration-1000 ${damagePopup.type === "miss" ? "text-slate-600 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]" :
                 damagePopup.type === "heal" ? "text-emerald-400 drop-shadow-[0_0_30px_rgba(52,211,153,0.8)]" :
                   "text-red-500 drop-shadow-[0_0_40px_rgba(220,38,38,0.9)]"
                 }`}
@@ -468,7 +468,7 @@ export function CombatPage() {
         {/* Floating Combat Logs */}
         <div className="absolute right-8 top-1/4 w-64 space-y-2 pointer-events-none fade-in mask-linear-fade h-64 overflow-hidden flex flex-col justify-end">
           {combatLogs.map((log, i) => (
-            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-white font-bold text-xs" : "text-slate-500"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
+            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-slate-900 font-bold text-xs" : "text-slate-500"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
               {log}
             </div>
           ))}
@@ -476,17 +476,17 @@ export function CombatPage() {
       </main>
 
       {/* BOTTOM HUD: Player Stats & Actions JRPG Style */}
-      <footer className="relative z-20 w-full border-t border-white/10 bg-black/60 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
+      <footer className="relative z-20 w-full border-t border-slate-300/50 liquid-glass/60 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
         {/* Vitals Panel */}
         <div className="w-full md:w-1/3 flex flex-col gap-4">
-          <h3 className="text-xl font-black italic text-white tracking-tighter uppercase mb-2">Suas métricas</h3>
+          <h3 className="text-xl font-black italic text-slate-900 tracking-tighter uppercase mb-2">Suas métricas</h3>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between items-end mb-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">HP Vital</span>
-                <span className="text-sm font-black text-white">{playerHp} <span className="text-slate-500">/ {playerMaxHp}</span></span>
+                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">HP Vital</span>
+                <span className="text-sm font-black text-slate-900">{playerHp} <span className="text-slate-500">/ {playerMaxHp}</span></span>
               </div>
-              <div className="h-4 w-full bg-slate-900 rounded-sm overflow-hidden box-border border-b-2 border-white/5">
+              <div className="h-4 w-full liquid-glass rounded-sm overflow-hidden box-border border-b-2 border-slate-300/50">
                 <div className={`h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500 ${widthPercentClass(playerHpPercent)}`} />
               </div>
             </div>
@@ -498,7 +498,7 @@ export function CombatPage() {
           <button
             disabled={actionLocked || turnState !== "PLAYER_IDLE"}
             onClick={startPlayerAttack}
-            className="flex-1 md:flex-none relative overflow-hidden bg-white/10 border border-white/10 hover:bg-white/20 hover:border-white/30 text-white rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex-1 md:flex-none relative overflow-hidden liquid-glass-inner border border-slate-300/50 hover:bg-white/20 hover:border-white/30 text-slate-900 rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             <span className="flex items-center justify-center gap-3">
@@ -530,15 +530,15 @@ export function CombatPage() {
 
       {/* Result Overlay */}
       {(turnState === "VICTORY" || turnState === "DEFEAT") && (
-        <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
+        <div className="absolute inset-0 z-50 liquid-glass/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
           <div className="max-w-xl w-full text-center space-y-8">
             <h2 className={`text-6xl md:text-8xl font-black italic uppercase tracking-tighter ${turnState === "VICTORY" ? "text-emerald-500" : "text-red-600"}`}>
               {turnState === "VICTORY" ? "BOSSKILL" : "M.I.A."}
             </h2>
 
             {extractedData && (
-              <div className="bg-white/5 rounded-3xl p-8 border border-white/10 space-y-6">
-                <p className="text-slate-400 text-sm font-medium">Balanço da Extração</p>
+              <div className="liquid-glass-inner rounded-3xl p-8 border border-slate-300/50 space-y-6">
+                <p className="text-slate-600 text-sm font-medium">Balanço da Extração</p>
 
                 <div className="flex justify-center gap-8">
                   <div className="flex flex-col">

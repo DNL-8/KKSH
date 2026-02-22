@@ -15,7 +15,7 @@ export function NotFoundPage() {
                     aria-hidden="true"
                 />
                 <div className="absolute inset-0 flex items-center justify-center mix-blend-screen mix-blend-overlay">
-                    <span className="text-[120px] font-black text-white/5 drop-shadow-[0_20px_50px_rgba(var(--glow),0.3)] tracking-tighter mix-blend-overlay">404</span>
+                    <span className="text-[120px] font-black text-slate-900/5 drop-shadow-[0_20px_50px_rgba(var(--glow),0.3)] tracking-tighter mix-blend-overlay">404</span>
                 </div>
             </div>
 
@@ -25,7 +25,7 @@ export function NotFoundPage() {
             </h1>
 
             {/* Description */}
-            <p className="mb-3 max-w-md text-[13px] font-medium uppercase tracking-wider text-slate-400 z-10">
+            <p className="mb-3 max-w-md text-[13px] font-medium uppercase tracking-wider text-slate-600 z-10">
                 As coordenadas desta dimensão não foram encontradas no sistema.
             </p>
             <p className="mb-12 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] bg-[hsl(var(--accent)/0.05)] border border-[hsl(var(--accent)/0.1)] px-4 py-2 rounded-lg backdrop-blur-sm z-10 shadow-[0_0_15px_rgba(var(--glow),0.1)]">
@@ -43,7 +43,7 @@ export function NotFoundPage() {
                 </Link>
                 <Link
                     to="/combate"
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-8 py-4 text-xs font-bold uppercase tracking-widest text-slate-300 shadow-xl transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white hover:-translate-y-1 active:scale-95 backdrop-blur-md"
+                    className="flex items-center gap-3 rounded-2xl border border-slate-300/50 bg-white/[0.03] px-8 py-4 text-xs font-bold uppercase tracking-widest text-slate-800 shadow-xl transition-all hover:border-slate-300/50 hover:bg-white/[0.08] hover:text-slate-900 hover:-translate-y-1 active:scale-95 backdrop-blur-md"
                 >
                     <Icon name="compass" className="text-[18px]" />
                     Zona de Combate

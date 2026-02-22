@@ -57,8 +57,8 @@ export function LessonSidebar({
   );
 
   const wrapperClasses = mobile
-    ? "h-full w-[340px] max-w-[92vw] border-l border-white/10 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl flex flex-col"
-    : "h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-2xl";
+    ? "h-full w-[340px] max-w-[92vw] border-l border-slate-300/50 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl flex flex-col"
+    : "h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] border border-slate-300/50 bg-slate-950/40 backdrop-blur-xl shadow-2xl";
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -158,19 +158,19 @@ export function LessonSidebar({
       const { section, collapsed, completedCount } = item;
       return (
         <div className="mt-1 px-2 first:mt-0">
-          <div className="group flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-800/20 px-3 py-2 transition-colors hover:bg-slate-800/40">
+          <div className="group flex items-center justify-between gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner/20 px-3 py-2 transition-colors hover:liquid-glass-inner/40">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors" title={section.path} role="heading" aria-level={3}>
+              <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-800 group-hover:text-slate-900 transition-colors" title={section.path} role="heading" aria-level={3}>
                 {section.path}
               </p>
-              <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 group-hover:text-slate-400">
+              <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 group-hover:text-slate-600">
                 {completedCount} / {section.lessons.length} aulas
               </p>
             </div>
             <button
               aria-expanded={!collapsed}
               aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-              className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-40"
+              className="rounded-lg p-1.5 text-slate-500 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-40"
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
               type="button"
@@ -210,7 +210,7 @@ export function LessonSidebar({
               ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
               : active
                 ? "border-[hsl(var(--accent)/0.5)] bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                : "border-slate-700/50 bg-slate-800/30 text-slate-500 group-hover:border-slate-600 group-hover:text-slate-400"
+                : "border-slate-700/50 liquid-glass-inner/30 text-slate-500 group-hover:border-slate-600 group-hover:text-slate-600"
               }`}
           >
             {lessonCompleted ? (
@@ -224,7 +224,7 @@ export function LessonSidebar({
 
           <div className="min-w-0 flex-1">
             <p
-              className={`truncate text-[13px] font-bold leading-tight transition-colors ${active ? "text-[hsl(var(--accent-light))]" : "text-slate-300 group-hover:text-white"
+              className={`truncate text-[13px] font-bold leading-tight transition-colors ${active ? "text-[hsl(var(--accent-light))]" : "text-slate-800 group-hover:text-slate-900"
                 }`}
             >
               {lesson.name}
@@ -237,7 +237,7 @@ export function LessonSidebar({
               </div>
             ) : (
               <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                <span className="rounded bg-slate-800/50 px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
+                <span className="rounded liquid-glass-inner/50 px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
                   {formatBytes(lesson.size)}
                 </span>
                 <span>{storageLabel}</span>
@@ -261,7 +261,7 @@ export function LessonSidebar({
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
       <div className="shrink-0 space-y-3 border-b border-cyan-950/60 px-4 py-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="files-display text-xl font-extrabold uppercase tracking-[0.12em] text-white md:text-2xl">
+          <h3 className="files-display text-xl font-extrabold uppercase tracking-[0.12em] text-slate-900 md:text-2xl">
             {mobile ? "Conteudo" : "Arquivos avulsos"}
           </h3>
           <span className="files-chip px-2 py-1 text-[10px]">
@@ -295,7 +295,7 @@ export function LessonSidebar({
             />
             {searchQuery && (
               <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-200"
                 onClick={() => setSearchQuery("")}
                 type="button"
                 aria-label="Limpar busca"
@@ -307,7 +307,7 @@ export function LessonSidebar({
 
           {mobile && onClose && (
             <button
-              className="flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-[11px] font-black uppercase tracking-wider text-slate-300 transition-all active:scale-95"
+              className="flex items-center justify-center rounded-lg border border-slate-700 liquid-glass px-4 py-2 text-[11px] font-black uppercase tracking-wider text-slate-800 transition-all active:scale-95"
               onClick={onClose}
               type="button"
               aria-label="Fechar menu"

@@ -97,7 +97,7 @@ export function AiPage() {
           >
             <div
               className={`relative max-w-[85%] rounded-3xl border px-6 py-4 shadow-2xl ${log.type === "user"
-                ? "rounded-br-none border-slate-700 bg-[#12141c] text-white"
+                ? "rounded-br-none border-slate-700 bg-[#12141c] text-slate-900"
                 : log.type === "error"
                   ? "rounded-bl-none border-red-900/40 bg-red-950/20 text-red-200"
                   : "rounded-bl-none border-[hsl(var(--accent)/0.15)] bg-[hsl(var(--accent)/0.05)] text-[hsl(var(--accent-light))]"
@@ -140,7 +140,7 @@ export function AiPage() {
               }
             }}
             placeholder="Introduza diretriz para o Sistema..."
-            className="w-full rounded-[32px] border border-[hsl(var(--accent)/0.4)] bg-[#050508]/80 py-5 pl-14 pr-20 font-mono text-sm text-white shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.15)] transition-all placeholder:text-[hsl(var(--accent)/0.3)] focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent)/0.3)] backdrop-blur-md"
+            className="w-full rounded-[32px] border border-[hsl(var(--accent)/0.4)] bg-[#050508]/80 py-5 pl-14 pr-20 font-mono text-sm text-slate-900 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.15)] transition-all placeholder:text-[hsl(var(--accent)/0.3)] focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent)/0.3)] backdrop-blur-md"
           />
           <button
             onClick={() => {

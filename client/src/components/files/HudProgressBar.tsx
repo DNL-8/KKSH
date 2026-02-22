@@ -33,7 +33,7 @@ export function HudProgressBar({ value, max, tone, label, textValue }: HudProgre
   return (
     <div className="min-w-[126px]">
       <div className="mb-1.5 flex items-center justify-between">
-        <span className="files-display text-[9px] uppercase tracking-widest text-slate-400">{label}</span>
+        <span className="files-display text-[9px] uppercase tracking-widest text-slate-600">{label}</span>
         <span className={`text-[10px] font-black uppercase ${HUD_TEXT_TONE_CLASS[tone]}`}>{textValue}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full border border-cyan-950/80 bg-[#071323]">

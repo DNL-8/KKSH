@@ -190,7 +190,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 <span>Uplink_on</span>
                             </div>
                             <h1
-                                className="truncate text-[22px] font-black uppercase italic leading-tight tracking-[0.03em] text-white md:text-[32px]"
+                                className="truncate text-[22px] font-black uppercase italic leading-tight tracking-[0.03em] text-slate-900 md:text-[32px]"
                                 title={activeNavItem.label}
                             >
                                 {activeNavItem.label}
@@ -203,11 +203,11 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                     <div className="flex min-w-[180px] flex-1 items-center gap-2 sm:min-w-[280px] sm:gap-3">
                         {/* Level badge with glow */}
                         <div
-                            className="group flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] bg-slate-900/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
+                            className="group flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
                             data-testid="top-level-card"
                         >
-                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Lvl</span>
-                            <span className="text-3xl font-black leading-none text-white transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)]">{displayLevel}</span>
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-600">Lvl</span>
+                            <span className="text-3xl font-black leading-none text-slate-900 transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)]">{displayLevel}</span>
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-2">
@@ -259,7 +259,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                         : "bg-green-500 shadow-[0_0_8px_#22c55e] animate-pulse"
                                         }`}
                                 />
-                                <span className="text-sm font-black uppercase tracking-[0.15em] text-white">{presenceLabel}</span>
+                                <span className="text-sm font-black uppercase tracking-[0.15em] text-slate-900">{presenceLabel}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Rank</span>
@@ -272,7 +272,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 aria-controls="history-popover"
                                 aria-expanded={isHistoryOpen}
                                 aria-label="Historico"
-                                className="group relative p-2 text-slate-500 transition-all duration-300 hover:rotate-12 hover:text-white hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
+                                className="group relative p-2 text-slate-500 transition-all duration-300 hover:rotate-12 hover:text-slate-900 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
                                 data-testid="top-history-button"
                                 onClick={handleToggleHistory}
                                 title="Abrir historico"
@@ -303,7 +303,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             onClick={() => { sfx("tick"); openAuthPanel(); }}
                             type="button"
                         >
-                            <Icon name="user" className="text-slate-400 transition-colors group-hover:text-[hsl(var(--accent))] text-lg" />
+                            <Icon name="user" className="text-slate-600 transition-colors group-hover:text-[hsl(var(--accent))] text-lg" />
                             {authUser && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />}
                         </button>
                     </div>

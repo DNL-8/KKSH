@@ -30,7 +30,7 @@ export function CombatQuizModal({ question, answering, onAnswer }: CombatQuizMod
           </Badge>
         </div>
 
-        <p className="mb-10 text-xl font-bold leading-relaxed text-white drop-shadow-md" data-testid="quiz-question-text">
+        <p className="mb-10 text-xl font-bold leading-relaxed text-slate-900 drop-shadow-md" data-testid="quiz-question-text">
           {question.text}
         </p>
 
@@ -39,12 +39,12 @@ export function CombatQuizModal({ question, answering, onAnswer }: CombatQuizMod
             <button
               key={`${question.id}-${index}`}
               onClick={() => void onAnswer(index)}
-              className="group flex w-full items-center justify-between rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-left transition-all duration-300 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(34,211,238,0.2),inset_0_0_10px_rgba(34,211,238,0.1)] hover:-translate-y-1 disabled:opacity-60"
+              className="group flex w-full items-center justify-between rounded-2xl border border-slate-300/50 bg-white/[0.02] p-6 text-left transition-all duration-300 hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(34,211,238,0.2),inset_0_0_10px_rgba(34,211,238,0.1)] hover:-translate-y-1 disabled:opacity-60"
               type="button"
               disabled={answering}
               data-testid={`quiz-option-${index}`}
             >
-              <span className="text-sm font-bold text-slate-300 transition-colors group-hover:text-white group-hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]">{option}</span>
+              <span className="text-sm font-bold text-slate-800 transition-colors group-hover:text-slate-900 group-hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]">{option}</span>
               <Icon name="arrow-right" className="text-cyan-400 opacity-0 transition-opacity group-hover:opacity-100 text-[18px]" />
             </button>
           ))}

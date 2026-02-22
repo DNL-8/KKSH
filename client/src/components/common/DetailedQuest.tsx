@@ -31,7 +31,7 @@ export function DetailedQuest({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span
-              className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${completed ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-800 text-slate-500"
+              className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${completed ? "bg-emerald-500/10 text-emerald-500" : "liquid-glass-inner text-slate-500"
                 }`}
             >
               {type}
@@ -39,7 +39,7 @@ export function DetailedQuest({
             <span className="text-[10px] font-black text-yellow-500">+{xp} XP</span>
           </div>
           <h4
-            className={`text-sm font-black tracking-tight transition-colors ${completed ? "text-slate-500 line-through" : "text-white group-hover:text-orange-400"
+            className={`text-sm font-black tracking-tight transition-colors ${completed ? "text-slate-500 line-through" : "text-slate-900 group-hover:text-orange-400"
               }`}
           >
             {title}
@@ -53,10 +53,10 @@ export function DetailedQuest({
       </div>
       {!completed && (
         <div className="space-y-2">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-1 w-full overflow-hidden rounded-full liquid-glass-inner">
             <div className={`h-full rounded-full ${color} ${widthPercentClass(percentInt((progress / Math.max(1, total)) * 100))}`} />
           </div>
-          <div className="text-right font-mono text-[10px] uppercase text-slate-400">
+          <div className="text-right font-mono text-[10px] uppercase text-slate-600">
             {progress} / {total}
           </div>
         </div>
