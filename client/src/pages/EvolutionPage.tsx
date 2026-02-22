@@ -62,7 +62,7 @@ const BADGE_TONE_CLASS: Record<StatBadgeTone, string> = {
 
 function StatBadge({ icon, value, label, tone = "cyan" }: StatBadgeProps) {
   return (
-    <div className="flex min-w-[170px] items-center gap-3 rounded-xl border border-white/20 liquid-glass-inner p-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)] backdrop-blur-md">
+    <div className="flex min-w-[170px] items-center gap-3 rounded-xl border border-slate-800/15 liquid-glass-inner p-3 shadow-[0_4px_20px_rgba(0,0,0,0.1)] backdrop-blur-md">
       <div className={`rounded-lg border px-2.5 py-1.5 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] ${BADGE_TONE_CLASS[tone]}`}>
         <Icon name={icon} className="text-[16px] drop-shadow-md" />
       </div>
@@ -79,7 +79,7 @@ function StatBox({ label, value, sub, highlight = false }: StatBoxProps) {
     <article
       className={`rounded-2xl border p-5 transition-all duration-300 backdrop-blur-md ${highlight
         ? "border-cyan-500/40 liquid-glass-inner shadow-[0_0_20px_rgba(34,211,238,0.15)] translate-y-[-2px]"
-        : "border-white/20 liquid-glass-inner hover:bg-white/[0.04] hover:border-white/30"
+        : "border-slate-800/10 liquid-glass-inner hover:bg-slate-900/5 hover:border-slate-800/20"
         }`}
     >
       <div className={`text-[10px] font-bold uppercase tracking-wider ${highlight ? "text-cyan-400" : "text-slate-500"}`}>{label}</div>
@@ -178,7 +178,7 @@ export function EvolutionPage() {
   if (!authUser) {
     return (
       <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
-        <section className="rounded-2xl border border-white/20 liquid-glass p-8">
+        <section className="rounded-2xl border border-slate-800/15 liquid-glass p-8">
           <h2 className="text-3xl font-black uppercase italic tracking-tight text-slate-900">Status de Evolucao</h2>
           <p className="mt-3 text-sm text-slate-600">
             Faca login para carregar evolucao real, sequencia, minutos estudados e conquistas.
@@ -214,7 +214,7 @@ export function EvolutionPage() {
         </div>
       )}
 
-      <header className="group relative evo-slide-up overflow-hidden rounded-[32px] border border-white/20 liquid-glass p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+      <header className="group relative evo-slide-up overflow-hidden rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
         <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.15),transparent_60%)] opacity-80" />
         <div className="pointer-events-none absolute right-4 top-4 opacity-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
           <Icon name="apps" className="text-cyan-400 text-[120px]" />
@@ -255,7 +255,7 @@ export function EvolutionPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
-          <section className="evo-slide-up relative h-[320px] overflow-hidden rounded-[32px] border border-white/20 liquid-glass p-10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <section className="evo-slide-up relative h-[320px] overflow-hidden rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent mix-blend-overlay" />
             <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_70%)]" />
             <div className="relative z-10 flex h-full flex-col justify-between">
@@ -348,7 +348,7 @@ export function EvolutionPage() {
             </div>
           </section>
 
-          <section className="evo-slide-up relative min-h-[310px] rounded-[32px] border border-white/20 liquid-glass p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <section className="evo-slide-up relative min-h-[310px] rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="absolute -top-4 left-8 rounded-lg border border-cyan-500/40 bg-[#02050a] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-md z-20">
               <span className="flex items-center gap-2">
                 <Icon name="crosshairs" className="text-[14px]" />
@@ -398,7 +398,7 @@ export function EvolutionPage() {
         </div>
 
         <aside className="space-y-6 lg:col-span-4">
-          <section className="evo-slide-up overflow-hidden rounded-[32px] border border-white/20 liquid-glass shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <section className="evo-slide-up overflow-hidden rounded-[32px] border border-slate-800/10 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="border-b border-white/20 liquid-glass-inner p-6">
               <h3 className="flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">
                 <Icon name="exclamation" className="text-orange-400 text-[18px] drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
@@ -412,7 +412,7 @@ export function EvolutionPage() {
                     key={quest.id}
                     className={`relative rounded-2xl border p-5 transition-all duration-300 ${quest.completed
                       ? "border-slate-800/60 liquid-glass-inner opacity-60"
-                      : "border-white/20 liquid-glass-inner hover:border-orange-500/40 hover:bg-orange-950/20 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:-translate-y-1"
+                      : "border-slate-800/15 liquid-glass-inner hover:border-orange-500/40 hover:bg-orange-950/20 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:-translate-y-1"
                       }`}
                   >
                     <div className="mb-3 flex items-start justify-between gap-2">
@@ -438,7 +438,7 @@ export function EvolutionPage() {
             </div>
           </section>
 
-          <section className="evo-slide-up rounded-[32px] border border-white/20 liquid-glass p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <section className="evo-slide-up rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <h3 className="mb-8 flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">
               <Icon name="trophy" className="text-yellow-400 text-[18px] drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
               Performance Global
@@ -451,7 +451,7 @@ export function EvolutionPage() {
             </div>
           </section>
 
-          <section data-testid="evolution-achievements" className="evo-slide-up rounded-[32px] border border-white/20 liquid-glass p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+          <section data-testid="evolution-achievements" className="evo-slide-up rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Conquistas</h3>
               <span className="rounded-lg border border-yellow-500/40 bg-yellow-950/40 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.15)]">

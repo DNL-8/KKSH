@@ -75,13 +75,13 @@ function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType
                 style={{
                     width: 52,
                     height: 52,
-                    background: isActive ? "#007AFF" : "rgba(255,255,255,0.32)",
-                    backdropFilter: isActive ? "none" : "blur(20px) saturate(2)",
-                    WebkitBackdropFilter: isActive ? "none" : "blur(20px) saturate(2)",
-                    border: isActive ? "1px solid rgba(0,90,200,0.3)" : "1px solid rgba(255,255,255,0.60)",
+                    background: isActive ? "#007AFF" : "rgba(15, 23, 42, 0.18)",
+                    backdropFilter: isActive ? "none" : "blur(20px) saturate(1.2)",
+                    WebkitBackdropFilter: isActive ? "none" : "blur(20px) saturate(1.2)",
+                    border: isActive ? "1px solid rgba(0,90,200,0.3)" : "1px solid rgba(15, 23, 42, 0.25)",
                     boxShadow: isActive
-                        ? "0 6px 20px rgba(0,122,255,0.45), inset 0 1.5px 0 rgba(255,255,255,0.40)"
-                        : "0 4px 12px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.88), inset 0 -1px 0 rgba(0,0,0,0.06)",
+                        ? "0 6px 20px rgba(0,122,255,0.45), inset 0 1.5px 0 rgba(255,255,255,0.2)"
+                        : "0 4px 12px rgba(0,0,0,0.05)",
                     transform: hovered && !isActive ? "scale(1.08)" : "scale(1)",
                 }}
             >
@@ -145,13 +145,13 @@ function ExpandedNavItem({ item, index, sfx, isLight }: { item: NavItem; index: 
                 style={{
                     paddingTop: 14,
                     paddingBottom: 14,
-                    background: isActive ? "rgba(0,122,255,0.12)" : "rgba(255,255,255,0.22)",
-                    backdropFilter: "blur(16px) saturate(1.8)",
-                    WebkitBackdropFilter: "blur(16px) saturate(1.8)",
-                    border: isActive ? "1px solid rgba(0,122,255,0.28)" : "1px solid rgba(255,255,255,0.50)",
+                    background: isActive ? "rgba(0,122,255,0.12)" : "rgba(15, 23, 42, 0.12)",
+                    backdropFilter: "blur(16px) saturate(1.2)",
+                    WebkitBackdropFilter: "blur(16px) saturate(1.2)",
+                    border: isActive ? "1px solid rgba(0,122,255,0.28)" : "1px solid rgba(15, 23, 42, 0.2)",
                     boxShadow: isActive
-                        ? "0 4px 14px rgba(0,122,255,0.16), inset 0 1px 0 rgba(255,255,255,0.65)"
-                        : "0 2px 8px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.78)",
+                        ? "0 4px 14px rgba(0,122,255,0.16)"
+                        : "0 2px 8px rgba(0,0,0,0.05)",
                     marginBottom: 4,
                 }}
             >
@@ -238,7 +238,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     <Link
                         to="/hub"
                         className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isLightTheme
-                            ? "border border-white/60 bg-white/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white/70"
+                            ? "border border-slate-800/20 bg-slate-900/10 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-slate-900/20"
                             : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
                             }`}
                     >
@@ -271,7 +271,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
 
                 <button
                     aria-label={isSidebarOpen ? "Ativar modo so icones" : "Ativar modo com texto"}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 liquid-glass-inner text-slate-800 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-white/20 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800/20 liquid-glass-inner text-slate-800 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-slate-900/10 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
                     data-testid="sidebar-mode-toggle"
                     onClick={handleToggle}
                     type="button"
@@ -328,7 +328,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                             )}
                             <div
                                 className={`flex shrink-0 items-center justify-center text-slate-900 transition-all duration-300 group-hover:scale-105 ${isSidebarOpen
-                                    ? "h-11 w-11 rounded-2xl border border-slate-300/50 bg-gradient-to-br from-indigo-500 to-violet-500 shadow-2xl group-hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
+                                    ? "h-11 w-11 rounded-2xl border border-slate-800/10 bg-gradient-to-br from-indigo-500/80 to-violet-500/80 shadow-2xl group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]"
                                     : ""
                                     }`}
                             >

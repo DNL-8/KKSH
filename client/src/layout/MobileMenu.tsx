@@ -39,7 +39,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 aria-label="Fechar menu"
             />
             <div
-                className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-300/50 bg-[#060a12]/80 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500"
+                className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800/20 bg-[#060a12]/80 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500"
                 data-testid="mobile-menu-drawer"
             >
                 {/* Subtle accent glow */}
@@ -58,7 +58,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     </div>
                     <button
                         onClick={() => { sfx("toggle"); onClose(); }}
-                        className="rounded-2xl border border-slate-300/50 liquid-glass/50 p-2 text-slate-600 transition-all hover:liquid-glass-inner hover:text-slate-900 hover:border-[hsl(var(--accent)/0.3)] active:scale-90"
+                        className="rounded-2xl border border-slate-800/20 liquid-glass/50 p-2 text-slate-600 transition-all hover:liquid-glass-inner hover:text-slate-900 hover:border-[hsl(var(--accent)/0.3)] active:scale-90"
                         data-testid="mobile-menu-close"
                         aria-label="Fechar menu de navegacao"
                         type="button"
@@ -100,8 +100,8 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     ))}
                 </nav>
 
-                <div className="relative mt-auto border-t border-slate-300/50 pt-8">
-                    <div className="group flex items-center gap-4 rounded-[24px] border border-slate-300/50 liquid-glass/30 p-4 transition-all hover:liquid-glass/60 hover:border-slate-300/50">
+                <div className="relative mt-auto border-t border-slate-800/20 pt-8">
+                    <div className="group flex items-center gap-4 rounded-[24px] border border-slate-800/20 liquid-glass/30 p-4 transition-all hover:liquid-glass/60 hover:border-slate-800/20">
                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--accent))] to-violet-600 text-sm font-black text-slate-900 shadow-[0_0_15px_rgba(var(--glow),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--glow),0.5)] transition-all">
                             SH
                         </div>

@@ -1731,7 +1731,7 @@ select:focus-visible,
 
 
 
-/* Base Liquid Glass */
+/* Base Dark Liquid Glass */
 .ios-bg-root {
   background: radial-gradient(circle at 10% 20%, rgba(216, 241, 255, 1) 0%, rgba(233, 226, 255, 1) 90%),
     radial-gradient(circle at 90% 80%, rgba(255, 232, 242, 1) 0%, rgba(220, 245, 255, 1) 90%),
@@ -1742,17 +1742,17 @@ select:focus-visible,
 }
 
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.12) !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.02) !important;
+  background: rgba(15, 23, 42, 0.15) !important;
+  backdrop-filter: blur(24px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(120%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
 }
 
 .liquid-glass-inner {
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(12px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.01) !important;
+  background: rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: blur(12px) saturate(100%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(100%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important;
 }

@@ -166,11 +166,11 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                 className="w-full rounded-[24px] border px-3 py-3 md:px-4 backdrop-blur-xl"
                 data-testid="top-command-panel"
                 style={isLightTheme ? {
-                    background: "rgba(255,255,255,0.48)",
-                    backdropFilter: "blur(60px) saturate(3) brightness(1.12)",
-                    WebkitBackdropFilter: "blur(60px) saturate(3) brightness(1.12)",
-                    borderColor: "rgba(255,255,255,0.75)",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.04)",
+                    background: "rgba(15, 23, 42, 0.12)",
+                    backdropFilter: "blur(60px) saturate(1.5) brightness(0.9)",
+                    WebkitBackdropFilter: "blur(60px) saturate(1.5) brightness(0.9)",
+                    borderColor: "rgba(15, 23, 42, 0.3)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
                 } : {
                     background: "linear-gradient(180deg,#040b24 0%,#030a1b 100%)",
                     borderColor: "hsl(var(--accent)/0.15)",
@@ -249,7 +249,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                         </button>
 
                         <div
-                            className="flex min-w-0 items-center gap-3 rounded-[16px] border border-white/20 liquid-glass-inner px-3 py-1.5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)]"
+                            className="flex min-w-0 items-center gap-3 rounded-[16px] border border-slate-800/20 liquid-glass-inner px-3 py-1.5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)]"
                             data-testid="top-status-rank"
                         >
                             <div className="flex items-center gap-2 border-r border-[hsl(var(--accent)/0.2)] pr-3">
@@ -298,7 +298,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <button
                             aria-label={authUser ? "Conta conectada" : "Abrir login"}
-                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90"
+                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90"
                             data-testid="header-auth-button"
                             onClick={() => { sfx("tick"); openAuthPanel(); }}
                             type="button"

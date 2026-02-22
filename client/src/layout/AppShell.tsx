@@ -155,7 +155,7 @@ export function AppShell() {
 
       <div className="relative flex h-screen flex-1 flex-col overflow-hidden">
         {/* Dynamic Grid background — made subtle for glass theme */}
-        <div className="animate-grid-drift pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] opacity-30" />
+        <div className="animate-grid-drift pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.02)_1px,transparent_1px)] bg-[size:60px_60px] opacity-30" />
 
 
         <TopBar onMobileMenuOpen={() => setIsMobileMenuOpen(true)} />
