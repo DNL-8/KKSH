@@ -5,7 +5,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { RouteProgressBar } from "../components/common/RouteProgressBar";
-import { ThemeBackground } from "../components/common/ThemeBackground";
 import { ScrollToTop } from "../components/common/ScrollToTop";
 import type { AppShellContextValue } from "./types";
 import { AuthPanel } from "./AuthPanel";
@@ -48,7 +47,7 @@ export function AppShell() {
   const location = useLocation();
   const { globalStats, authUser, openAuthPanel } = useAuth();
   const { preferences } = usePreferences();
-  const { isLightTheme, theme } = useTheme();
+  const { isLightTheme } = useTheme();
 
   /* Boot splash */
   useEffect(() => {
