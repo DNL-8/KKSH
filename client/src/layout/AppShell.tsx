@@ -5,8 +5,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { RouteProgressBar } from "../components/common/RouteProgressBar";
+import { ThemeBackground } from "../components/common/ThemeBackground";
 import { ScrollToTop } from "../components/common/ScrollToTop";
 import type { AppShellContextValue } from "./types";
+import { resumeAudioContext } from "../hooks/useSfx";
 import { AuthPanel } from "./AuthPanel";
 import { BootSplash } from "./BootSplash";
 import { MobileMenu } from "./MobileMenu";
@@ -48,6 +50,24 @@ export function AppShell() {
   const { globalStats, authUser, openAuthPanel } = useAuth();
   const { preferences } = usePreferences();
   const { isLightTheme } = useTheme();
+
+  /* AudioContext Resume on Interaction */
+  useEffect(() => {
+    const resume = () => {
+      resumeAudioContext();
+      window.removeEventListener("mousedown", resume);
+      window.removeEventListener("keydown", resume);
+      window.removeEventListener("touchstart", resume);
+    };
+    window.addEventListener("mousedown", resume);
+    window.addEventListener("keydown", resume);
+    window.addEventListener("touchstart", resume);
+    return () => {
+      window.removeEventListener("mousedown", resume);
+      window.removeEventListener("keydown", resume);
+      window.removeEventListener("touchstart", resume);
+    };
+  }, []);
 
   /* Boot splash */
   useEffect(() => {
@@ -141,6 +161,7 @@ export function AppShell() {
         Pular para o conteúdo
       </a>
       {/* Theme background — light themes use a fixed wallpaper div, dark themes use ThemeBackground */}
+      <ThemeBackground />
 
       <ScrollToTop />
       <RouteProgressBar />

@@ -74,7 +74,7 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         accent: "211 100% 50%",
         accentLight: "211 100% 65%",
         glow: "0, 122, 255",
-        bgImage: "/assets/themes/ios26.jpg",
+        bgImage: "https://www.iclarified.com/images/news/97554/465549/465549.jpg",
         bgGradient: "",
         overlayColor: "rgba(255,255,255,0)",
         isLight: true,

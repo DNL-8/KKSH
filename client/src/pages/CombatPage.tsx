@@ -42,7 +42,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function CombatPage() {
-  const { openAuthPanel } = useOutletContext<AppShellContextValue>();
+  const { authUser, openAuthPanel } = useOutletContext<AppShellContextValue>();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -56,6 +56,7 @@ export function CombatPage() {
   const { data: appState } = useQuery({
     queryKey: ["app-state"],
     queryFn: getMeState,
+    enabled: Boolean(authUser),
   });
 
   const potionQty = useMemo(() => {

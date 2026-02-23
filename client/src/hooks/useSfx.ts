@@ -5,11 +5,27 @@ import { usePreferences } from "../contexts/PreferencesContext";
 /*  Shared AudioContext singleton                                     */
 /* ------------------------------------------------------------------ */
 
+/** Internal singleton */
 let _ctx: AudioContext | null = null;
+
+/** 
+ * Resumes the AudioContext on user gesture. 
+ * Exported so AppShell can call it on first click.
+ */
+export function resumeAudioContext() {
+    try {
+        if (!_ctx) _ctx = new AudioContext();
+        if (_ctx.state === "suspended") void _ctx.resume();
+    } catch (e) {
+        console.warn("Failed to resume AudioContext:", e);
+    }
+}
 
 function ctx(): AudioContext | null {
     try {
         if (!_ctx) _ctx = new AudioContext();
+        // If it's already running, we're good. 
+        // If it's suspended, we try to resume (this usually happens during an event handler)
         if (_ctx.state === "suspended") void _ctx.resume();
         return _ctx;
     } catch {

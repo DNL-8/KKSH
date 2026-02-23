@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSystemRpgStats, patchSystemRpgStats, SystemRPGStatsOut, SystemRPGStatsUpdate } from "./api";
+import { useAuth } from "../contexts/AuthContext";
 
 const SYSTEM_RPG_QUERY_KEY = ["system_rpg_stats"];
 
@@ -36,11 +37,13 @@ const DEFAULT_STATE: SystemRPGStatsOut = {
 };
 
 export function useSystemRPG() {
+    const { authUser } = useAuth();
     const queryClient = useQueryClient();
 
     const { data: state = DEFAULT_STATE, isLoading } = useQuery({
         queryKey: SYSTEM_RPG_QUERY_KEY,
         queryFn: getSystemRpgStats,
+        enabled: Boolean(authUser),
         staleTime: 5 * 60 * 1000, // Keep fresh for 5 mins
     });
 
