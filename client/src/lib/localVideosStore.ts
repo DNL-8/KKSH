@@ -77,12 +77,22 @@ function getWorker(): Worker {
   return worker;
 }
 
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for insecure contexts or older browsers
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
+  );
+}
+
 function sendToWorker<T>(
   type: string,
   payload: any = {},
   onProgress?: (current: number, total: number) => void
 ): Promise<T> {
-  const requestId = crypto.randomUUID();
+  const requestId = generateUUID();
   return new Promise((resolve, reject) => {
     requestMap.set(requestId, { resolve, reject, onProgress });
     getWorker().postMessage({ type, requestId, ...payload });
