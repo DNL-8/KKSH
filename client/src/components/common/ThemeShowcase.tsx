@@ -74,11 +74,11 @@ const THEME_METAS: ThemeMeta[] = [
     {
         id: "ios26",
         name: "iOS 26 LIQUID GLASS",
-        subtitle: "Leve, Fluido e Premium",
+        subtitle: "Glass Azul Noturno",
         color: "#007AFF",
         glow: "0, 122, 255",
         bgImage: "",
-        bgGradient: "radial-gradient(ellipse at 20% 0%, rgba(255,200,255,0.6) 0%, transparent 60%), radial-gradient(ellipse at 80% 10%, rgba(200,230,255,0.8) 0%, transparent 60%), linear-gradient(160deg, #f5f0ff 0%, #e8f4ff 100%)",
+        bgGradient: "radial-gradient(ellipse at 22% 0%, rgba(56,138,255,0.36) 0%, transparent 56%), radial-gradient(ellipse at 82% 8%, rgba(129,179,255,0.22) 0%, transparent 60%), linear-gradient(165deg, #0d1f42 0%, #08152f 52%, #020915 100%)",
         icon: "🍎",
     },
 ];

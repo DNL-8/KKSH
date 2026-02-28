@@ -71,13 +71,13 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         overlayColor: "rgba(10, 15, 20, 0.85)",
     },
     ios26: {
-        accent: "211 100% 50%",
-        accentLight: "211 100% 65%",
+        accent: "211 100% 56%",
+        accentLight: "211 100% 72%",
         glow: "0, 122, 255",
-        bgImage: "https://www.iclarified.com/images/news/97554/465549/465549.jpg",
-        bgGradient: "",
-        overlayColor: "rgba(255,255,255,0)",
-        isLight: true,
+        bgImage: "",
+        bgGradient: "radial-gradient(circle at 20% 0%, #102347 0%, #08152f 42%, #020915 78%, #000000 100%)",
+        overlayColor: "rgba(2, 8, 18, 0.78)",
+        isLight: false,
     },
 
 };

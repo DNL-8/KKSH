@@ -117,14 +117,14 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             />
             <div
                 ref={drawerRef}
-                className={`animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800/20 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500 ${isLightTheme ? "bg-white/60" : "bg-[#060a12]/90"
+                className={`animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[min(88vw,320px)] flex-col overflow-y-auto border-r border-slate-800/20 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500 ${isLightTheme ? "bg-white/60" : "bg-[#060a12]/90"
                     }`}
                 data-testid="mobile-menu-drawer"
             >
                 {/* Subtle accent glow */}
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[hsl(var(--accent)/0.15)] to-transparent pointer-events-none" />
 
-                <div className="relative mb-14 flex items-center justify-between">
+                <div className="relative mb-8 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Icon name="hexagon" className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),0.8)] text-3xl transition-transform animate-pulse-slow" />
                         <span className={`text-xl font-black uppercase italic tracking-tighter ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>
@@ -148,7 +148,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     </button>
                 </div>
 
-                <nav className="relative flex-1 space-y-3" aria-label="Navegacao principal">
+                <nav className="relative space-y-2" aria-label="Navegacao principal">
                     {ALL_NAV_ITEMS.map((item, index) => (
                         <NavLink
                             key={item.id}
@@ -183,7 +183,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     ))}
                 </nav>
 
-                <div className="relative mt-auto border-t border-slate-800/20 pt-8">
+                <div className="relative mt-6 border-t border-slate-800/20 pt-6">
                     <div className={`group flex items-center gap-4 rounded-[24px] border p-4 transition-all ${isLightTheme
                         ? "border-slate-800/20 liquid-glass/30 hover:liquid-glass/60 hover:border-slate-800/20"
                         : "border-white/15 bg-white/5 hover:bg-white/10"
