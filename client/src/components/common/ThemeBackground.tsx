@@ -25,8 +25,9 @@ export function ThemeBackground() {
                 {/* Subtle motion layer */}
                 {themeId === "ios26" ? (
                     <div
+                        data-testid="theme-background-ios26-sheen"
                         aria-hidden="true"
-                        className="ios26-sheen absolute inset-0 bg-[radial-gradient(circle_at_16%_-8%,rgba(255,255,255,0.78),transparent_46%),radial-gradient(circle_at_86%_14%,rgba(122,181,255,0.35),transparent_48%),radial-gradient(circle_at_48%_100%,rgba(255,220,244,0.24),transparent_55%)]"
+                        className="ios26-sheen absolute inset-0 bg-[radial-gradient(circle_at_16%_-8%,rgba(255,255,255,0.46),transparent_46%),radial-gradient(circle_at_86%_14%,rgba(122,181,255,0.20),transparent_48%),radial-gradient(circle_at_48%_100%,rgba(255,220,244,0.14),transparent_55%)]"
                     />
                 ) : (
                     <div aria-hidden="true" className="absolute inset-0 animate-pulse-slow liquid-glass/10" />
@@ -35,6 +36,7 @@ export function ThemeBackground() {
 
             {/* Overlay Color Layer */}
             <div
+                data-testid="theme-background-overlay"
                 className="absolute inset-0 transition-colors duration-700"
                 style={{ backgroundColor: theme.overlayColor }}
                 aria-hidden="true"
@@ -73,7 +75,7 @@ export function ThemeBackground() {
 
             {/* Vignette / highlight */}
             {isLightTheme ? (
-                <div aria-hidden="true" className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_10%_-10%,rgba(255,255,255,0.7),transparent_38%),radial-gradient(circle_at_85%_0%,rgba(123,179,255,0.28),transparent_42%)]" />
+                <div aria-hidden="true" className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_10%_-10%,rgba(255,255,255,0.42),transparent_38%),radial-gradient(circle_at_85%_0%,rgba(123,179,255,0.16),transparent_42%)]" />
             ) : (
                 <div aria-hidden="true" className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.8)_100%)]" />
             )}

@@ -76,7 +76,7 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         glow: "0, 122, 255",
         bgImage: "https://www.iclarified.com/images/news/95356/455974/455974.jpg",
         bgGradient: "radial-gradient(circle at 18% -8%, #c9e2ff 0%, #eef5ff 36%, #e3eeff 66%, #d6e5fb 100%)",
-        overlayColor: "rgba(255, 255, 255, 0.28)",
+        overlayColor: "rgba(255, 255, 255, 0.10)",
         isLight: true,
     },
 

@@ -49,4 +49,11 @@ test("ios26 respeita reduced motion desativando sheen decorativo", async ({ page
     getComputedStyle(element as HTMLElement, "::after").animationName,
   );
   expect(sheenAnimation).toBe("none");
+
+  const bgSheenLayer = page.getByTestId("theme-background-ios26-sheen");
+  await expect(bgSheenLayer).toHaveCount(1);
+  const bgSheenAnimation = await bgSheenLayer.evaluate((element) =>
+    getComputedStyle(element as HTMLElement, "::after").animationName,
+  );
+  expect(bgSheenAnimation).toBe("none");
 });
