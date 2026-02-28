@@ -171,7 +171,7 @@ export function CombatPage() {
       const result = await drawCombatQuestion(battleIdRef.current);
       applyBattleState(result.battleState);
       setCurrentQuestion(result.question);
-    } catch (error) {
+    } catch {
       showToast("Sinal perdido ao carregar padrão de ataque.", "error");
     } finally {
       setActionLocked(false);
@@ -224,7 +224,7 @@ export function CombatPage() {
           showToast("Você foi abatido na incursão!", "error");
           void invalidateProgressCaches();
         }
-      } catch (error) {
+      } catch {
         pushCombatLog("Falha na execução da rotina de combate.");
         setTurnState("PLAYER_IDLE");
       } finally {
@@ -248,12 +248,12 @@ export function CombatPage() {
       pushCombatLog("Extração tática concluída. XP Assegurado.");
       showToast("Você fugiu com sucesso!", "success");
       void invalidateProgressCaches();
-    } catch (e) {
+    } catch {
       showToast("O World Boss anulou sua rota de fuga!", "error");
     } finally {
       setActionLocked(false);
     }
-  }, [actionLocked, applyBattleState, pushCombatLog, showToast, invalidateProgressCaches]);
+  }, [actionLocked, applyBattleState, pushCombatLog, showToast, turnState, invalidateProgressCaches]);
 
   const handleHeal = useCallback(async () => {
     if (turnState !== "PLAYER_IDLE" || actionLocked || !battleIdRef.current) return;
@@ -274,12 +274,12 @@ export function CombatPage() {
 
       pushCombatLog(`Injeção Caffeinica aplicada. +${result.healAmount} HP Módulos restaurados.`);
       void invalidateProgressCaches();
-    } catch (e) {
+    } catch {
       showToast("Falha ao consumir item.", "error");
     } finally {
       setActionLocked(false);
     }
-  }, [actionLocked, applyBattleState, potionQty, pushCombatLog, showToast, invalidateProgressCaches]);
+  }, [actionLocked, applyBattleState, potionQty, pushCombatLog, showToast, turnState, invalidateProgressCaches]);
 
   const returnToLobby = () => {
     setIsLobby(true);

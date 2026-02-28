@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getSystemRpgStats, patchSystemRpgStats, SystemRPGStatsOut, SystemRPGStatsUpdate } from "./api";
+import { getSystemRpgStats, patchSystemRpgStats, type SystemRPGStatsOut, type SystemRPGStatsUpdate } from "./api";
 import { useAuth } from "../contexts/AuthContext";
 
 const SYSTEM_RPG_QUERY_KEY = ["system_rpg_stats"];

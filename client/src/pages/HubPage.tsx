@@ -33,6 +33,8 @@ interface HubQueryData {
   weekly: WeeklyReportOut;
 }
 
+const EMPTY_DAILY_QUESTS: DailyQuestOut[] = [];
+
 function toHubErrorMessage(error: unknown): string {
   if (error instanceof ApiRequestError) {
     if (error.status === 401) {
@@ -81,7 +83,7 @@ export function HubPage() {
   const error = authUser && hubQuery.error ? toHubErrorMessage(hubQuery.error) : null;
 
   const computedAttributes = useMemo(() => computeAttributes(hubState, weekly), [hubState, weekly]);
-  const dailyQuests = hubState?.dailyQuests ?? [];
+  const dailyQuests = hubState?.dailyQuests ?? EMPTY_DAILY_QUESTS;
   const activeQuest = useMemo(() => bestDailyQuest(dailyQuests), [dailyQuests]);
 
   const dailyTarget = Math.max(1, Number(hubState?.settings?.dailyTargetMinutes ?? 60));

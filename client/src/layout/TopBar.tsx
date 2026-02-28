@@ -190,7 +190,8 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 <span>Uplink_on</span>
                             </div>
                             <h1
-                                className="truncate text-[22px] font-black uppercase italic leading-tight tracking-[0.03em] text-slate-900 md:text-[32px]"
+                                className={`truncate text-[22px] font-black uppercase italic leading-tight tracking-[0.03em] md:text-[32px] ${isLightTheme ? "text-slate-900" : "text-slate-100"
+                                    }`}
                                 title={activeNavItem.label}
                             >
                                 {activeNavItem.label}
@@ -206,8 +207,9 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                             className="group flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
                             data-testid="top-level-card"
                         >
-                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-600">Lvl</span>
-                            <span className="text-3xl font-black leading-none text-slate-900 transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)]">{displayLevel}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-[0.2em] ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>Lvl</span>
+                            <span className={`text-3xl font-black leading-none transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)] ${isLightTheme ? "text-slate-900" : "text-slate-100"
+                                }`}>{displayLevel}</span>
                         </div>
 
                         <div className="min-w-0 flex-1 space-y-2">
@@ -216,21 +218,21 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 iconColor="text-red-500"
                                 value={animHp}
                                 barClass="bg-gradient-to-r from-red-700 via-red-500 to-red-400"
-                                textClass="text-red-300"
+                                textClass={isLightTheme ? "text-red-700" : "text-red-300"}
                             />
                             <StatBar
                                 icon="raindrops"
                                 iconColor="text-blue-400"
                                 value={animMana}
                                 barClass="bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400"
-                                textClass="text-blue-300"
+                                textClass={isLightTheme ? "text-blue-700" : "text-blue-300"}
                             />
                             <StatBar
                                 icon="star"
                                 iconColor="text-yellow-400"
                                 value={animXp}
                                 barClass="bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300"
-                                textClass="text-yellow-300"
+                                textClass={isLightTheme ? "text-amber-700" : "text-yellow-300"}
                             />
                         </div>
                     </div>
@@ -240,7 +242,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                     <div className="ml-auto flex items-center gap-2">
                         <button
                             aria-label="Abrir menu de navegacao"
-                            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 p-1 transition-all hover:border-[hsl(var(--accent)/0.5)] active:scale-90 lg:hidden"
+                            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 p-1 transition-all hover:border-[hsl(var(--accent)/0.5)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent lg:hidden"
                             data-testid="mobile-menu-open"
                             onClick={() => { sfx("tick"); onMobileMenuOpen(); }}
                             type="button"
@@ -259,7 +261,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                         : "bg-green-500 shadow-[0_0_8px_#22c55e] animate-pulse"
                                         }`}
                                 />
-                                <span className="text-sm font-black uppercase tracking-[0.15em] text-slate-900">{presenceLabel}</span>
+                                <span className={`text-sm font-black uppercase tracking-[0.15em] ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>{presenceLabel}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Rank</span>
@@ -272,7 +274,8 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 aria-controls="history-popover"
                                 aria-expanded={isHistoryOpen}
                                 aria-label="Historico"
-                                className="group relative p-2 text-slate-500 transition-all duration-300 hover:rotate-12 hover:text-slate-900 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]"
+                                className={`group relative rounded-xl p-2 transition-all duration-300 hover:rotate-12 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-slate-100"
+                                    }`}
                                 data-testid="top-history-button"
                                 onClick={handleToggleHistory}
                                 title="Abrir historico"
@@ -298,12 +301,12 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <button
                             aria-label={authUser ? "Conta conectada" : "Abrir login"}
-                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90"
+                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                             data-testid="header-auth-button"
                             onClick={() => { sfx("tick"); openAuthPanel(); }}
                             type="button"
                         >
-                            <Icon name="user" className="text-slate-600 transition-colors group-hover:text-[hsl(var(--accent))] text-lg" />
+                            <Icon name="user" className={`transition-colors group-hover:text-[hsl(var(--accent))] text-lg ${isLightTheme ? "text-slate-600" : "text-slate-300"}`} />
                             {authUser && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />}
                         </button>
                     </div>

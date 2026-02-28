@@ -39,6 +39,8 @@ interface EvolutionQueryData {
   sessions: SessionOut[];
 }
 
+const EMPTY_SESSIONS: SessionOut[] = [];
+
 type StatBadgeTone = "cyan" | "red";
 
 interface StatBadgeProps {
@@ -123,7 +125,7 @@ export function EvolutionPage() {
   const weekly = evolutionQuery.data?.weekly ?? null;
   const monthly = evolutionQuery.data?.monthly ?? null;
   const achievements = evolutionQuery.data?.achievements ?? [];
-  const sessions = evolutionQuery.data?.sessions ?? [];
+  const sessions = evolutionQuery.data?.sessions ?? EMPTY_SESSIONS;
 
   const dailyTargetMinutes = Math.max(1, Number(state?.settings?.dailyTargetMinutes ?? 60));
   const weeklyTotalMinutes = roundPositive(Number(weekly?.totalMinutes ?? 0));

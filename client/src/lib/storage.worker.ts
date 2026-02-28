@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 // Web Worker for Local Video Storage
 // Handles IndexedDB operations off the main thread to keep UI responsive.
 
@@ -55,10 +54,6 @@ class LocalMediaStorageError extends Error {
 }
 
 // --- Utils ---
-
-function isLocalMediaStorageError(error: unknown): error is LocalMediaStorageError {
-    return error instanceof LocalMediaStorageError;
-}
 
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {

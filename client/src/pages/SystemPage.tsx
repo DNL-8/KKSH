@@ -343,11 +343,13 @@ export function SystemPage() {
 
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-mono text-cyan-600 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
-                            <Icon name="pulse" className="text-sm" /> Próxima Missão
+                            <Icon name="pulse" className="text-sm" /> Próxima missao
                         </h3>
-                        <div
+                        <button
+                            type="button"
                             onClick={() => startDungeon(featuredDungeon)}
-                            className="group cursor-pointer liquid-glass-inner p-8 rounded-3xl shadow-lg hover:border-cyan-400 transition-all relative overflow-hidden"
+                            className="group liquid-glass-inner p-8 rounded-3xl shadow-lg hover:border-cyan-400 transition-all relative overflow-hidden text-left w-full"
+                            aria-label={`Abrir missao ${featuredDungeon.title}`}
                         >
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
@@ -371,7 +373,7 @@ export function SystemPage() {
                                     <Icon name="angle-right" className="text-2xl text-cyan-600 group-hover:translate-x-1 transition-transform" />
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     </div>
 
                     <div className="space-y-4">
@@ -380,10 +382,12 @@ export function SystemPage() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {upcomingDungeons.map((dungeon) => (
-                                <div
+                                <button
+                                    type="button"
                                     key={dungeon.id}
                                     onClick={() => startDungeon(dungeon)}
-                                    className="group cursor-pointer liquid-glass-inner p-5 rounded-2xl hover:border-cyan-400 transition-all flex flex-col justify-between min-h-[120px]"
+                                    className="group liquid-glass-inner p-5 rounded-2xl hover:border-cyan-400 transition-all flex flex-col justify-between min-h-[120px] text-left w-full"
+                                    aria-label={`Abrir missao ${dungeon.title}`}
                                 >
                                     <div>
                                         <div className="flex justify-between items-start mb-2">
@@ -398,7 +402,7 @@ export function SystemPage() {
                                             {dungeon.title}
                                         </h4>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -487,13 +491,16 @@ export function SystemPage() {
                         {activeDungeon?.blocks.map((block: any) => {
                             const isChecked = completedBlocks.includes(block.id);
                             return (
-                                <div
+                                <button
+                                    type="button"
                                     key={block.id}
                                     onClick={() => toggleBlock(block.id)}
-                                    className={`relative p-5 md:p-6 rounded-2xl cursor-pointer transition-all duration-300 border ${isChecked
+                                    className={`relative p-5 md:p-6 rounded-2xl transition-all duration-300 border text-left w-full ${isChecked
                                         ? 'liquid-glass-inner opacity-40'
                                         : 'liquid-glass-inner border-white/20 hover:border-cyan-400'
                                         }`}
+                                    aria-pressed={isChecked}
+                                    aria-label={`Marcar bloco ${block.title} como ${isChecked ? "não concluído" : "concluído"}`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -508,7 +515,7 @@ export function SystemPage() {
                                             {isChecked && <Icon name="check" className="text-2xl text-cyan-600" />}
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
@@ -601,3 +608,4 @@ export function SystemPage() {
         </>
     );
 }
+

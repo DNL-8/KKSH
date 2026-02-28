@@ -16,16 +16,23 @@ export function SettingsProfile() {
     const [isSavingName, setIsSavingName] = useState(false);
 
     const handleSaveName = async () => {
+        const nextName = tempName.trim();
+        if (!nextName) {
+            showToast("Informe um nome valido.", "error");
+            return;
+        }
+
         setIsSavingName(true);
         try {
-            await updateProfile({ username: tempName });
+            await updateProfile({ username: nextName });
             await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-            window.location.reload();
-        } catch (err) {
+            setTempName(nextName);
+            setIsEditingName(false);
+            showToast("Nome atualizado com sucesso.", "success");
+        } catch {
             showToast("Erro ao atualizar nome. Pode estar em uso.", "error");
         } finally {
             setIsSavingName(false);
-            setIsEditingName(false);
         }
     };
 

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  DueDrillOut,
+  type DueDrillOut,
   getReviewStats,
   listDueReviews,
   submitDrillReview,
@@ -62,7 +62,7 @@ export function ReviewsPage() {
   };
 
   // If dueQuery finishes fetching AFTER we click Start
-  useMemo(() => {
+  useEffect(() => {
     if (isSessionActive && dueQuery.data && currentQueue.length === 0) {
       setCurrentQueue(dueQuery.data);
     }

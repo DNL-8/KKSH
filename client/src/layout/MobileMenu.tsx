@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -22,15 +23,91 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     const { globalStats, authUser } = useAuth();
-    const { themeId } = useTheme();
+    const { themeId, isLightTheme } = useTheme();
     const sfx = useSfx();
+    const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+    const drawerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const focusableSelector = [
+            "button:not([disabled])",
+            "[href]",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            "textarea:not([disabled])",
+            "[tabindex]:not([tabindex='-1'])",
+        ].join(",");
+
+        const getFocusableElements = () => {
+            if (!drawerRef.current) {
+                return [];
+            }
+            return Array.from(drawerRef.current.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+                (element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true",
+            );
+        };
+
+        const handleKeydown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+                return;
+            }
+
+            if (event.key !== "Tab") {
+                return;
+            }
+
+            const focusable = getFocusableElements();
+            if (focusable.length === 0) {
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            const activeElement = document.activeElement;
+
+            if (event.shiftKey) {
+                if (activeElement === first || !drawerRef.current?.contains(activeElement)) {
+                    event.preventDefault();
+                    last.focus();
+                }
+                return;
+            }
+
+            if (activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeydown);
+        closeButtonRef.current?.focus();
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleKeydown);
+        };
+    }, [isOpen, onClose]);
 
     if (!isOpen) {
         return null;
     }
 
     return (
-        <div className="animate-in fade-in fixed inset-0 z-[100] duration-300 lg:hidden" data-testid="mobile-menu-root">
+        <div
+            className="animate-in fade-in fixed inset-0 z-[100] duration-300 lg:hidden"
+            data-testid="mobile-menu-root"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegacao"
+        >
             <button
                 className="absolute inset-0 liquid-glass/60 backdrop-blur-md transition-all duration-300"
                 data-testid="mobile-menu-overlay"
@@ -39,7 +116,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 aria-label="Fechar menu"
             />
             <div
-                className="animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800/20 bg-[#060a12]/80 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500"
+                ref={drawerRef}
+                className={`animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[300px] flex-col border-r border-slate-800/20 backdrop-blur-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500 ${isLightTheme ? "bg-white/60" : "bg-[#060a12]/90"
+                    }`}
                 data-testid="mobile-menu-drawer"
             >
                 {/* Subtle accent glow */}
@@ -48,7 +127,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 <div className="relative mb-14 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Icon name="hexagon" className="text-[hsl(var(--accent))] drop-shadow-[0_0_15px_rgba(var(--glow),0.8)] text-3xl transition-transform animate-pulse-slow" />
-                        <span className="text-xl font-black uppercase italic tracking-tighter text-slate-900">
+                        <span className={`text-xl font-black uppercase italic tracking-tighter ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>
                             {themeId === "sololeveling" ? (
                                 <>System <span className="text-[hsl(var(--accent))] drop-shadow-[0_0_8px_rgba(var(--glow),0.5)]">Leveling</span></>
                             ) : (
@@ -57,8 +136,10 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                         </span>
                     </div>
                     <button
+                        ref={closeButtonRef}
                         onClick={() => { sfx("toggle"); onClose(); }}
-                        className="rounded-2xl border border-slate-800/20 liquid-glass/50 p-2 text-slate-600 transition-all hover:liquid-glass-inner hover:text-slate-900 hover:border-[hsl(var(--accent)/0.3)] active:scale-90"
+                        className={`rounded-2xl border border-slate-800/20 liquid-glass/50 p-2 transition-all hover:liquid-glass-inner hover:border-[hsl(var(--accent)/0.3)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"
+                            }`}
                         data-testid="mobile-menu-close"
                         aria-label="Fechar menu de navegacao"
                         type="button"
@@ -76,7 +157,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                             className={({ isActive }) =>
                                 `group relative flex w-full items-center gap-5 rounded-[20px] p-4 text-xs font-black uppercase tracking-widest transition-all duration-300 animate-in fade-in slide-in-from-left-4 ${isActive
                                     ? "bg-[hsl(var(--accent)/0.15)] border border-[hsl(var(--accent)/0.3)] text-[hsl(var(--accent-light))] shadow-[0_0_20px_rgba(var(--glow),0.15)]"
-                                    : "border border-transparent text-slate-500 hover:liquid-glass/40 hover:text-slate-200"
+                                    : isLightTheme
+                                        ? "border border-transparent text-slate-500 hover:liquid-glass/40 hover:text-slate-900"
+                                        : "border border-transparent text-slate-300 hover:liquid-glass/40 hover:text-slate-100"
                                 }`
                             }
                             style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
@@ -101,13 +184,17 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </nav>
 
                 <div className="relative mt-auto border-t border-slate-800/20 pt-8">
-                    <div className="group flex items-center gap-4 rounded-[24px] border border-slate-800/20 liquid-glass/30 p-4 transition-all hover:liquid-glass/60 hover:border-slate-800/20">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--accent))] to-violet-600 text-sm font-black text-slate-900 shadow-[0_0_15px_rgba(var(--glow),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--glow),0.5)] transition-all">
+                    <div className={`group flex items-center gap-4 rounded-[24px] border p-4 transition-all ${isLightTheme
+                        ? "border-slate-800/20 liquid-glass/30 hover:liquid-glass/60 hover:border-slate-800/20"
+                        : "border-white/15 bg-white/5 hover:bg-white/10"
+                        }`}>
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--accent))] to-violet-600 text-sm font-black shadow-[0_0_15px_rgba(var(--glow),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--glow),0.5)] transition-all ${isLightTheme ? "text-slate-900" : "text-black"
+                            }`}>
                             SH
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="truncate text-[13px] font-black leading-none text-slate-900">{authUser?.email || "Shadow Hunter"}</p>
-                            <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                            <p className={`truncate text-[13px] font-black leading-none ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>{authUser?.email || "Shadow Hunter"}</p>
+                            <p className={`mt-2 text-[10px] font-black uppercase tracking-widest ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>
                                 Lv. <span className="text-[hsl(var(--accent-light))]">{globalStats.level}</span> | Rank <span className="text-[hsl(var(--accent-light))]">{globalStats.rank}</span>
                             </p>
                         </div>

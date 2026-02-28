@@ -255,7 +255,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     </Link>
                     {isSidebarOpen && (
                         <div className="animate-in fade-in slide-in-from-left-6 min-w-0 overflow-hidden duration-300">
-                            <h1 className={`truncate text-xl font-black uppercase italic leading-none tracking-tight ${isLightTheme ? "text-slate-800" : "text-slate-900"}`}>
+                            <h1 className={`truncate text-xl font-black uppercase italic leading-none tracking-tight ${isLightTheme ? "text-slate-800" : "text-slate-100"}`}>
                                 {themeId === "sololeveling" ? (
                                     <>System <span className="text-[hsl(var(--accent))]">Leveling</span></>
                                 ) : (
@@ -271,7 +271,8 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
 
                 <button
                     aria-label={isSidebarOpen ? "Ativar modo so icones" : "Ativar modo com texto"}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800/20 liquid-glass-inner text-slate-800 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-slate-900/10 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90"
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800/20 liquid-glass-inner transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-slate-900/10 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-800" : "text-slate-300"
+                        }`}
                     data-testid="sidebar-mode-toggle"
                     onClick={handleToggle}
                     type="button"
@@ -327,16 +328,16 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                                 />
                             )}
                             <div
-                                className={`flex shrink-0 items-center justify-center text-slate-900 transition-all duration-300 group-hover:scale-105 ${isSidebarOpen
+                                className={`flex shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105 ${isSidebarOpen
                                     ? "h-11 w-11 rounded-2xl border border-slate-800/10 bg-gradient-to-br from-indigo-500/80 to-violet-500/80 shadow-2xl group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]"
                                     : ""
-                                    }`}
+                                    } ${isSidebarOpen || isLightTheme ? "text-slate-900" : "text-slate-100"}`}
                             >
                                 <Icon name="settings" className={`${isSidebarOpen ? "text-[20px]" : "text-[18px]"} ${!isSidebarOpen && isActive ? "drop-shadow-[0_0_6px_rgba(var(--glow),0.6)]" : ""}`} />
                             </div>
                             {isSidebarOpen && (
                                 <div className="animate-in fade-in overflow-hidden text-left" data-testid="sidebar-config-card">
-                                    <p className={`mb-1 truncate text-sm font-black leading-none ${isActive ? "text-[hsl(var(--accent-light))]" : "text-slate-900"}`}>
+                                    <p className={`mb-1 truncate text-sm font-black leading-none ${isActive ? "text-[hsl(var(--accent-light))]" : isLightTheme ? "text-slate-900" : "text-slate-100"}`}>
                                         Ajustes de Nucleo
                                     </p>
                                     <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-500">

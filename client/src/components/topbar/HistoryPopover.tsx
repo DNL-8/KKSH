@@ -150,15 +150,15 @@ export function HistoryPopover({
     >
       <div className="flex items-center justify-between border-b border-slate-800/70 px-4 py-3">
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-100">
             Historico
           </h3>
-          <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-400">
             Alteracoes e atividade recente
           </p>
         </div>
         <button
-          className="rounded-lg border border-slate-700 liquid-glass/60 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-800 transition-colors hover:liquid-glass-inner"
+          className="rounded-lg border border-slate-600 liquid-glass/60 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:liquid-glass-inner hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
           onClick={onClose}
           type="button"
         >
@@ -166,15 +166,17 @@ export function HistoryPopover({
         </button>
       </div>
 
-      <div className="border-b border-slate-800/60 px-3 py-2" role="tablist">
+      <div className="border-b border-slate-800/60 px-3 py-2" role="tablist" aria-label="Abas do historico">
         <div className="flex items-center gap-2">
           <button
             aria-selected={activeTab === "changes"}
+            aria-controls="history-panel-changes"
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "changes"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "liquid-glass/70 text-slate-600 hover:text-slate-200"
+              : "liquid-glass/70 text-slate-300 hover:text-slate-100"
               }`}
             data-testid="history-tab-changes"
+            id="history-tab-changes"
             onClick={() => setActiveTab("changes")}
             role="tab"
             type="button"
@@ -183,11 +185,13 @@ export function HistoryPopover({
           </button>
           <button
             aria-selected={activeTab === "activity"}
+            aria-controls="history-panel-activity"
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "activity"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "liquid-glass/70 text-slate-600 hover:text-slate-200"
+              : "liquid-glass/70 text-slate-300 hover:text-slate-100"
               }`}
             data-testid="history-tab-activity"
+            id="history-tab-activity"
             onClick={() => {
               setActiveTab("activity");
               if (authUser) {
@@ -203,7 +207,13 @@ export function HistoryPopover({
       </div>
 
       {activeTab === "changes" ? (
-        <div className="max-h-[420px] space-y-3 overflow-auto p-4" data-testid="history-changes-list">
+        <div
+          aria-labelledby="history-tab-changes"
+          className="max-h-[420px] space-y-3 overflow-auto p-4"
+          data-testid="history-changes-list"
+          id="history-panel-changes"
+          role="tabpanel"
+        >
           {CHANGELOG_RELEASES.map((release) => (
             <section
               key={release.id}
@@ -217,14 +227,14 @@ export function HistoryPopover({
                   {release.items.map((item, index) => (
                     <li
                       key={`${release.id}-item-${index + 1}`}
-                      className="text-[11px] text-slate-800"
+                      className="text-[11px] text-slate-200"
                     >
                       - {item}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-[11px] text-slate-500">
+                <p className="mt-2 text-[11px] text-slate-400">
                   Sem itens para esta versao.
                 </p>
               )}
@@ -232,22 +242,30 @@ export function HistoryPopover({
           ))}
         </div>
       ) : (
-        <div className="max-h-[420px] overflow-auto p-4">
+        <div
+          aria-labelledby="history-tab-activity"
+          className="max-h-[420px] overflow-auto p-4"
+          id="history-panel-activity"
+          role="tabpanel"
+        >
           {!authUser ? (
             <div className="space-y-3" data-testid="history-login-cta">
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-300">
                 Faca login para ver sua atividade recente no sistema.
               </p>
               <button
-                className="rounded-xl border border-[hsl(var(--accent)/0.35)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-900 transition-all hover:brightness-110"
-                onClick={onOpenAuth}
+                className="rounded-xl border border-[hsl(var(--accent)/0.35)] bg-[hsl(var(--accent))] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-900 transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent-light))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                onClick={() => {
+                  onClose();
+                  onOpenAuth();
+                }}
                 type="button"
               >
                 Abrir login
               </button>
             </div>
           ) : activityQuery.isLoading ? (
-            <div className="flex items-center gap-2 text-xs text-slate-600">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
               <Icon name="spinner" className="animate-spin text-sm" />
               Carregando atividade...
             </div>
@@ -256,7 +274,7 @@ export function HistoryPopover({
               Nao foi possivel carregar a atividade agora.
             </div>
           ) : activityItems.length === 0 ? (
-            <div className="text-xs text-slate-500" data-testid="history-empty-state">
+            <div className="text-xs text-slate-400" data-testid="history-empty-state">
               Sem atividade recente para mostrar.
             </div>
           ) : (
@@ -268,14 +286,14 @@ export function HistoryPopover({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-900">
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-100">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-[11px] text-slate-600">
+                      <p className="mt-1 text-[11px] text-slate-300">
                         {item.meta}
                       </p>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-500">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400">
                       {item.kind === "session" ? (
                         <Icon name="clock" className="text-[12px]" />
                       ) : (
@@ -291,7 +309,7 @@ export function HistoryPopover({
         </div>
       )}
 
-      <div className="border-t border-slate-800/70 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-500">
+      <div className="border-t border-slate-800/70 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-400">
         <span className="inline-flex items-center gap-1">
           <Icon name="bell" className="text-[12px]" />
           Painel de historico ativo

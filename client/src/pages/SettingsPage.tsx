@@ -48,9 +48,8 @@ export function SettingsPage() {
     [setPreference],
   );
 
-  const handleSave = useCallback(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    showToast("Configuracoes salvas com sucesso!", "success");
+  const handleSave = useCallback(() => {
+    showToast("Preferencias aplicadas automaticamente.", "info");
   }, [showToast]);
 
   const executeHardReset = useCallback(async () => {
@@ -124,12 +123,12 @@ export function SettingsPage() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => void handleSave()}
+              onClick={handleSave}
               className="flex items-center gap-3 rounded-[20px] liquid-glass-inner/80 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] transition-all hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 backdrop-blur-md border border-slate-300/50"
               type="button"
             >
               <Icon name="disk" className="text-[16px]" />
-              Salvar Alteracoes
+              Aplicar Agora
             </button>
           </div>
         </div>

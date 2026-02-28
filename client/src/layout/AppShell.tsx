@@ -20,7 +20,8 @@ import { TopBar } from "./TopBar";
 /* ------------------------------------------------------------------ */
 
 const SIDEBAR_MODE_STORAGE_KEY = "cmd8_sidebar_mode_v1";
-const BOOT_SPLASH_MIN_MS = 2500; // Increased to show the boot animation and sounds
+const BOOT_SPLASH_MIN_MS = 900;
+const BOOT_SPLASH_SESSION_KEY = "cmd8_boot_seen_v1";
 
 function readInitialSidebarState(): boolean {
   if (typeof window === "undefined") {
@@ -77,6 +78,21 @@ export function AppShell() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReducedMotion) {
+      setBooting(false);
+      return;
+    }
+
+    let shouldShowBoot = true;
+    try {
+      shouldShowBoot = window.sessionStorage.getItem(BOOT_SPLASH_SESSION_KEY) !== "1";
+      if (shouldShowBoot) {
+        window.sessionStorage.setItem(BOOT_SPLASH_SESSION_KEY, "1");
+      }
+    } catch {
+      shouldShowBoot = true;
+    }
+
+    if (!shouldShowBoot) {
       setBooting(false);
       return;
     }
@@ -151,7 +167,8 @@ export function AppShell() {
 
   return (
     <div
-      className="relative flex min-h-screen overflow-hidden font-sans text-slate-800 selection:bg-[hsl(var(--accent)/0.3)] ios-bg-root"
+      className={`relative flex min-h-screen overflow-hidden font-sans selection:bg-[hsl(var(--accent)/0.3)] ios-bg-root ${isLightTheme ? "text-slate-800" : "text-slate-100"
+        }`}
     >
       {/* Skip to content — visible only on keyboard focus */}
       <a
