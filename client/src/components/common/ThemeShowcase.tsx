@@ -193,6 +193,9 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
         <button
             ref={cardRef}
             type="button"
+            data-testid={`theme-option-${meta.id}`}
+            aria-pressed={isActive}
+            aria-label={`Ativar tema ${meta.name}`}
             onClick={handleClick}
             onMouseEnter={playHoverSound}
             onMouseMove={handleMouseMove}

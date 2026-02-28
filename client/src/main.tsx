@@ -6,6 +6,7 @@ import App from "./App";
 import "@flaticon/flaticon-uicons/css/all/all.css";
 import { injectStructuredData } from "./lib/structuredData";
 import "./styles.css";
+import "./styles.ios26.css";
 import "./styles.csp.css";
 
 const rootElement = document.getElementById("root");

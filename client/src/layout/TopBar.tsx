@@ -59,7 +59,7 @@ interface TopBarProps {
 export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const { globalStats, authUser, openAuthPanel } = useAuth();
     const { preferences } = usePreferences();
-    const { isLightTheme } = useTheme();
+    const { isLightTheme, isIosTheme } = useTheme();
     const location = useLocation();
     const sfx = useSfx();
     const historyPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -163,23 +163,18 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     return (
         <header className="z-40 shrink-0 px-4 pb-0 pt-4 md:px-8">
             <div
-                className="w-full rounded-[24px] border px-3 py-3 md:px-4 backdrop-blur-xl"
+                className={`w-full rounded-[24px] border px-3 py-3 md:px-4 ${isIosTheme
+                    ? "ios26-panel-strong ios26-sheen"
+                    : "backdrop-blur-xl bg-gradient-to-b from-[#040b24] to-[#030a1b] border-[hsl(var(--accent)/0.15)] shadow-[0_20px_50px_rgba(2,12,40,0.45)]"
+                    }`}
                 data-testid="top-command-panel"
-                style={isLightTheme ? {
-                    background: "rgba(15, 23, 42, 0.12)",
-                    backdropFilter: "blur(60px) saturate(1.5) brightness(0.9)",
-                    WebkitBackdropFilter: "blur(60px) saturate(1.5) brightness(0.9)",
-                    borderColor: "rgba(15, 23, 42, 0.3)",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                } : {
-                    background: "linear-gradient(180deg,#040b24 0%,#030a1b 100%)",
-                    borderColor: "hsl(var(--accent)/0.15)",
-                    boxShadow: "0 20px 50px rgba(2,12,40,0.45)",
-                }}
             >
                 <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
                     <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] shadow-[0_0_20px_rgba(var(--glow),0.15)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--glow),0.3)]">
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${isIosTheme
+                            ? "ios26-card-elevated ios26-sheen"
+                            : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] shadow-[0_0_20px_rgba(var(--glow),0.15)] hover:shadow-[0_0_30px_rgba(var(--glow),0.3)]"
+                            }`}>
                             <Icon name="apps" className="text-[hsl(var(--accent))] text-xl" />
                         </div>
 
@@ -204,7 +199,10 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                     <div className="flex min-w-[180px] flex-1 items-center gap-2 sm:min-w-[280px] sm:gap-3">
                         {/* Level badge with glow */}
                         <div
-                            className="group flex h-[56px] w-[56px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)] sm:h-[64px] sm:w-[64px]"
+                            className={`group flex h-[56px] w-[56px] shrink-0 flex-col items-center justify-center rounded-xl transition-all duration-500 sm:h-[64px] sm:w-[64px] ${isIosTheme
+                                ? "ios26-card ios26-sheen"
+                                : "border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
+                                }`}
                             data-testid="top-level-card"
                         >
                             <span className={`text-[7px] font-black uppercase tracking-[0.2em] sm:text-[8px] ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>Lvl</span>
@@ -242,7 +240,10 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                     <div className="ml-auto flex items-center gap-2">
                         <button
                             aria-label="Abrir menu de navegacao"
-                            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 p-1 transition-all hover:border-[hsl(var(--accent)/0.5)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent lg:hidden"
+                            className={`flex h-11 w-11 items-center justify-center rounded-2xl p-1 transition-all active:scale-90 lg:hidden ${isIosTheme
+                                ? "ios26-control ios26-focusable"
+                                : "border border-[hsl(var(--accent)/0.2)] bg-[#09152b]/70 hover:border-[hsl(var(--accent)/0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                                }`}
                             data-testid="mobile-menu-open"
                             onClick={() => { sfx("tick"); onMobileMenuOpen(); }}
                             type="button"
@@ -251,7 +252,10 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                         </button>
 
                         <div
-                            className="flex min-w-0 items-center gap-3 rounded-[16px] border border-slate-800/20 liquid-glass-inner px-3 py-1.5 transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)]"
+                            className={`flex min-w-0 items-center gap-3 rounded-[16px] px-3 py-1.5 transition-all duration-300 ${isIosTheme
+                                ? "ios26-card ios26-sheen"
+                                : "border border-slate-800/20 liquid-glass-inner hover:border-[hsl(var(--accent)/0.4)]"
+                                }`}
                             data-testid="top-status-rank"
                         >
                             <div className="flex items-center gap-2 border-r border-[hsl(var(--accent)/0.2)] pr-3">
@@ -264,7 +268,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 <span className={`text-sm font-black uppercase tracking-[0.15em] ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>{presenceLabel}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Rank</span>
+                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isIosTheme ? "ios26-muted" : "text-slate-500"}`}>Rank</span>
                                 <span className="text-base font-black text-[hsl(var(--accent))] drop-shadow-[0_0_6px_rgba(var(--glow),0.4)]">{isSystemPage ? getRank(systemRPG.xp).name : globalStats.rank}</span>
                             </div>
                         </div>
@@ -274,7 +278,9 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 aria-controls="history-popover"
                                 aria-expanded={isHistoryOpen}
                                 aria-label="Historico"
-                                className={`group relative rounded-xl p-2 transition-all duration-300 hover:rotate-12 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-slate-100"
+                                className={`group relative rounded-xl p-2 transition-all duration-300 ${isIosTheme
+                                    ? "ios26-control ios26-focusable text-slate-600 hover:text-slate-900"
+                                    : `hover:rotate-12 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-slate-100"}`
                                     }`}
                                 data-testid="top-history-button"
                                 onClick={handleToggleHistory}
@@ -301,7 +307,10 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <button
                             aria-label={authUser ? "Conta conectada" : "Abrir login"}
-                            className="group relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800/20 liquid-glass-inner p-1 transition-all duration-300 hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                            className={`group relative flex h-11 w-11 items-center justify-center rounded-2xl p-1 transition-all duration-300 active:scale-90 ${isIosTheme
+                                ? "ios26-control ios26-focusable"
+                                : "border border-slate-800/20 liquid-glass-inner hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_15px_rgba(var(--glow),0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                                }`}
                             data-testid="header-auth-button"
                             onClick={() => { sfx("tick"); openAuthPanel(); }}
                             type="button"

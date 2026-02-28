@@ -23,7 +23,7 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     const { globalStats, authUser } = useAuth();
-    const { themeId, isLightTheme } = useTheme();
+    const { themeId, isLightTheme, isIosTheme } = useTheme();
     const sfx = useSfx();
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
     const drawerRef = useRef<HTMLDivElement | null>(null);
@@ -109,7 +109,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             aria-label="Menu de navegacao"
         >
             <button
-                className="absolute inset-0 liquid-glass/60 backdrop-blur-md transition-all duration-300"
+                className={`absolute inset-0 transition-all duration-300 ${isIosTheme ? "ios26-panel-strong" : "liquid-glass/60 backdrop-blur-md"}`}
                 data-testid="mobile-menu-overlay"
                 onClick={() => { sfx("toggle"); onClose(); }}
                 type="button"
@@ -117,7 +117,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             />
             <div
                 ref={drawerRef}
-                className={`animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[min(88vw,320px)] flex-col overflow-y-auto border-r border-slate-800/20 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] duration-500 ${isLightTheme ? "bg-white/60" : "bg-[#060a12]/90"
+                className={`animate-in slide-in-from-left absolute bottom-0 left-0 top-0 flex w-[min(88vw,320px)] flex-col overflow-y-auto border-r border-slate-800/20 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] duration-500 ${isIosTheme
+                    ? "ios26-panel-strong ios26-sheen"
+                    : isLightTheme
+                        ? "bg-white/60 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+                        : "bg-[#060a12]/90 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)]"
                     }`}
                 data-testid="mobile-menu-drawer"
             >
@@ -138,7 +142,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <button
                         ref={closeButtonRef}
                         onClick={() => { sfx("toggle"); onClose(); }}
-                        className={`rounded-2xl border border-slate-800/20 liquid-glass/50 p-2 transition-all hover:liquid-glass-inner hover:border-[hsl(var(--accent)/0.3)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"
+                        className={`rounded-2xl p-2 transition-all active:scale-90 ${isIosTheme
+                            ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
+                            : `border border-slate-800/20 liquid-glass/50 hover:liquid-glass-inner hover:border-[hsl(var(--accent)/0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"}`
                             }`}
                         data-testid="mobile-menu-close"
                         aria-label="Fechar menu de navegacao"
@@ -156,8 +162,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                             onClick={() => { sfx("navigate"); onClose(); }}
                             className={({ isActive }) =>
                                 `group relative flex w-full items-center gap-5 rounded-[20px] p-4 text-xs font-black uppercase tracking-widest transition-all duration-300 animate-in fade-in slide-in-from-left-4 ${isActive
-                                    ? "bg-[hsl(var(--accent)/0.15)] border border-[hsl(var(--accent)/0.3)] text-[hsl(var(--accent-light))] shadow-[0_0_20px_rgba(var(--glow),0.15)]"
-                                    : isLightTheme
+                                    ? isIosTheme
+                                        ? "ios26-nav-item ios26-nav-item-active ios26-focusable text-[hsl(var(--accent-light))]"
+                                        : "bg-[hsl(var(--accent)/0.15)] border border-[hsl(var(--accent)/0.3)] text-[hsl(var(--accent-light))] shadow-[0_0_20px_rgba(var(--glow),0.15)]"
+                                    : isIosTheme
+                                        ? "ios26-nav-item ios26-focusable text-slate-700"
+                                        : isLightTheme
                                         ? "border border-transparent text-slate-500 hover:liquid-glass/40 hover:text-slate-900"
                                         : "border border-transparent text-slate-300 hover:liquid-glass/40 hover:text-slate-100"
                                 }`
@@ -184,7 +194,9 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 </nav>
 
                 <div className="relative mt-6 border-t border-slate-800/20 pt-6">
-                    <div className={`group flex items-center gap-4 rounded-[24px] border p-4 transition-all ${isLightTheme
+                    <div className={`group flex items-center gap-4 rounded-[24px] border p-4 transition-all ${isIosTheme
+                        ? "ios26-card ios26-sheen"
+                        : isLightTheme
                         ? "border-slate-800/20 liquid-glass/30 hover:liquid-glass/60 hover:border-slate-800/20"
                         : "border-white/15 bg-white/5 hover:bg-white/10"
                         }`}>

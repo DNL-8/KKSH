@@ -60,34 +60,22 @@ function SidebarTooltip({ label, visible }: { label: string; visible: boolean })
 /*  Compact icon nav item with tooltip                                */
 /* ------------------------------------------------------------------ */
 
-function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType<typeof useSfx>; isLight?: boolean }) {
+function CompactNavItem({ item, sfx, isIos }: { item: NavItem; sfx: ReturnType<typeof useSfx>; isIos?: boolean }) {
     const [hovered, setHovered] = useState(false);
     const isActive = !!useMatch(item.path);
 
-    if (isLight) {
+    if (isIos) {
         return (
             <NavLink
                 to={item.path}
                 onMouseEnter={() => { setHovered(true); sfx("tick"); }}
                 onMouseLeave={() => setHovered(false)}
                 onClick={() => sfx("navigate")}
-                className="relative flex items-center justify-center rounded-2xl transition-all duration-200"
-                style={{
-                    width: 52,
-                    height: 52,
-                    background: isActive ? "#007AFF" : "rgba(15, 23, 42, 0.18)",
-                    backdropFilter: isActive ? "none" : "blur(20px) saturate(1.2)",
-                    WebkitBackdropFilter: isActive ? "none" : "blur(20px) saturate(1.2)",
-                    border: isActive ? "1px solid rgba(0,90,200,0.3)" : "1px solid rgba(15, 23, 42, 0.25)",
-                    boxShadow: isActive
-                        ? "0 6px 20px rgba(0,122,255,0.45), inset 0 1.5px 0 rgba(255,255,255,0.2)"
-                        : "0 4px 12px rgba(0,0,0,0.05)",
-                    transform: hovered && !isActive ? "scale(1.08)" : "scale(1)",
-                }}
+                className={`ios26-nav-item ios26-focusable relative flex h-[52px] w-[52px] items-center justify-center rounded-2xl transition-all duration-200 ${isActive ? "ios26-nav-item-active" : ""} ${hovered && !isActive ? "scale-[1.08]" : "scale-100"}`}
             >
                 <Icon
                     name={item.icon}
-                    className={`text-[22px] transition-colors duration-150 ${isActive ? "text-slate-900" : "text-black/60"}`}
+                    className={`text-[22px] transition-colors duration-150 ${isActive ? "text-[#007AFF]" : "text-black/65"}`}
                 />
                 <SidebarTooltip label={item.label} visible={hovered && !isActive} />
             </NavLink>
@@ -133,33 +121,21 @@ function CompactNavItem({ item, sfx, isLight }: { item: NavItem; sfx: ReturnType
 /*  Expanded nav item                                                 */
 /* ------------------------------------------------------------------ */
 
-function ExpandedNavItem({ item, index, sfx, isLight }: { item: NavItem; index: number; sfx: ReturnType<typeof useSfx>; isLight?: boolean }) {
+function ExpandedNavItem({ item, index, sfx, isIos }: { item: NavItem; index: number; sfx: ReturnType<typeof useSfx>; isIos?: boolean }) {
     const isActive = !!useMatch(item.path);
 
-    if (isLight) {
+    if (isIos) {
         return (
             <NavLink
                 to={item.path}
                 onClick={() => sfx("navigate")}
-                className="relative flex items-center w-full rounded-2xl gap-5 px-5 transition-all duration-200"
-                style={{
-                    paddingTop: 14,
-                    paddingBottom: 14,
-                    background: isActive ? "rgba(0,122,255,0.12)" : "rgba(15, 23, 42, 0.12)",
-                    backdropFilter: "blur(16px) saturate(1.2)",
-                    WebkitBackdropFilter: "blur(16px) saturate(1.2)",
-                    border: isActive ? "1px solid rgba(0,122,255,0.28)" : "1px solid rgba(15, 23, 42, 0.2)",
-                    boxShadow: isActive
-                        ? "0 4px 14px rgba(0,122,255,0.16)"
-                        : "0 2px 8px rgba(0,0,0,0.05)",
-                    marginBottom: 4,
-                }}
+                className={`ios26-nav-item ios26-focusable relative mb-1 flex w-full items-center gap-5 rounded-2xl px-5 py-[14px] transition-all duration-200 ${isActive ? "ios26-nav-item-active" : ""}`}
             >
                 <Icon
                     name={item.icon}
-                    className={`shrink-0 text-[22px] ${isActive ? "text-[#007AFF]" : "text-black/60"}`}
+                    className={`shrink-0 text-[22px] ${isActive ? "text-[#007AFF]" : "text-black/65"}`}
                 />
-                <span className={`whitespace-nowrap text-sm font-semibold uppercase tracking-wider ${isActive ? "text-[#007AFF]" : "text-black/70"}`}>
+                <span className={`whitespace-nowrap text-sm font-semibold uppercase tracking-wider ${isActive ? "text-[#007AFF]" : "text-black/75"}`}>
                     {item.label}
                 </span>
             </NavLink>
@@ -213,7 +189,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
-    const { themeId, isLightTheme } = useTheme();
+    const { themeId, isLightTheme, isIosTheme } = useTheme();
     const sfx = useSfx();
 
     const handleToggle = useCallback(() => {
@@ -225,6 +201,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
         <aside
             data-testid="shell-sidebar"
             className={`hidden flex-col border-r border-white/20 liquid-glass transition-all duration-500 lg:flex ${isSidebarOpen ? "w-80" : "w-[88px]"
+                } ${isIosTheme ? "ios26-panel ios26-sheen" : ""
                 }`}
         >
             {/* Subtle accent glow at top */}
@@ -237,17 +214,21 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                 <div className={`flex min-w-0 items-center ${isSidebarOpen ? "gap-3" : "justify-center"}`}>
                     <Link
                         to="/hub"
-                        className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isLightTheme
+                        className={`group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isIosTheme
+                            ? "ios26-card-elevated ios26-sheen"
+                            : isLightTheme
                             ? "border border-slate-800/20 bg-slate-900/10 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-slate-900/20"
                             : "border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] hover:border-[hsl(var(--accent)/0.5)] hover:shadow-[0_0_25px_rgba(var(--glow),0.2)]"
                             }`}
                     >
-                        {!isLightTheme && (
+                        {!isLightTheme && !isIosTheme && (
                             <div className="absolute inset-0 rounded-2xl bg-[hsl(var(--accent)/0.2)] opacity-0 blur-xl transition-opacity group-hover:opacity-100" />
                         )}
                         <Icon
                             name="hexagon"
-                            className={`relative z-10 text-2xl transition-transform duration-300 group-hover:scale-110 ${isLightTheme
+                            className={`relative z-10 text-2xl transition-transform duration-300 group-hover:scale-110 ${isIosTheme
+                                ? "text-[#007AFF] drop-shadow-sm"
+                                : isLightTheme
                                 ? "text-[#007AFF] drop-shadow-sm"
                                 : "text-[hsl(var(--accent))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.8)]"
                                 }`}
@@ -271,7 +252,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
 
                 <button
                     aria-label={isSidebarOpen ? "Ativar modo so icones" : "Ativar modo com texto"}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800/20 liquid-glass-inner transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-slate-900/10 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-800" : "text-slate-300"
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800/20 liquid-glass-inner transition-all duration-300 hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--accent-light))] hover:bg-slate-900/10 hover:shadow-[0_0_15px_rgba(var(--glow),0.1)] active:scale-90 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-800" : "text-slate-300"}`
                         }`}
                     data-testid="sidebar-mode-toggle"
                     onClick={handleToggle}
@@ -290,9 +271,9 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                 <div className={`${isSidebarOpen ? "space-y-1.5" : "flex flex-col items-center gap-4"}`}>
                     {DESKTOP_NAV_ITEMS.map((item, index) =>
                         isSidebarOpen ? (
-                            <ExpandedNavItem key={item.id} item={item} index={index} sfx={sfx} isLight={isLightTheme} />
+                            <ExpandedNavItem key={item.id} item={item} index={index} sfx={sfx} isIos={isIosTheme} />
                         ) : (
-                            <CompactNavItem key={item.id} item={item} sfx={sfx} isLight={isLightTheme} />
+                            <CompactNavItem key={item.id} item={item} sfx={sfx} isIos={isIosTheme} />
                         )
                     )}
                 </div>
@@ -307,13 +288,28 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
                     onClick={() => sfx("navigate")}
                     className={({ isActive }) =>
                         `group relative flex items-center transition-all duration-300 ${isSidebarOpen
-                            ? `w-full rounded-2xl bg-[#0a111d]/50 border border-slate-800/50 gap-4 p-3 hover:border-slate-700 hover:bg-[#0a111d] ${isActive
+                            ? `${isIosTheme
+                                ? "ios26-nav-item ios26-focusable gap-4 p-3"
+                                : "w-full rounded-2xl bg-[#0a111d]/50 border border-slate-800/50 gap-4 p-3 hover:border-slate-700 hover:bg-[#0a111d]"
+                            } ${isActive
+                                ? isIosTheme
+                                    ? "ios26-nav-item-active"
+                                    : "border-[hsl(var(--accent)/0.4)] bg-[hsl(var(--accent)/0.05)] shadow-[0_0_20px_rgba(var(--glow),0.1)]"
+                                : isIosTheme
+                                    ? ""
+                                    : "text-slate-600 hover:text-[hsl(var(--accent-light))]"
+                            }`
+                            : `${isIosTheme
+                                ? "ios26-nav-item ios26-focusable mx-auto flex h-11 w-11 justify-center rounded-xl"
+                                : `mx-auto flex h-11 w-11 justify-center rounded-xl ${isActive
                                 ? "border-[hsl(var(--accent)/0.4)] bg-[hsl(var(--accent)/0.05)] shadow-[0_0_20px_rgba(var(--glow),0.1)]"
                                 : "text-slate-600 hover:text-[hsl(var(--accent-light))]"
                             }`
-                            : `mx-auto flex h-11 w-11 justify-center rounded-xl ${isActive
-                                ? "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))] shadow-[0_0_18px_rgba(var(--glow),0.35)]"
-                                : "text-slate-600 hover:liquid-glass/70 hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
+                            } ${isActive
+                                ? "ios26-nav-item-active text-[hsl(var(--accent-light))]"
+                                : isIosTheme
+                                    ? "text-slate-700"
+                                    : ""
                             }`
                         }`
                     }

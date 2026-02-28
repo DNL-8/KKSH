@@ -74,10 +74,10 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         accent: "211 100% 56%",
         accentLight: "211 100% 72%",
         glow: "0, 122, 255",
-        bgImage: "",
-        bgGradient: "radial-gradient(circle at 20% 0%, #102347 0%, #08152f 42%, #020915 78%, #000000 100%)",
-        overlayColor: "rgba(2, 8, 18, 0.78)",
-        isLight: false,
+        bgImage: "https://www.iclarified.com/images/news/95356/455974/455974.jpg",
+        bgGradient: "radial-gradient(circle at 18% -8%, #c9e2ff 0%, #eef5ff 36%, #e3eeff 66%, #d6e5fb 100%)",
+        overlayColor: "rgba(255, 255, 255, 0.28)",
+        isLight: true,
     },
 
 };
@@ -93,6 +93,7 @@ interface ThemeContextValue {
     setTheme: (id: ThemeId) => void;
     theme: ThemeColors;
     isLightTheme: boolean;
+    isIosTheme: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -123,6 +124,7 @@ function readStoredTheme(): ThemeId {
 function applyThemeVars(id: ThemeId) {
     const theme = THEMES[id];
     const root = document.documentElement;
+    root.setAttribute("data-theme-id", id);
     root.style.setProperty("--accent", theme.accent);
     root.style.setProperty("--accent-light", theme.accentLight);
     root.style.setProperty("--glow", theme.glow);
@@ -150,7 +152,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const isLightTheme = THEMES[themeId].isLight === true;
-    const value = useMemo(() => ({ themeId, setTheme, theme: THEMES[themeId], isLightTheme }), [themeId, setTheme, isLightTheme]);
+    const isIosTheme = themeId === "ios26";
+    const value = useMemo(
+        () => ({ themeId, setTheme, theme: THEMES[themeId], isLightTheme, isIosTheme }),
+        [themeId, setTheme, isLightTheme, isIosTheme],
+    );
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
