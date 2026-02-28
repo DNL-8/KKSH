@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "../common/Icon";
 import type { DueDrillOut } from "../../lib/api";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface FlashcardProps {
     drill: DueDrillOut;
@@ -9,6 +10,7 @@ interface FlashcardProps {
 }
 
 export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
+    const { isIosTheme } = useTheme();
     const [flipped, setFlipped] = useState(false);
     const [swipingOut, setSwipingOut] = useState<"left" | "right" | null>(null);
     const [startTime, setStartTime] = useState<number>(Date.now());
@@ -60,7 +62,7 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
     };
 
     return (
-        <div className="flex w-full flex-col items-center justify-center max-w-3xl mx-auto drop-shadow-2xl h-[500px]">
+        <div className={`mx-auto flex h-[500px] w-full max-w-3xl flex-col items-center justify-center drop-shadow-2xl ${isIosTheme ? "ios26-text-secondary" : ""}`}>
             {/* 3D Scene Wrapper */}
             <div
                 className={`w-full h-full [perspective:2000px] transition-all duration-300 ease-in-out ${getExitTransform()}`}
@@ -73,25 +75,25 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                 >
                     {/* FRONTAL FACE (Question) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden]">
-                        <div className="flex flex-col h-full w-full rounded-[40px] border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
+                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
 
-                            <div className="flex items-center justify-between border-b border-slate-300/50 pb-4 mb-6">
-                                <span className="text-xs font-black uppercase tracking-widest text-[#3b82f6]">
+                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+                                <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-cyan-100" : "text-[#3b82f6]"}`}>
                                     {drill.subject}
                                 </span>
-                                <span title="Dificuldade / Facilidade Atual" className="flex items-center gap-2 rounded-full border border-slate-300/50 bg-white/[0.03] px-3 py-1 text-[10px] font-bold text-slate-600">
+                                <span title="Dificuldade / Facilidade Atual" className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${isIosTheme ? "ios26-glass-intense-soft text-slate-100" : "border-slate-300/50 bg-white/[0.03] text-slate-600"}`}>
                                     <Icon name="brain" className="text-purple-400" /> Nível {Math.round(drill.ease * 10)}
                                 </span>
                             </div>
 
                             <div className="flex-1 flex items-center justify-center text-center">
-                                <h3 className="text-3xl font-medium leading-relaxed text-slate-100 max-w-xl break-words">
+                                <h3 className={`max-w-xl break-words text-3xl font-medium leading-relaxed ${isIosTheme ? "text-white" : "text-slate-100"}`}>
                                     {drill.question}
                                 </h3>
                             </div>
 
                             <div className="mt-8 text-center animate-pulse">
-                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600">
+                                <span className={`text-[10px] font-bold uppercase tracking-[0.3em] ${isIosTheme ? "text-slate-200/75" : "text-slate-600"}`}>
                                     Toque para revelar
                                 </span>
                             </div>
@@ -100,42 +102,48 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
 
                     {/* TRASEIRA FACE (Answer) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                        <div className="flex flex-col h-full w-full rounded-[40px] border border-slate-300/50 bg-gradient-to-br from-[#12182c] to-[#050813] p-10 shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]">
+                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-300/50 bg-gradient-to-br from-[#12182c] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
 
-                            <div className="flex items-center justify-between border-b border-slate-300/50 pb-4 mb-6">
-                                <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
+                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+                                <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-emerald-200" : "text-emerald-400"}`}>
                                     Resposta
                                 </span>
-                                <button type="button" onClick={onSkip} className="p-2 text-slate-500 hover:text-slate-900 transition-colors">
+                                <button type="button" onClick={onSkip} className={`rounded-full p-2 transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-100 hover:text-white" : "text-slate-500 hover:text-slate-900"}`}>
                                     <Icon name="ellipsis-h" />
                                 </button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto custom-scrollbar flex items-center justify-center text-center pb-8">
                                 {/* Simulated Markdown / Long Text rendering block */}
-                                <div className="text-2xl font-light leading-relaxed text-slate-200 break-words whitespace-pre-wrap">
+                                <div className={`break-words whitespace-pre-wrap text-2xl font-light leading-relaxed ${isIosTheme ? "text-slate-100" : "text-slate-200"}`}>
                                     {drill.answer}
                                 </div>
                             </div>
 
                             {/* Feedback Actions (Good/Again) */}
-                            <div className="grid grid-cols-2 gap-4 mt-4 pt-6 border-t border-slate-300/50">
+                            <div className={`mt-4 grid grid-cols-2 gap-4 border-t pt-6 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
                                 <button
                                     onClick={() => submitResult("again")}
-                                    className="group relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-red-900/40 bg-red-900/10 p-4 transition-all hover:-translate-y-1 hover:border-red-500/50 hover:bg-red-500/20 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] active:scale-95"
+                                    className={`group relative flex flex-col items-center justify-center gap-1 rounded-2xl border p-4 transition-all hover:-translate-y-1 active:scale-95 ${isIosTheme
+                                        ? "ios26-focusable border-red-300/40 bg-red-500/20 hover:border-red-300/60 hover:bg-red-500/30 hover:shadow-[0_0_30px_rgba(239,68,68,0.22)]"
+                                        : "border-red-900/40 bg-red-900/10 hover:border-red-500/50 hover:bg-red-500/20 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)]"
+                                        }`}
                                 >
                                     <Icon name="cross-circle" className="text-2xl text-red-500 mb-1" />
-                                    <span className="text-[13px] font-black uppercase tracking-widest text-red-200">Errado</span>
-                                    <span className="text-[9px] font-bold text-red-500/60 uppercase">Teclado: 1</span>
+                                    <span className={`text-[13px] font-black uppercase tracking-widest ${isIosTheme ? "text-red-100" : "text-red-200"}`}>Errado</span>
+                                    <span className={`text-[9px] font-bold uppercase ${isIosTheme ? "text-red-100/70" : "text-red-500/60"}`}>Teclado: 1</span>
                                 </button>
 
                                 <button
                                     onClick={() => submitResult("good")}
-                                    className="group relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-emerald-900/40 bg-emerald-900/10 p-4 transition-all hover:-translate-y-1 hover:border-emerald-500/50 hover:bg-emerald-500/20 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] active:scale-95"
+                                    className={`group relative flex flex-col items-center justify-center gap-1 rounded-2xl border p-4 transition-all hover:-translate-y-1 active:scale-95 ${isIosTheme
+                                        ? "ios26-focusable border-emerald-300/40 bg-emerald-500/20 hover:border-emerald-300/60 hover:bg-emerald-500/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.24)]"
+                                        : "border-emerald-900/40 bg-emerald-900/10 hover:border-emerald-500/50 hover:bg-emerald-500/20 hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                                        }`}
                                 >
                                     <Icon name="check-circle" className="text-2xl text-emerald-500 mb-1" />
-                                    <span className="text-[13px] font-black uppercase tracking-widest text-emerald-200">Acertei</span>
-                                    <span className="text-[9px] font-bold text-emerald-500/60 uppercase">Teclado: 2 / Space</span>
+                                    <span className={`text-[13px] font-black uppercase tracking-widest ${isIosTheme ? "text-emerald-100" : "text-emerald-200"}`}>Acertei</span>
+                                    <span className={`text-[9px] font-bold uppercase ${isIosTheme ? "text-emerald-100/70" : "text-emerald-500/60"}`}>Teclado: 2 / Space</span>
                                 </button>
                             </div>
 

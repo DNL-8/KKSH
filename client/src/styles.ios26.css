@@ -136,6 +136,22 @@
   -webkit-backdrop-filter: blur(calc(var(--ios26-blur-card) * 0.75)) saturate(1.5) brightness(1.02) !important;
 }
 
+:root.theme-light[data-theme-id="ios26"] .ios26-glass-intense {
+  background: linear-gradient(142deg, rgba(6, 16, 42, 0.76), rgba(4, 10, 29, 0.72)) !important;
+  border: 1px solid rgba(176, 208, 255, 0.4) !important;
+  box-shadow: 0 22px 54px rgba(6, 16, 38, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+  backdrop-filter: blur(calc(var(--ios26-blur-panel) * 1.05)) saturate(1.6) brightness(0.9) !important;
+  -webkit-backdrop-filter: blur(calc(var(--ios26-blur-panel) * 1.05)) saturate(1.6) brightness(0.9) !important;
+}
+
+:root.theme-light[data-theme-id="ios26"] .ios26-glass-intense-soft {
+  background: linear-gradient(140deg, rgba(9, 22, 56, 0.56), rgba(6, 14, 36, 0.52)) !important;
+  border: 1px solid rgba(176, 208, 255, 0.32) !important;
+  box-shadow: 0 16px 34px rgba(6, 16, 38, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(calc(var(--ios26-blur-card) * 1.05)) saturate(1.45) brightness(0.92) !important;
+  -webkit-backdrop-filter: blur(calc(var(--ios26-blur-card) * 1.05)) saturate(1.45) brightness(0.92) !important;
+}
+
 :root.theme-light[data-theme-id="ios26"] .ios26-control {
   background: var(--ios26-surface-strong) !important;
   border: 1px solid var(--ios26-border-strong) !important;
@@ -309,6 +325,8 @@
   :root.theme-light[data-theme-id="ios26"] .ios26-section,
   :root.theme-light[data-theme-id="ios26"] .ios26-section-hero,
   :root.theme-light[data-theme-id="ios26"] .ios26-kpi,
+  :root.theme-light[data-theme-id="ios26"] .ios26-glass-intense,
+  :root.theme-light[data-theme-id="ios26"] .ios26-glass-intense-soft,
   :root.theme-light[data-theme-id="ios26"] .ios26-control,
   :root.theme-light[data-theme-id="ios26"] .ios26-field,
   :root.theme-light[data-theme-id="ios26"] .ios26-nav-item,
