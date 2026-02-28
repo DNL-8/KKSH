@@ -184,13 +184,13 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                         </div>
 
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)]">
+                            <div className="hidden items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] sm:flex">
                                 <span>Sistema</span>
                                 <Icon name="angle-right" className="text-[hsl(var(--accent)/0.3)] text-[11px]" />
                                 <span>Uplink_on</span>
                             </div>
                             <h1
-                                className={`truncate text-[22px] font-black uppercase italic leading-tight tracking-[0.03em] md:text-[32px] ${isLightTheme ? "text-slate-900" : "text-slate-100"
+                                className={`truncate text-[18px] font-black uppercase italic leading-tight tracking-[0.03em] sm:text-[22px] md:text-[32px] ${isLightTheme ? "text-slate-900" : "text-slate-100"
                                     }`}
                                 title={activeNavItem.label}
                             >
@@ -204,11 +204,11 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                     <div className="flex min-w-[180px] flex-1 items-center gap-2 sm:min-w-[280px] sm:gap-3">
                         {/* Level badge with glow */}
                         <div
-                            className="group flex h-[64px] w-[64px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
+                            className="group flex h-[56px] w-[56px] shrink-0 flex-col items-center justify-center rounded-xl border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] transition-all duration-500 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)] sm:h-[64px] sm:w-[64px]"
                             data-testid="top-level-card"
                         >
-                            <span className={`text-[8px] font-black uppercase tracking-[0.2em] ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>Lvl</span>
-                            <span className={`text-3xl font-black leading-none transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)] ${isLightTheme ? "text-slate-900" : "text-slate-100"
+                            <span className={`text-[7px] font-black uppercase tracking-[0.2em] sm:text-[8px] ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>Lvl</span>
+                            <span className={`text-[28px] font-black leading-none transition-all duration-300 group-hover:text-[hsl(var(--accent-light))] group-hover:drop-shadow-[0_0_8px_rgba(var(--glow),0.6)] sm:text-3xl ${isLightTheme ? "text-slate-900" : "text-slate-100"
                                 }`}>{displayLevel}</span>
                         </div>
 
