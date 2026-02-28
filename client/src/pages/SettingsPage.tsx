@@ -6,6 +6,7 @@ import { Icon } from "../components/common/Icon";
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences, type ClientPreferences } from "../contexts/PreferencesContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 import { ApiRequestError, resetMeState } from "../lib/api";
 import { LOCAL_MEDIA_DB_NAME, clearVideos } from "../lib/localVideosStore";
@@ -35,6 +36,7 @@ function deleteLocalMediaDatabase(): Promise<void> {
 export function SettingsPage() {
   const { handleLogout: logout } = useAuth();
   const { preferences, setPreference, resetPreferences } = usePreferences();
+  const { isIosTheme } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -109,8 +111,11 @@ export function SettingsPage() {
   }, [logout, navigate]);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700" data-testid="settings-page">
-      <div className="mx-auto max-w-4xl space-y-8 pb-20">
+    <div
+      className={`animate-in fade-in slide-in-from-bottom-8 duration-700 ${isIosTheme ? "ios26-text-secondary" : ""}`}
+      data-testid="settings-page"
+    >
+      <div data-testid="settings-main-panel" className={`mx-auto max-w-4xl space-y-8 pb-20 ${isIosTheme ? "ios26-section" : ""}`}>
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
             <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-slate-900 md:text-6xl" data-text="SISTEMA">
@@ -124,7 +129,10 @@ export function SettingsPage() {
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="flex items-center gap-3 rounded-[20px] liquid-glass-inner/80 px-8 py-4 text-xs font-black uppercase tracking-[0.2em] text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] transition-all hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 backdrop-blur-md border border-slate-300/50"
+              className={`flex items-center gap-3 rounded-[20px] px-8 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${isIosTheme
+                ? "ios26-control ios26-focusable text-slate-800"
+                : "liquid-glass-inner/80 text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 backdrop-blur-md border border-slate-300/50"
+                }`}
               type="button"
             >
               <Icon name="disk" className="text-[16px]" />

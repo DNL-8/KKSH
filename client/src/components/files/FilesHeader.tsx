@@ -2,15 +2,17 @@ import { Icon } from "../common/Icon";
 import type { GlobalStats } from "../../layout/types";
 import { HudProgressBar } from "./HudProgressBar";
 import { FilesStatCard } from "./FilesStatCard";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface FilesHeaderProps {
     globalStats: GlobalStats;
 }
 
 export function FilesHeader({ globalStats }: FilesHeaderProps) {
+    const { isIosTheme } = useTheme();
     return (
         <>
-            <div className="rounded-[26px] border border-slate-300/50 bg-slate-950/60 backdrop-blur-2xl px-5 py-6 md:px-8 shadow-2xl">
+            <div className={`rounded-[26px] px-5 py-6 md:px-8 ${isIosTheme ? "ios26-section-hero" : "border border-slate-300/50 bg-slate-950/60 backdrop-blur-2xl shadow-2xl"}`}>
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="min-w-0 space-y-2">
                         <div className="files-chip files-pulse-glow w-fit">
@@ -30,7 +32,7 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                         </p>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-300/50 liquid-glass/40 backdrop-blur-md flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto shadow-inner">
+                    <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass/40 backdrop-blur-md shadow-inner"}`}>
                         <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
                         <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
                         <HudProgressBar

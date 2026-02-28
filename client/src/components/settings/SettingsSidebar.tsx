@@ -1,6 +1,7 @@
 import { Icon } from "../common/Icon";
 import { ThemeShowcase } from "../common";
 import type { ClientPreferences } from "../../contexts/PreferencesContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface SettingsSidebarProps {
     preferences: ClientPreferences;
@@ -8,9 +9,10 @@ interface SettingsSidebarProps {
 }
 
 export function SettingsSidebar({ preferences, updatePreference }: SettingsSidebarProps) {
+    const { isIosTheme } = useTheme();
     return (
         <div className="sticky top-24 space-y-6">
-            <div className="rounded-[40px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div className={`rounded-[40px] p-8 ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="mb-8 flex items-center gap-4">
                     <div className="rounded-xl border border-orange-500/30 bg-orange-950/40 p-3 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
                         <Icon name="bolt" className="text-[24px]" />
@@ -22,8 +24,8 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                     <button
                         onClick={() => updatePreference("difficulty", "casual")}
                         className={`rounded-[20px] p-5 border transition-all text-left group ${preferences.difficulty === "casual"
-                            ? "bg-[#142618] border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)] opacity-100"
-                            : "bg-white/[0.02] border-slate-300/50  opacity-60 grayscale hover:grayscale-0 hover:opacity-100 hover:bg-white/[0.05]"
+                            ? isIosTheme ? "ios26-chip-active ios26-focusable opacity-100" : "bg-[#142618] border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)] opacity-100"
+                            : isIosTheme ? "ios26-chip ios26-focusable opacity-90" : "bg-white/[0.02] border-slate-300/50  opacity-60 grayscale hover:grayscale-0 hover:opacity-100 hover:bg-white/[0.05]"
                             }`}
                     >
                         <div className="flex justify-between items-center mb-2">
@@ -39,8 +41,8 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                     <button
                         onClick={() => updatePreference("difficulty", "hardcore")}
                         className={`rounded-[20px] p-5 border transition-all text-left relative overflow-hidden group ${preferences.difficulty === "hardcore"
-                            ? "bg-[#251010] border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)]"
-                            : "bg-white/[0.02] border-slate-300/50 hover:bg-red-950/20 hover:border-red-500/30 opacity-80 hover:opacity-100"
+                            ? isIosTheme ? "ios26-status-danger ios26-focusable" : "bg-[#251010] border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.15)]"
+                            : isIosTheme ? "ios26-chip ios26-focusable opacity-90" : "bg-white/[0.02] border-slate-300/50 hover:bg-red-950/20 hover:border-red-500/30 opacity-80 hover:opacity-100"
                             }`}
                     >
                         {preferences.difficulty === "hardcore" && (
@@ -60,7 +62,7 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                 </div>
             </div>
 
-            <div className="rounded-[40px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div data-testid="settings-theme-section" className={`rounded-[40px] p-8 ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="mb-6 flex items-center justify-between">
                     <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Tema</h2>
                     <Icon name="refresh" className="text-[hsl(var(--accent)/0.6)] animate-spin-slow text-[20px]" />
@@ -69,7 +71,7 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                 <ThemeShowcase />
             </div>
 
-            <div className="rounded-[40px] bg-gradient-to-b from-[#0a0f1d]/90 to-[#03050a]/95 p-10 text-center border border-slate-300/50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl group">
+            <div className={`rounded-[40px] p-10 text-center group ${isIosTheme ? "ios26-section-hero" : "bg-gradient-to-b from-[#0a0f1d]/90 to-[#03050a]/95 border border-slate-300/50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl"}`}>
                 <div className="mb-6 rounded-full border border-red-500/20 bg-red-950/40 p-6 text-red-500 shadow-[inset_0_2px_10px_rgba(220,38,38,0.2),0_0_30px_rgba(220,38,38,0.1)] inline-block transition-transform duration-700 group-hover:scale-110">
                     <Icon name="skull" className="text-[48px] drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]" />
                 </div>

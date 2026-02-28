@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Icon } from "../components/common/Icon";
 import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
+import { useTheme } from "../contexts/ThemeContext";
 
 // --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
 const globalStyles = `
@@ -168,23 +169,31 @@ const WEEKLY_DUNGEONS = [
 ];
 
 // Componente Visual: Janela de Sistema 3D Refinada
-const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => (
-    <div className={`relative liquid-glass-inner backdrop-blur-2xl border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden ${className}`}>
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-        <div className="liquid-glass-inner border-b px-5 py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <Icon name={icon} className="text-sm text-cyan-400 opacity-80" />
-                <span className="text-cyan-400 text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] font-semibold">{title}</span>
+const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => {
+    const { isIosTheme } = useTheme();
+
+    return (
+        <div className={`relative rounded-xl overflow-hidden ${isIosTheme
+            ? "ios26-section ios26-sheen ios26-divider"
+            : "liquid-glass-inner backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+            } ${className}`}>
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+            <div className={`px-5 py-3 flex justify-between items-center ${isIosTheme ? "ios26-divider border-b" : "liquid-glass-inner border-b"}`}>
+                <div className="flex items-center gap-2">
+                    <Icon name={icon} className={`text-sm ${isIosTheme ? "text-slate-700" : "text-cyan-400 opacity-80"}`} />
+                    <span className={`text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] font-semibold ${isIosTheme ? "ios26-text-secondary" : "text-cyan-400"}`}>{title}</span>
+                </div>
+                {headerAction}
             </div>
-            {headerAction}
+            <div className="p-6">
+                {children}
+            </div>
         </div>
-        <div className="p-6">
-            {children}
-        </div>
-    </div>
-);
+    );
+};
 
 export function SystemPage() {
+    const { isIosTheme } = useTheme();
     const [screen, setScreen] = useState('onboarding');
 
     const [user, setUser, isLoading] = useSystemRPG();
@@ -305,7 +314,10 @@ export function SystemPage() {
         const upcomingDungeons = WEEKLY_DUNGEONS.slice(1);
 
         return (
-            <div className="min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 font-sans relative">
+            <div
+                data-testid="system-dashboard-panel"
+                className={`min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 font-sans relative ${isIosTheme ? "ios26-section ios26-text-secondary" : ""}`}
+            >
                 <div className="animate-screen max-w-4xl mx-auto space-y-8 relative z-10 pb-10">
                     <SystemWindow title="STATUS DO JOGADOR" icon="shield">
                         <div className="flex items-center justify-between">
@@ -348,7 +360,10 @@ export function SystemPage() {
                         <button
                             type="button"
                             onClick={() => startDungeon(featuredDungeon)}
-                            className="group liquid-glass-inner p-8 rounded-3xl shadow-lg hover:border-cyan-400 transition-all relative overflow-hidden text-left w-full"
+                            className={`group p-8 rounded-3xl transition-all relative overflow-hidden text-left w-full ${isIosTheme
+                                ? "ios26-section ios26-focusable"
+                                : "liquid-glass-inner shadow-lg hover:border-cyan-400"
+                                }`}
                             aria-label={`Abrir missao ${featuredDungeon.title}`}
                         >
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -380,13 +395,16 @@ export function SystemPage() {
                         <h3 className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2 mt-8">
                             <Icon name="calendar" className="text-sm" /> Agenda Semanal
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div data-testid="system-action-list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {upcomingDungeons.map((dungeon) => (
                                 <button
                                     type="button"
                                     key={dungeon.id}
                                     onClick={() => startDungeon(dungeon)}
-                                    className="group liquid-glass-inner p-5 rounded-2xl hover:border-cyan-400 transition-all flex flex-col justify-between min-h-[120px] text-left w-full"
+                                    className={`group p-5 rounded-2xl transition-all flex flex-col justify-between min-h-[120px] text-left w-full ${isIosTheme
+                                        ? "ios26-section ios26-focusable"
+                                        : "liquid-glass-inner hover:border-cyan-400"
+                                        }`}
                                     aria-label={`Abrir missao ${dungeon.title}`}
                                 >
                                     <div>
@@ -598,7 +616,7 @@ export function SystemPage() {
     return (
         <>
             <style>{globalStyles}</style>
-            <div className="w-full h-full text-slate-900">
+            <div className={`w-full h-full text-slate-900 ${isIosTheme ? "ios26-text-secondary" : ""}`}>
                 {screen === 'onboarding' && renderOnboarding()}
                 {screen === 'dashboard' && renderDashboard()}
                 {screen === 'preview' && renderPreview()}

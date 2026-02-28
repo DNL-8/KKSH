@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Icon } from "../common/Icon";
 import type { OrderMode } from "./types";
 import { ORDER_LABELS } from "./constants";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface FilesToolbarProps {
     saving: boolean;
@@ -54,6 +55,7 @@ export function FilesToolbar({
     onOpenVisualSettings,
     onToggleMobileSidebar,
 }: FilesToolbarProps) {
+    const { isIosTheme } = useTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +84,7 @@ export function FilesToolbar({
     }, []);
 
     return (
-        <div className="flex flex-col gap-4 mb-4" data-testid="files-toolbar">
+        <div className={`flex flex-col gap-4 mb-4 ${isIosTheme ? "ios26-text-secondary" : ""}`} data-testid="files-toolbar">
 
             {/* Top row: Search and Main Actions */}
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
@@ -93,7 +95,10 @@ export function FilesToolbar({
                         <Icon name="search" className="text-slate-500 group-focus-within:text-[hsl(var(--accent))] transition-colors text-[14px]" />
                     </div>
                     <input
-                        className="w-full liquid-glass/40 border border-slate-300/50 text-slate-200 text-sm rounded-xl focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] block pl-10 p-2.5 transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
+                        className={`w-full text-sm rounded-xl block pl-10 p-2.5 transition-all outline-none ${isIosTheme
+                            ? "ios26-field ios26-focusable text-slate-800"
+                            : "liquid-glass/40 border border-slate-300/50 text-slate-200 focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
+                            }`}
                         data-testid="files-search-input"
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder="Pesquisar por nome ou pasta..."
@@ -111,7 +116,10 @@ export function FilesToolbar({
                 {/* Primary Actions */}
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[hsl(var(--accent))] to-cyan-500 px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-[#020617] transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_20px_rgba(var(--glow),0.25)]"
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${isIosTheme
+                            ? "ios26-control ios26-focusable text-slate-800"
+                            : "bg-gradient-to-r from-[hsl(var(--accent))] to-cyan-500 text-[#020617] hover:brightness-110 shadow-[0_0_20px_rgba(var(--glow),0.25)]"
+                            }`}
                         data-testid="files-upload-button"
                         disabled={saving}
                         onClick={onOpenPicker}
@@ -122,7 +130,10 @@ export function FilesToolbar({
                     </button>
 
                     <button
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.05)] px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-[hsl(var(--accent-light))] transition-all hover:bg-[hsl(var(--accent)/0.1)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${isIosTheme
+                            ? "ios26-control ios26-focusable text-slate-800"
+                            : "border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.05)] text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent)/0.1)]"
+                            }`}
                         data-testid="files-folder-button"
                         disabled={saving}
                         onClick={onOpenFolderPicker}
@@ -137,8 +148,8 @@ export function FilesToolbar({
                     <div className="relative" ref={menuRef}>
                         <button
                             className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all active:scale-95 ${isMenuOpen
-                                ? "liquid-glass-inner border-slate-300/50 text-slate-900 shadow-lg"
-                                : "liquid-glass/40 border-slate-300/50 text-slate-600 hover:liquid-glass-inner hover:text-slate-900"
+                                ? isIosTheme ? "ios26-control ios26-focusable text-slate-900 shadow-lg" : "liquid-glass-inner border-slate-300/50 text-slate-900 shadow-lg"
+                                : isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "liquid-glass/40 border-slate-300/50 text-slate-600 hover:liquid-glass-inner hover:text-slate-900"
                                 }`}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Opcoes avancadas"
@@ -149,7 +160,7 @@ export function FilesToolbar({
 
                         {/* Dropdown Content */}
                         {isMenuOpen && (
-                            <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-slate-300/50 bg-[#060b14]/95 backdrop-blur-xl p-2 shadow-[0_20px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                            <div className={`absolute right-0 top-12 z-50 w-64 rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right ${isIosTheme ? "ios26-section-hero" : "border border-slate-300/50 bg-[#060b14]/95 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.8)]"}`}>
                                 <div className="px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-300/50">
                                     Biblioteca
                                 </div>
@@ -232,7 +243,7 @@ export function FilesToolbar({
 
                 <div className="flex items-center gap-2">
                     <button
-                        className="flex h-8 w-8 items-center justify-center rounded-lg hover:liquid-glass-inner text-slate-600 hover:text-slate-900 transition-colors lg:hidden"
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:liquid-glass-inner text-slate-600 hover:text-slate-900"}`}
                         onClick={onToggleMobileSidebar}
                         type="button"
                         title="Ver lista de videos"
@@ -240,7 +251,7 @@ export function FilesToolbar({
                         <Icon name="list" className="text-[14px]" />
                     </button>
                     <button
-                        className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg hover:liquid-glass-inner text-slate-600 hover:text-[hsl(var(--accent))] transition-colors"
+                        className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:liquid-glass-inner text-slate-600 hover:text-[hsl(var(--accent))]"}`}
                         onClick={onOpenVisualSettings}
                         type="button"
                         title="Configuracoes Visuais"

@@ -1,5 +1,6 @@
 import { Icon } from "../common/Icon";
 import { HoldButton } from "../common/HoldButton";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface SettingsDangerZoneProps {
     dangerBusy: "logout" | "reset" | null;
@@ -8,8 +9,12 @@ interface SettingsDangerZoneProps {
 }
 
 export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout }: SettingsDangerZoneProps) {
+    const { isIosTheme } = useTheme();
     return (
-        <section className="relative overflow-hidden rounded-[40px] border border-red-500/30 bg-[#0a0f1d]/90 p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_80px_rgba(220,38,38,0.15)] backdrop-blur-xl">
+        <section className={`relative overflow-hidden rounded-[40px] p-10 ${isIosTheme
+            ? "ios26-section-hero"
+            : "border border-red-500/30 bg-[#0a0f1d]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_80px_rgba(220,38,38,0.15)] backdrop-blur-xl"
+            }`}>
             <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_15px,rgba(220,38,38,0.03)_15px,rgba(220,38,38,0.03)_30px)] pointer-events-none mix-blend-overlay opacity-80" />
             <div className="absolute -left-32 -top-32 h-64 w-64 rounded-full bg-red-600/20 blur-[100px] pointer-events-none" />
 
@@ -33,7 +38,10 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
                             loading={dangerBusy === "reset"}
                             holdDuration={1000}
                             progressLabel="CONFIRMANDO"
-                            className="w-full rounded-[16px] border border-red-400/50 bg-red-600 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.8)]"
+                            className={`w-full rounded-[16px] px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale md:w-auto ${isIosTheme
+                                ? "ios26-control ios26-focusable ios26-status-danger"
+                                : "border border-red-400/50 bg-red-600 text-slate-900 shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:bg-red-500 hover:shadow-[0_0_30px_rgba(220,38,38,0.8)]"
+                                }`}
                         />
                     </div>
 
@@ -45,7 +53,10 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
                         <button
                             onClick={handleLogout}
                             disabled={dangerBusy === "logout"}
-                            className="flex items-center justify-center gap-3 w-full rounded-[16px] border border-red-500/30 liquid-glass-inner px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-red-400 transition-all hover:bg-red-950/50 hover:border-red-500/60 hover:text-red-300 hover:shadow-[0_0_20px_rgba(220,38,38,0.2)] active:scale-95 md:w-auto shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                            className={`flex items-center justify-center gap-3 w-full rounded-[16px] px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 md:w-auto ${isIosTheme
+                                ? "ios26-control ios26-focusable ios26-status-danger"
+                                : "border border-red-500/30 liquid-glass-inner text-red-400 hover:bg-red-950/50 hover:border-red-500/60 hover:text-red-300 hover:shadow-[0_0_20px_rgba(220,38,38,0.2)] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+                                }`}
                             type="button"
                         >
                             <Icon name="trash" className="text-[18px]" />

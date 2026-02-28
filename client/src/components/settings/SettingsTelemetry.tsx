@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 import { clearFilesTelemetry, readFilesTelemetry, type FilesTelemetryEvent } from "../../lib/filesTelemetry";
 import { useToast } from "../common/Toast";
+import { useTheme } from "../../contexts/ThemeContext";
 
 type FilesTelemetryFilter = "all" | "import" | "bridge" | "metadata" | "error";
 
@@ -20,6 +21,7 @@ function matchesFilesTelemetryFilter(event: FilesTelemetryEvent, filter: FilesTe
 }
 
 export function SettingsTelemetry() {
+    const { isIosTheme } = useTheme();
     const { showToast } = useToast();
     const [filesTelemetryEvents, setFilesTelemetryEvents] = useState<FilesTelemetryEvent[]>([]);
     const [filesTelemetryFilter, setFilesTelemetryFilter] = useState<FilesTelemetryFilter>("all");
@@ -129,7 +131,7 @@ export function SettingsTelemetry() {
     }, [filesTelemetryEvents, showToast]);
 
     return (
-        <section>
+        <section className={isIosTheme ? "ios26-text-secondary" : ""}>
             <div className="mb-6 flex items-center gap-4">
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                     <Icon name="database" className="text-[24px]" />
@@ -139,7 +141,7 @@ export function SettingsTelemetry() {
                 </h2>
             </div>
 
-            <div className="rounded-[40px] border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all">
+            <div className={`rounded-[40px] p-8 transition-all ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                     <p className="text-[13px] text-slate-600 max-w-lg leading-relaxed font-medium">
                         Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
@@ -147,7 +149,7 @@ export function SettingsTelemetry() {
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={refreshFilesTelemetry}
-                            className="rounded-xl border border-slate-300/50 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-800 transition-all hover:bg-white/[0.08] hover:text-slate-900"
+                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-300/50 bg-white/[0.03] text-slate-800 hover:bg-white/[0.08] hover:text-slate-900"}`}
                             type="button"
                         >
                             Atualizar
@@ -155,7 +157,7 @@ export function SettingsTelemetry() {
                         <button
                             onClick={handleExportFilesTelemetry}
                             disabled={filesTelemetryEvents.length === 0}
-                            className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable ios26-status-success" : "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)] hover:bg-emerald-500/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"}`}
                             type="button"
                         >
                             Exportar JSON
@@ -163,7 +165,7 @@ export function SettingsTelemetry() {
                         <button
                             onClick={handleClearFilesTelemetry}
                             disabled={filesTelemetryEvents.length === 0}
-                            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 shadow-[0_0_10px_rgba(220,38,38,0.1)] transition-all hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(220,38,38,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable ios26-status-danger" : "border border-red-500/40 bg-red-500/10 text-red-400 shadow-[0_0_10px_rgba(220,38,38,0.1)] hover:bg-red-500/20 hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]"}`}
                             type="button"
                         >
                             Limpar
@@ -201,8 +203,8 @@ export function SettingsTelemetry() {
                                 type="button"
                                 aria-pressed={isActive}
                                 className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${isActive
-                                    ? "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
-                                    : "border-slate-700 liquid-glass/70 text-slate-800 hover:liquid-glass-inner"
+                                    ? isIosTheme ? "ios26-chip-active" : "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
+                                    : isIosTheme ? "ios26-chip" : "border-slate-700 liquid-glass/70 text-slate-800 hover:liquid-glass-inner"
                                     }`}
                             >
                                 {filterOption.label} ({count})

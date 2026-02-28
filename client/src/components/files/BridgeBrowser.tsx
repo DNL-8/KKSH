@@ -2,6 +2,7 @@
 
 import { useLocalBridge, type BridgeItem } from "../../hooks/useLocalBridge";
 import { Icon } from "../common/Icon";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface BridgeBrowserProps {
     onPlayVideo: (url: string, name: string, path: string) => void;
@@ -9,6 +10,7 @@ interface BridgeBrowserProps {
 }
 
 export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
+    const { isIosTheme } = useTheme();
     const { listDrives, listPath, getStreamUrl, scanFolder, drives } = useLocalBridge();
     const [currentPath, setCurrentPath] = useState<string>("");
     const [items, setItems] = useState<BridgeItem[]>([]);
@@ -76,12 +78,12 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
     }, [currentPath, scanFolder]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center liquid-glass/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-            <div className="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#090b10]">
-                <div className="flex items-center justify-between border-b border-slate-800 liquid-glass/50 p-4">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass/80 backdrop-blur-sm"}`} role="dialog" aria-modal="true">
+            <div className={`flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl ${isIosTheme ? "ios26-section-hero" : "border border-slate-800 bg-[#090b10]"}`}>
+                <div className={`flex items-center justify-between border-b p-4 ${isIosTheme ? "ios26-divider" : "border-slate-800 liquid-glass/50"}`}>
                     <div className="flex items-center gap-3">
                         <button
-                            className="rounded-lg p-2 hover:liquid-glass-inner disabled:opacity-50"
+                            className={`rounded-lg p-2 disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:liquid-glass-inner"}`}
                             disabled={!currentPath}
                             onClick={goBack}
                             type="button"
@@ -95,7 +97,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                     <div className="flex items-center gap-2">
                         {currentPath && (
                             <button
-                                className="flex items-center gap-2 rounded-lg bg-emerald-600/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400 transition-colors hover:bg-emerald-600/30 disabled:opacity-50"
+                                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable ios26-status-success" : "bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30"}`}
                                 disabled={scanning}
                                 onClick={() => void handleScan()}
                                 type="button"
@@ -105,7 +107,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                             </button>
                         )}
                         <button
-                            className="rounded-lg p-2 text-slate-600 hover:bg-red-900/20 hover:text-red-400"
+                            className={`rounded-lg p-2 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-600 hover:bg-red-900/20 hover:text-red-400"}`}
                             onClick={onClose}
                             type="button"
                         >

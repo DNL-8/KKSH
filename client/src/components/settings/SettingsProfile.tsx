@@ -5,9 +5,11 @@ import { Badge } from "../common/Badge";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../common/Toast";
 import { updateProfile } from "../../lib/api";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export function SettingsProfile() {
     const { authUser: user } = useAuth();
+    const { isIosTheme } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
 
@@ -37,8 +39,8 @@ export function SettingsProfile() {
     };
 
     return (
-        <div className="overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0a0b]/60 p-1 shadow-2xl backdrop-blur-xl">
-            <div className="relative overflow-hidden rounded-[36px] liquid-glass/50 p-8 md:p-12">
+        <div className={`overflow-hidden rounded-[40px] p-1 ${isIosTheme ? "ios26-section" : "border border-slate-800 bg-[#0a0a0b]/60 shadow-2xl backdrop-blur-xl"}`}>
+            <div className={`relative overflow-hidden rounded-[36px] p-8 md:p-12 ${isIosTheme ? "ios26-section" : "liquid-glass/50"}`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-50" />
 
                 <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
@@ -59,7 +61,10 @@ export function SettingsProfile() {
                                         type="text"
                                         value={tempName}
                                         onChange={(e) => setTempName(e.target.value)}
-                                        className="liquid-glass-inner border border-[hsl(var(--accent)/0.3)] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.1)] rounded-xl px-4 py-2 text-slate-900 text-xl font-bold uppercase tracking-widest focus:outline-none focus:border-[hsl(var(--accent))] focus:ring-1 focus:ring-[hsl(var(--accent)/0.3)] min-w-[200px]"
+                                        className={`rounded-xl px-4 py-2 text-slate-900 text-xl font-bold uppercase tracking-widest min-w-[200px] ${isIosTheme
+                                            ? "ios26-field ios26-focusable"
+                                            : "liquid-glass-inner border border-[hsl(var(--accent)/0.3)] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.1)] focus:outline-none focus:border-[hsl(var(--accent))] focus:ring-1 focus:ring-[hsl(var(--accent)/0.3)]"
+                                            }`}
                                         placeholder="Novo nome"
                                         autoFocus
                                     />
@@ -88,7 +93,7 @@ export function SettingsProfile() {
                                             setTempName(user?.username || "");
                                             setIsEditingName(true);
                                         }}
-                                        className="p-3 rounded-full hover:bg-white/[0.05] text-slate-500 hover:text-[hsl(var(--accent))] transition-all active:scale-95"
+                                        className={`p-3 rounded-full transition-all active:scale-95 ${isIosTheme ? "ios26-control ios26-focusable text-slate-600 hover:text-slate-900" : "hover:bg-white/[0.05] text-slate-500 hover:text-[hsl(var(--accent))]"}`}
                                     >
                                         <Icon name="pencil" className="text-[16px]" />
                                     </button>

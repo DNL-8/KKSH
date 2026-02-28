@@ -9,6 +9,7 @@ import {
   formatBytes,
   formatStorageKind,
 } from "./utils";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface LessonSidebarProps {
   folderSections: FolderSection[];
@@ -41,6 +42,7 @@ export function LessonSidebar({
   onExpandAllFolders,
   onClose,
 }: LessonSidebarProps) {
+  const { isIosTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
@@ -57,8 +59,8 @@ export function LessonSidebar({
   );
 
   const wrapperClasses = mobile
-    ? "h-full w-[340px] max-w-[92vw] border-l border-slate-300/50 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl flex flex-col"
-    : "h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] border border-slate-300/50 bg-slate-950/40 backdrop-blur-xl shadow-2xl";
+    ? `h-full w-[340px] max-w-[92vw] flex flex-col ${isIosTheme ? "ios26-section-hero" : "border-l border-slate-300/50 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl"}`
+    : `h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-slate-950/40 backdrop-blur-xl shadow-2xl"}`;
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -170,7 +172,7 @@ export function LessonSidebar({
             <button
               aria-expanded={!collapsed}
               aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-              className="rounded-lg p-1.5 text-slate-500 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-40"
+              className={`rounded-lg p-1.5 transition-colors disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-500 hover:liquid-glass-inner hover:text-slate-900"}`}
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
               type="button"
@@ -192,8 +194,8 @@ export function LessonSidebar({
       <div className="px-2">
         <button
           className={`group relative flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-all hover:bg-white/[0.03] ${active
-            ? "bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.2)]"
-            : "border border-transparent"
+            ? isIosTheme ? "ios26-nav-item ios26-nav-item-active ios26-focusable" : "bg-[hsl(var(--accent)/0.08)] border border-[hsl(var(--accent)/0.2)]"
+            : isIosTheme ? "ios26-nav-item ios26-focusable" : "border border-transparent"
             }`}
           data-active={active ? "true" : "false"}
           aria-current={active ? "true" : undefined}
@@ -255,7 +257,7 @@ export function LessonSidebar({
         </button>
       </div>
     );
-  }, [selectedLessonId, isLessonCompleted, onToggleFolder, onSelectLesson, searchQuery]);
+  }, [selectedLessonId, isLessonCompleted, onToggleFolder, onSelectLesson, searchQuery, isIosTheme]);
 
   return (
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
@@ -272,7 +274,7 @@ export function LessonSidebar({
         {canToggleAll && (
           <div>
             <button
-              className="rounded-md border border-cyan-500/35 bg-cyan-900/35 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-cyan-200 transition-all hover:border-cyan-300/55 hover:bg-cyan-900/55 disabled:opacity-40"
+              className={`rounded-md px-3 py-1.5 text-[11px] font-black uppercase tracking-wider transition-all disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-cyan-500/35 bg-cyan-900/35 text-cyan-200 hover:border-cyan-300/55 hover:bg-cyan-900/55"}`}
               data-testid="toggle-all-folders"
               disabled={Boolean(searchQuery)}
               onClick={handleToggleAll}
@@ -287,7 +289,7 @@ export function LessonSidebar({
           <div className="relative flex-1">
             <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
             <input
-              className="w-full rounded-lg border border-cyan-900/50 bg-[#06162b] py-2.5 pl-9 pr-8 text-xs font-medium text-slate-200 placeholder-slate-500 shadow-inner transition-all focus:border-cyan-400/55 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+              className={`w-full rounded-lg py-2.5 pl-9 pr-8 text-xs font-medium transition-all ${isIosTheme ? "ios26-field ios26-focusable text-slate-800" : "border border-cyan-900/50 bg-[#06162b] text-slate-200 placeholder-slate-500 shadow-inner focus:border-cyan-400/55 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"}`}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Buscar arquivo..."
               type="text"
@@ -307,7 +309,7 @@ export function LessonSidebar({
 
           {mobile && onClose && (
             <button
-              className="flex items-center justify-center rounded-lg border border-slate-700 liquid-glass px-4 py-2 text-[11px] font-black uppercase tracking-wider text-slate-800 transition-all active:scale-95"
+              className={`flex items-center justify-center rounded-lg px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-700 liquid-glass text-slate-800"}`}
               onClick={onClose}
               type="button"
               aria-label="Fechar menu"
@@ -318,7 +320,7 @@ export function LessonSidebar({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 bg-[#041022]">
+      <div className={`flex-1 min-h-0 ${isIosTheme ? "ios26-section" : "bg-[#041022]"}`}>
         {flatItems.length === 0 ? (
           <div className="py-8 text-center text-xs font-medium text-slate-500">
             {searchQuery

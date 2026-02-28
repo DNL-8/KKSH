@@ -38,6 +38,7 @@ import { FilesToolbar } from "../components/files/FilesToolbar";
 import { FilesEmptyState } from "../components/files/FilesEmptyState";
 import { FilesAlerts } from "../components/files/FilesAlerts";
 import { trackFilesTelemetry } from "../lib/filesTelemetry";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
 
@@ -61,6 +62,7 @@ function deriveBridgeRelativePath(path: string): string {
 export function FilesPage() {
   const { authUser, openAuthPanel } =
     useOutletContext<AppShellContextValue>();
+  const { isIosTheme } = useTheme();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   // Bridge Browser Logic
@@ -441,8 +443,9 @@ export function FilesPage() {
 
   return (
     <div
-      className="files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700"
+      className={`files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700 ${isIosTheme ? "ios26-text-secondary" : ""}`}
       data-page="files"
+      data-testid="files-main-panel"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -450,7 +453,10 @@ export function FilesPage() {
     >
       {/* Drag Overlay */}
       {isDragging && (
-        <div className="pointer-events-none fixed inset-0 z-[200] m-4 md:m-8 flex items-center justify-center rounded-[40px] border-4 border-dashed border-cyan-400/60 bg-[#020814]/80 backdrop-blur-xl shadow-[0_0_100px_rgba(34,211,238,0.2)_inset] transition-all duration-300">
+        <div className={`pointer-events-none fixed inset-0 z-[200] m-4 md:m-8 flex items-center justify-center rounded-[40px] transition-all duration-300 ${isIosTheme
+          ? "ios26-section-hero border-2 border-dashed border-[hsl(var(--accent)/0.45)]"
+          : "border-4 border-dashed border-cyan-400/60 bg-[#020814]/80 backdrop-blur-xl shadow-[0_0_100px_rgba(34,211,238,0.2)_inset]"
+          }`}>
           <div className="text-center animate-in zoom-in-50 duration-300 flex flex-col items-center">
             <div className="h-32 w-32 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 animate-pulse shadow-[0_0_50px_rgba(34,211,238,0.3)]">
               <Icon name="cloud-upload" className="text-7xl text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
@@ -491,35 +497,39 @@ export function FilesPage() {
         <div className="pointer-events-none absolute bottom-0 right-20 h-64 w-64 rounded-full bg-indigo-500/5 blur-[100px] mix-blend-screen" />
 
         <div className="relative z-10 space-y-4">
-
-          <FilesToolbar
-            saving={saving}
-            importProgress={importProgress}
-            loading={loading}
-            exporting={exporting}
-            visibleVideosCount={visibleVideos.length}
-            directoryHandleSupported={directoryHandleSupported}
-            orderMode={orderMode}
-            onOrderModeChange={setOrderMode}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            completedLessonCount={completedLessonCount}
-            completionRate={completionRate}
-            onOpenPicker={handleOpenPicker}
-            onOpenFolderPicker={handleOpenFolderPicker}
-            onOpenDirectoryPicker={handleOpenDirectoryPicker}
-            onExportMetadata={handleExportMetadata}
-            onImportMetadataClick={() => importInputRef.current?.click()}
-            onClearLibrary={handleClearAll}
-            onOpenVisualSettings={handleOpenVisualSettings}
-            onToggleMobileSidebar={() => setIsSidebarMobileOpen((o) => !o)}
-          />
+          <div data-testid="files-toolbar-panel" className={isIosTheme ? "ios26-section" : ""}>
+            <FilesToolbar
+              saving={saving}
+              importProgress={importProgress}
+              loading={loading}
+              exporting={exporting}
+              visibleVideosCount={visibleVideos.length}
+              directoryHandleSupported={directoryHandleSupported}
+              orderMode={orderMode}
+              onOrderModeChange={setOrderMode}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              completedLessonCount={completedLessonCount}
+              completionRate={completionRate}
+              onOpenPicker={handleOpenPicker}
+              onOpenFolderPicker={handleOpenFolderPicker}
+              onOpenDirectoryPicker={handleOpenDirectoryPicker}
+              onExportMetadata={handleExportMetadata}
+              onImportMetadataClick={() => importInputRef.current?.click()}
+              onClearLibrary={handleClearAll}
+              onOpenVisualSettings={handleOpenVisualSettings}
+              onToggleMobileSidebar={() => setIsSidebarMobileOpen((o) => !o)}
+            />
+          </div>
 
           {/* Badges de Status do Sistema */}
           <div className="flex flex-wrap items-center gap-2 px-1 pt-1">
             {isBridgeConnected && (
               <button
-                className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300 transition-colors hover:bg-indigo-500/20 active:scale-95"
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors active:scale-95 ${isIosTheme
+                  ? "ios26-chip ios26-focusable"
+                  : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
+                  }`}
                 onClick={() => setShowBridgeBrowser(true)}
               >
                 <Icon name="folder-search" className="text-[12px]" />
@@ -528,13 +538,19 @@ export function FilesPage() {
             )}
 
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner/50 text-slate-500"}`}>
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme
+              ? isBridgeConnected ? "ios26-chip ios26-status-success" : "ios26-chip"
+              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner/50 text-slate-500"
+              }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
               Bridge {isBridgeConnected ? "Online" : "Offline"}
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"}`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isIosTheme
+              ? isPersisted ? "ios26-chip ios26-chip-active" : "ios26-chip ios26-status-warning"
+              : isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"
+              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
               <div className={`w-1.5 h-1.5 rounded-full ${isPersisted ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"}`} />
               HD {isPersisted ? "Persistente" : "Temporário"}
             </div>
@@ -571,7 +587,7 @@ export function FilesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section className="space-y-5" data-testid="files-player">
-            <div className="files-panel-elevated group relative overflow-hidden rounded-[30px]" data-testid="course-player">
+            <div className={`group relative overflow-hidden rounded-[30px] ${isIosTheme ? "ios26-section-hero ios26-sheen" : "files-panel-elevated"}`} data-testid="course-player">
               <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
               <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
               <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
@@ -592,7 +608,7 @@ export function FilesPage() {
               </div>
             </div>
 
-            <div className="files-panel rounded-[24px] p-4">
+            <div className={`rounded-[24px] p-4 ${isIosTheme ? "ios26-section" : "files-panel"}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-1">
                   <h3 className="text-lg font-black tracking-tight text-slate-900">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
@@ -610,8 +626,8 @@ export function FilesPage() {
                 <div className="flex items-center gap-2" data-testid="files-complete-button">
                   <button
                     className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      : "border-cyan-500/40 bg-cyan-600 text-slate-900 hover:bg-cyan-500"
+                      ? isIosTheme ? "ios26-control ios26-focusable ios26-status-success" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                      : isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border-cyan-500/40 bg-cyan-600 text-slate-900 hover:bg-cyan-500"
                       } disabled:cursor-not-allowed disabled:opacity-60`}
                     data-testid="complete-lesson-button"
                     disabled={
@@ -637,7 +653,10 @@ export function FilesPage() {
                               : "Concluir aula (+XP)"}
                   </button>
                   <button
-                    className="rounded-xl border border-slate-700 liquid-glass p-2 text-slate-600 transition-colors hover:text-slate-200"
+                    className={`rounded-xl p-2 transition-colors ${isIosTheme
+                      ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
+                      : "border border-slate-700 liquid-glass text-slate-600 hover:text-slate-200"
+                      }`}
                     title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
                     data-testid="files-toggle-metadata-panel"
                     onClick={handleToggleMetadataPanel}
@@ -675,7 +694,10 @@ export function FilesPage() {
                 onClose={() => setIsSidebarMobileOpen(false)}
               />
               <button
-                className="files-panel w-full rounded-xl border border-dashed border-cyan-700/35 p-4 text-left transition-all hover:border-cyan-400/45 hover:bg-[#0a1a31]"
+                className={`w-full rounded-xl p-4 text-left transition-all ${isIosTheme
+                  ? "ios26-section ios26-focusable border border-dashed border-[hsl(var(--accent)/0.45)]"
+                  : "files-panel border border-dashed border-cyan-700/35 hover:border-cyan-400/45 hover:bg-[#0a1a31]"
+                  }`}
                 data-testid="files-support-material-upload"
                 onClick={handleOpenFolderPicker}
                 type="button"
@@ -705,7 +727,10 @@ export function FilesPage() {
           >
             {/* Backdrop */}
             <div
-              className={`absolute inset-0 liquid-glass/70 backdrop-blur-sm transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"} ${isIosTheme
+                ? "ios26-section"
+                : "liquid-glass/70 backdrop-blur-sm"
+                }`}
               onClick={() => setIsSidebarMobileOpen(false)}
               aria-hidden="true"
             />

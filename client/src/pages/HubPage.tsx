@@ -12,6 +12,7 @@ import {
   type WeeklyReportOut,
 } from "../lib/api";
 import type { AppShellContextValue } from "../layout/types";
+import { useTheme } from "../contexts/ThemeContext";
 
 import {
   BASELINE,
@@ -61,6 +62,7 @@ function bestDailyQuest(quests: DailyQuestOut[]): DailyQuestOut | null {
 
 export function HubPage() {
   const { globalStats, authUser, openAuthPanel, navigateTo } = useOutletContext<AppShellContextValue>();
+  const { isIosTheme } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
   const [glitchActive, setGlitchActive] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -161,7 +163,7 @@ export function HubPage() {
   };
 
   return (
-    <div className={`space-y-6 pb-20 ${isLoaded ? "animate-in fade-in duration-500" : "opacity-0"}`}>
+    <div className={`space-y-6 pb-20 ${isLoaded ? "animate-in fade-in duration-500" : "opacity-0"} ${isIosTheme ? "ios26-text-secondary" : ""}`}>
       {showEditModal && (
         <HubAttributesModal
           draftAttributes={draftAttributes}
@@ -179,13 +181,42 @@ export function HubPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-4 rounded-3xl border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+        <section
+          data-testid="hub-biometry-card"
+          className={`lg:col-span-4 rounded-3xl p-6 relative overflow-hidden group ${isIosTheme
+            ? "ios26-section ios26-sheen ios26-text-secondary"
+            : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
+            }`}
+        >
           <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-[60px]" />
           <div className="mb-6 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500"><Icon name="pulse" className="text-blue-400" />Biometria Hunter</div>
             <div className="flex items-center gap-2">
-              <button type="button" data-testid="hub-attributes-edit-open" onClick={openEditModal} className="rounded-full border border-slate-700/50 p-1.5 text-slate-600 hover:text-slate-900 hover:liquid-glass-inner transition-colors"><Icon name="settings" /></button>
-              {authUser && <button type="button" data-testid="hub-refresh-button" aria-label="Atualizar dados do hub" onClick={() => void refreshHub()} className="rounded-full border border-slate-700/50 p-1.5 text-slate-600 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors">{loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}</button>}
+              <button
+                type="button"
+                data-testid="hub-attributes-edit-open"
+                onClick={openEditModal}
+                className={`rounded-full p-1.5 transition-colors ${isIosTheme
+                  ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
+                  : "border border-slate-700/50 text-slate-600 hover:text-slate-900 hover:liquid-glass-inner"
+                  }`}
+              >
+                <Icon name="settings" />
+              </button>
+              {authUser && (
+                <button
+                  type="button"
+                  data-testid="hub-refresh-button"
+                  aria-label="Atualizar dados do hub"
+                  onClick={() => void refreshHub()}
+                  className={`rounded-full p-1.5 transition-colors ${isIosTheme
+                    ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
+                    : "border border-slate-700/50 text-slate-600 hover:text-cyan-300 hover:bg-cyan-500/10"
+                    }`}
+                >
+                  {loading ? <Icon name="spinner" className="animate-spin" /> : <Icon name="refresh" />}
+                </button>
+              )}
             </div>
           </div>
           <div className="mb-6 flex items-center gap-5 relative z-10">
@@ -210,12 +241,26 @@ export function HubPage() {
             <StatBar label="EXCEL" percent={attributes.excel} gradientClass="from-emerald-600 via-emerald-500 to-teal-400" sub="Analise & Dashboards" />
             <StatBar label="ETL / ELT" percent={attributes.etl} gradientClass="from-orange-600 via-orange-500 to-amber-400" sub="Data Pipelines" />
           </div>
-          <button type="button" data-testid="hub-connect-button" onClick={() => (authUser ? void refreshHub() : openAuthPanel())} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-gradient-to-r from-blue-600/10 to-blue-400/10 py-3.5 text-xs font-black uppercase tracking-[0.2em] text-blue-300 transition-all hover:bg-blue-500/20 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-400 relative z-10">
+          <button
+            type="button"
+            data-testid="hub-connect-button"
+            onClick={() => (authUser ? void refreshHub() : openAuthPanel())}
+            className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-black uppercase tracking-[0.2em] transition-all relative z-10 ${isIosTheme
+              ? "ios26-control ios26-focusable text-slate-800"
+              : "border border-blue-500/40 bg-gradient-to-r from-blue-600/10 to-blue-400/10 text-blue-300 hover:bg-blue-500/20 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-400"
+              }`}
+          >
             {authUser ? "Sincronizar Sistema" : "Conectar Sistema"} <Icon name="angle-right" className="text-sm" />
           </button>
         </section>
 
-        <section className={`lg:col-span-8 rounded-3xl border border-slate-300/50 bg-gradient-to-br from-[#02050a]/95 to-[#050101]/95 backdrop-blur-2xl p-8 relative overflow-hidden transition-all duration-700 ${activeQuest ? "shadow-[0_0_50px_rgba(220,38,38,0.1)]" : "shadow-[0_0_50px_rgba(34,211,238,0.05)]"}`}>
+        <section
+          data-testid="hub-hero-panel"
+          className={`lg:col-span-8 rounded-3xl p-8 relative overflow-hidden transition-all duration-700 ${isIosTheme
+            ? "ios26-section-hero ios26-sheen"
+            : `border border-slate-300/50 bg-gradient-to-br from-[#02050a]/95 to-[#050101]/95 backdrop-blur-2xl ${activeQuest ? "shadow-[0_0_50px_rgba(220,38,38,0.1)]" : "shadow-[0_0_50px_rgba(34,211,238,0.05)]"}`
+            }`}
+        >
           <div className="files-grid-overlay pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay" />
           {activeQuest && (
             <>
@@ -273,7 +318,17 @@ export function HubPage() {
               </div>
             </div>
 
-            <button type="button" data-testid="hub-start-reviews" onClick={() => navigateTo("/revisoes")} className={`mt-10 flex w-full md:w-auto items-center justify-center gap-3 rounded-2xl border px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${activeQuest ? "border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md" : "border-slate-700 liquid-glass-inner/50 text-slate-600 hover:bg-slate-700 hover:text-slate-900"}`}>
+            <button
+              type="button"
+              data-testid="hub-start-reviews"
+              onClick={() => navigateTo("/revisoes")}
+              className={`mt-10 flex w-full md:w-auto items-center justify-center gap-3 rounded-2xl px-8 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${isIosTheme
+                ? "ios26-control ios26-focusable text-slate-800"
+                : activeQuest
+                  ? "border border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md"
+                  : "border border-slate-700 liquid-glass-inner/50 text-slate-600 hover:bg-slate-700 hover:text-slate-900"
+                }`}
+            >
               <Icon name="sword" className="text-lg" /> Iniciar Incursao
             </button>
           </div>
