@@ -169,11 +169,13 @@ const WEEKLY_DUNGEONS = [
 ];
 
 type InventoryRarity = "common" | "rare" | "epic" | "legendary" | "mythic";
+type InventoryEquipmentType = "Barra" | "Halter" | "Anilha" | "Calistenia" | "Cardio";
 
 type InventoryLoadoutItem = {
     id: string;
     icon: string;
     name: string;
+    equipmentType: InventoryEquipmentType;
     owned: boolean;
     rarity: InventoryRarity;
 };
@@ -193,12 +195,27 @@ const INVENTORY_RARITY_OPTIONS: Array<{
     { value: "mythic", label: "Mitico", toneClass: "text-rose-500" },
 ];
 
-const DEFAULT_INVENTORY_LOADOUT: InventoryLoadoutItem[] = [
-    { id: "bar_150", icon: "dumbbell", name: "Barra 1,50m", owned: true, rarity: "rare" },
-    { id: "bar_short", icon: "dumbbell", name: "Barra curta 20cm (Halter)", owned: true, rarity: "rare" },
-    { id: "plates_5kg", icon: "hexagon", name: "4x Anilhas de 5kg (20kg)", owned: true, rarity: "rare" },
-    { id: "pullup_bar", icon: "sword", name: "Barra Fixa", owned: true, rarity: "epic" },
+const INVENTORY_EQUIPMENT_TYPE_OPTIONS: Array<{
+    value: InventoryEquipmentType;
+    label: string;
+}> = [
+    { value: "Barra", label: "Barra" },
+    { value: "Halter", label: "Halter" },
+    { value: "Anilha", label: "Anilha" },
+    { value: "Calistenia", label: "Calistenia" },
+    { value: "Cardio", label: "Cardio" },
 ];
+
+const DEFAULT_INVENTORY_LOADOUT: InventoryLoadoutItem[] = [
+    { id: "bar_150", icon: "dumbbell", name: "Barra 1,50m", equipmentType: "Barra", owned: true, rarity: "rare" },
+    { id: "bar_short", icon: "dumbbell", name: "Barra curta 20cm (Halter)", equipmentType: "Halter", owned: true, rarity: "rare" },
+    { id: "plates_5kg", icon: "hexagon", name: "4x Anilhas de 5kg (20kg)", equipmentType: "Anilha", owned: true, rarity: "rare" },
+    { id: "pullup_bar", icon: "sword", name: "Barra Fixa", equipmentType: "Calistenia", owned: true, rarity: "epic" },
+];
+
+const getDefaultLoadoutItemById = (itemId: string): InventoryLoadoutItem | undefined => {
+    return DEFAULT_INVENTORY_LOADOUT.find((item) => item.id === itemId);
+};
 
 const getRarityToneClass = (rarity: InventoryRarity): string => {
     return INVENTORY_RARITY_OPTIONS.find((option) => option.value === rarity)?.toneClass ?? "text-slate-500";
@@ -223,16 +240,25 @@ const parseStoredInventoryLoadout = (raw: string | null): InventoryLoadoutItem[]
                     return null;
                 }
                 const row = item as Partial<InventoryLoadoutItem>;
-                if (typeof row.id !== "string" || typeof row.name !== "string" || typeof row.icon !== "string") {
+                if (typeof row.id !== "string" || typeof row.icon !== "string") {
                     return null;
                 }
+                const defaultItem = getDefaultLoadoutItemById(row.id);
                 const rarity = INVENTORY_RARITY_OPTIONS.some((option) => option.value === row.rarity)
                     ? (row.rarity as InventoryRarity)
                     : "common";
+                const name = typeof row.name === "string" && row.name.trim().length > 0
+                    ? row.name.trim()
+                    : (defaultItem?.name ?? "Equipamento");
+                const fallbackType = defaultItem?.equipmentType ?? INVENTORY_EQUIPMENT_TYPE_OPTIONS[0].value;
+                const equipmentType = INVENTORY_EQUIPMENT_TYPE_OPTIONS.some((option) => option.value === row.equipmentType)
+                    ? (row.equipmentType as InventoryEquipmentType)
+                    : fallbackType;
                 return {
                     id: row.id,
-                    name: row.name,
+                    name,
                     icon: row.icon,
+                    equipmentType,
                     owned: Boolean(row.owned),
                     rarity,
                 } as InventoryLoadoutItem;
@@ -339,6 +365,27 @@ export function SystemPage() {
             prev.map((item) =>
                 item.id === itemId
                     ? { ...item, rarity }
+                    : item,
+            ),
+        );
+    };
+
+    const updateInventoryItemName = (itemId: string, name: string) => {
+        const nextName = name.slice(0, 48);
+        setInventoryLoadout((prev) =>
+            prev.map((item) =>
+                item.id === itemId
+                    ? { ...item, name: nextName }
+                    : item,
+            ),
+        );
+    };
+
+    const updateInventoryItemType = (itemId: string, equipmentType: InventoryEquipmentType) => {
+        setInventoryLoadout((prev) =>
+            prev.map((item) =>
+                item.id === itemId
+                    ? { ...item, equipmentType }
                     : item,
             ),
         );
@@ -453,39 +500,65 @@ export function SystemPage() {
                                     <ul className="text-sm text-slate-600 space-y-3">
                                         {inventoryLoadout.map((item) => (
                                             <li key={item.id} className="rounded-lg border border-white/10 p-2" data-testid={`system-inventory-item-${item.id}`}>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        data-testid={`system-inventory-toggle-${item.id}`}
-                                                        onClick={() => toggleInventoryItemOwned(item.id)}
-                                                        className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
-                                                            ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
-                                                            : "border-slate-300 text-slate-400"
-                                                            }`}
-                                                        aria-pressed={item.owned}
-                                                        aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
-                                                    >
-                                                        {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
-                                                    </button>
-                                                    <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
-                                                    <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
-                                                        {item.name}
-                                                    </span>
-                                                    <select
-                                                        data-testid={`system-inventory-rarity-${item.id}`}
-                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
-                                                        value={item.rarity}
-                                                        onChange={(event) =>
-                                                            updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
-                                                        }
-                                                        aria-label={`Raridade de ${item.name}`}
-                                                    >
-                                                        {INVENTORY_RARITY_OPTIONS.map((option) => (
-                                                            <option key={option.value} value={option.value}>
-                                                                {option.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            data-testid={`system-inventory-toggle-${item.id}`}
+                                                            onClick={() => toggleInventoryItemOwned(item.id)}
+                                                            className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
+                                                                ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
+                                                                : "border-slate-300 text-slate-400"
+                                                                }`}
+                                                            aria-pressed={item.owned}
+                                                            aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
+                                                        >
+                                                            {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
+                                                        </button>
+                                                        <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
+                                                        <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                            {item.name}
+                                                        </span>
+                                                        <select
+                                                            data-testid={`system-inventory-rarity-${item.id}`}
+                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
+                                                            value={item.rarity}
+                                                            onChange={(event) =>
+                                                                updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
+                                                            }
+                                                            aria-label={`Raridade de ${item.name}`}
+                                                        >
+                                                            {INVENTORY_RARITY_OPTIONS.map((option) => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div className="grid gap-2 sm:grid-cols-2">
+                                                        <input
+                                                            type="text"
+                                                            data-testid={`system-inventory-name-${item.id}`}
+                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                            value={item.name}
+                                                            onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
+                                                            placeholder="Nome do equipamento"
+                                                            aria-label={`Nome do equipamento ${item.id}`}
+                                                        />
+                                                        <select
+                                                            data-testid={`system-inventory-type-${item.id}`}
+                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                            value={item.equipmentType}
+                                                            onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
+                                                            aria-label={`Tipo do equipamento ${item.id}`}
+                                                        >
+                                                            {INVENTORY_EQUIPMENT_TYPE_OPTIONS.map((option) => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </li>
                                         ))}
@@ -507,7 +580,12 @@ export function SystemPage() {
                                         <ul className="space-y-2">
                                             {activeInventoryItems.map((item) => (
                                                 <li key={`summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
-                                                    <span className="truncate font-semibold text-slate-700">{item.name}</span>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-semibold text-slate-700">{item.name}</p>
+                                                        <p className="truncate text-[10px] font-mono uppercase tracking-[0.12em] text-slate-500">
+                                                            {item.equipmentType || "Sem tipo"}
+                                                        </p>
+                                                    </div>
                                                     <span className={`rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
                                                         {getRarityLabel(item.rarity)}
                                                     </span>
@@ -612,39 +690,65 @@ export function SystemPage() {
                                 <ul className="text-sm text-slate-600 space-y-3">
                                     {inventoryLoadout.map((item) => (
                                         <li key={`dashboard-${item.id}`} className="rounded-lg border border-white/10 p-2" data-testid={`system-dashboard-inventory-item-${item.id}`}>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    data-testid={`system-dashboard-inventory-toggle-${item.id}`}
-                                                    onClick={() => toggleInventoryItemOwned(item.id)}
-                                                    className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
-                                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
-                                                        : "border-slate-300 text-slate-400"
-                                                        }`}
-                                                    aria-pressed={item.owned}
-                                                    aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
-                                                >
-                                                    {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
-                                                </button>
-                                                <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
-                                                <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
-                                                    {item.name}
-                                                </span>
-                                                <select
-                                                    data-testid={`system-dashboard-inventory-rarity-${item.id}`}
-                                                    className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
-                                                    value={item.rarity}
-                                                    onChange={(event) =>
-                                                        updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
-                                                    }
-                                                    aria-label={`Raridade de ${item.name}`}
-                                                >
-                                                    {INVENTORY_RARITY_OPTIONS.map((option) => (
-                                                        <option key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        data-testid={`system-dashboard-inventory-toggle-${item.id}`}
+                                                        onClick={() => toggleInventoryItemOwned(item.id)}
+                                                        className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
+                                                            ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
+                                                            : "border-slate-300 text-slate-400"
+                                                            }`}
+                                                        aria-pressed={item.owned}
+                                                        aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
+                                                    >
+                                                        {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
+                                                    </button>
+                                                    <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
+                                                    <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                        {item.name}
+                                                    </span>
+                                                    <select
+                                                        data-testid={`system-dashboard-inventory-rarity-${item.id}`}
+                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
+                                                        value={item.rarity}
+                                                        onChange={(event) =>
+                                                            updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
+                                                        }
+                                                        aria-label={`Raridade de ${item.name}`}
+                                                    >
+                                                        {INVENTORY_RARITY_OPTIONS.map((option) => (
+                                                            <option key={option.value} value={option.value}>
+                                                                {option.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="grid gap-2 sm:grid-cols-2">
+                                                    <input
+                                                        type="text"
+                                                        data-testid={`system-dashboard-inventory-name-${item.id}`}
+                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                        value={item.name}
+                                                        onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
+                                                        placeholder="Nome do equipamento"
+                                                        aria-label={`Nome do equipamento ${item.id}`}
+                                                    />
+                                                    <select
+                                                        data-testid={`system-dashboard-inventory-type-${item.id}`}
+                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                        value={item.equipmentType}
+                                                        onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
+                                                        aria-label={`Tipo do equipamento ${item.id}`}
+                                                    >
+                                                        {INVENTORY_EQUIPMENT_TYPE_OPTIONS.map((option) => (
+                                                            <option key={option.value} value={option.value}>
+                                                                {option.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         </li>
                                     ))}
@@ -666,7 +770,12 @@ export function SystemPage() {
                                     <ul className="space-y-2">
                                         {activeInventoryItems.map((item) => (
                                             <li key={`dashboard-summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
-                                                <span className="truncate font-semibold text-slate-700">{item.name}</span>
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-semibold text-slate-700">{item.name}</p>
+                                                    <p className="truncate text-[10px] font-mono uppercase tracking-[0.12em] text-slate-500">
+                                                        {item.equipmentType || "Sem tipo"}
+                                                    </p>
+                                                </div>
                                                 <span className={`rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
                                                     {getRarityLabel(item.rarity)}
                                                 </span>
