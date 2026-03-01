@@ -46,6 +46,10 @@ class StudySession(SQLModel, table=True):
     # gamification
     xp_earned: int = Field(default=0)
     gold_earned: int = Field(default=0)
+    hp_delta: int = Field(default=0)
+    mana_delta: int = Field(default=0)
+    fatigue_delta: int = Field(default=0)
+    reward_multiplier_bps: int = Field(default=10_000)
     started_at: datetime = Field(default_factory=utcnow)
     created_at: datetime = Field(default_factory=utcnow)
     deleted_at: Optional[datetime] = Field(default=None, index=True)

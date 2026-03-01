@@ -21,6 +21,12 @@ export const getNextRank = (xp: number) => {
     return currentIdx < RANKS.length - 1 ? RANKS[currentIdx + 1] : RANKS[RANKS.length - 1];
 };
 
+export const getSystemLevelFromXp = (xp: number) => {
+    const currentRank = getRank(xp);
+    const rankIndex = RANKS.findIndex((r) => r.name === currentRank.name);
+    return Math.max(1, rankIndex + 1);
+};
+
 const DEFAULT_STATE: SystemRPGStatsOut = {
     name: "SUNG JIN-WOO",
     xp: 0,
@@ -45,6 +51,13 @@ export function useSystemRPG() {
         queryFn: getSystemRpgStats,
         enabled: Boolean(authUser),
         staleTime: 5 * 60 * 1000, // Keep fresh for 5 mins
+        select: (data) => ({
+            ...data,
+            level: Math.max(
+                Number(data.level ?? 1),
+                getSystemLevelFromXp(Number(data.xp ?? 0)),
+            ),
+        }),
     });
 
     const mutation = useMutation({
@@ -55,8 +68,20 @@ export function useSystemRPG() {
             const previousState = queryClient.getQueryData<SystemRPGStatsOut>(SYSTEM_RPG_QUERY_KEY);
 
             queryClient.setQueryData<SystemRPGStatsOut>(SYSTEM_RPG_QUERY_KEY, (old) => {
-                if (!old) return { ...DEFAULT_STATE, ...newUpdates } as SystemRPGStatsOut;
-                return { ...old, ...newUpdates } as SystemRPGStatsOut;
+                if (!old) {
+                    const merged = { ...DEFAULT_STATE, ...newUpdates } as SystemRPGStatsOut;
+                    const resolvedXp = Number(merged.xp ?? 0);
+                    return {
+                        ...merged,
+                        level: Math.max(Number(merged.level ?? 1), getSystemLevelFromXp(resolvedXp)),
+                    } as SystemRPGStatsOut;
+                }
+                const merged = { ...old, ...newUpdates } as SystemRPGStatsOut;
+                const resolvedXp = Number(merged.xp ?? 0);
+                return {
+                    ...merged,
+                    level: Math.max(Number(merged.level ?? 1), getSystemLevelFromXp(resolvedXp)),
+                } as SystemRPGStatsOut;
             });
 
             return { previousState };

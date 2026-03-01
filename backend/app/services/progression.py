@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
@@ -18,6 +19,39 @@ RANK_RULES: tuple[tuple[int, int, str], ...] = (
     (50, 74, "A"),
     (75, 10_000_000, "S"),
 )
+
+DEFAULT_REWARD_MULTIPLIER_BPS = 10_000
+
+
+@dataclass(frozen=True)
+class SessionVitalsDelta:
+    hp_delta: int = 0
+    mana_delta: int = 0
+    fatigue_delta: int = 0
+
+
+_SESSION_ACTIVITY_ALIASES: dict[str, str] = {
+    # Study-heavy / cognitive effort
+    "pomodoro": "study",
+    "study": "study",
+    "deep_work": "study",
+    "lesson": "study",
+    # Video learning
+    "video_lesson": "video",
+    "video": "video",
+    # Physical effort
+    "workout": "exercise",
+    "exercise": "exercise",
+    "training": "exercise",
+    "cardio": "exercise",
+    "gym": "exercise",
+    # Recovery
+    "rest": "recovery",
+    "break": "recovery",
+    "walk": "recovery",
+    "meditation": "recovery",
+    "sleep": "recovery",
+}
 
 
 def rank_from_level(level: int) -> str:
@@ -69,6 +103,83 @@ def _new_source_ref(source_ref: str | None) -> str:
     if source_ref and source_ref.strip():
         return source_ref.strip()
     return str(uuid4())
+
+
+def _normalize_mode(mode: str | None) -> str:
+    raw = (mode or "").strip().lower()
+    if not raw:
+        return "study"
+    return raw.replace("-", "_").replace(" ", "_")
+
+
+def classify_session_activity(mode: str | None) -> str:
+    normalized = _normalize_mode(mode)
+    return _SESSION_ACTIVITY_ALIASES.get(normalized, "study")
+
+
+def compute_session_vitals_delta(*, mode: str | None, minutes: int) -> SessionVitalsDelta:
+    safe_minutes = max(1, int(minutes))
+    activity = classify_session_activity(mode)
+    normalized_mode = _normalize_mode(mode)
+
+    # Study (default): mostly mental drain with light physical strain.
+    if activity == "study":
+        mana_cost = max(2, int(round(safe_minutes * 0.20)))
+        hp_cost = max(0, int(round(safe_minutes * 0.05)))
+        fatigue_gain = max(1, int(round(safe_minutes * 0.16)))
+        return SessionVitalsDelta(
+            hp_delta=-hp_cost,
+            mana_delta=-mana_cost,
+            fatigue_delta=fatigue_gain,
+        )
+
+    # Video: mental drain + small sedentary physical tax for longer sessions.
+    if activity == "video":
+        mana_cost = max(4, int(round(safe_minutes * 0.22)))
+        hp_cost = 2 if safe_minutes >= 35 else (1 if safe_minutes >= 20 else 0)
+        fatigue_gain = max(1, int(round(safe_minutes * 0.14)))
+        return SessionVitalsDelta(
+            hp_delta=-hp_cost,
+            mana_delta=-mana_cost,
+            fatigue_delta=fatigue_gain,
+        )
+
+    # Exercise: mostly physical cost with smaller mental load.
+    if activity == "exercise":
+        hp_cost = max(6, int(round(safe_minutes * 0.33)))
+        mana_cost = max(2, int(round(safe_minutes * 0.11)))
+        fatigue_gain = max(3, int(round(safe_minutes * 0.40)))
+        return SessionVitalsDelta(
+            hp_delta=-hp_cost,
+            mana_delta=-mana_cost,
+            fatigue_delta=fatigue_gain,
+        )
+
+    # Recovery: regenerates vitals and lowers fatigue.
+    hp_regen = max(4, int(round(safe_minutes * 0.18)))
+    mana_regen = max(6, int(round(safe_minutes * 0.24)))
+    fatigue_relief = max(4, int(round(safe_minutes * 0.20)))
+    if normalized_mode == "sleep" and safe_minutes >= 420:
+        hp_regen += 8
+        mana_regen += 10
+        fatigue_relief += 10
+    return SessionVitalsDelta(
+        hp_delta=hp_regen,
+        mana_delta=mana_regen,
+        fatigue_delta=-fatigue_relief,
+    )
+
+
+def apply_reward_multiplier(
+    *,
+    xp: int,
+    gold: int,
+    multiplier_bps: int = DEFAULT_REWARD_MULTIPLIER_BPS,
+) -> tuple[int, int]:
+    safe_multiplier = max(0, int(multiplier_bps))
+    scaled_xp = int(round(int(xp) * safe_multiplier / DEFAULT_REWARD_MULTIPLIER_BPS))
+    scaled_gold = int(round(int(gold) * safe_multiplier / DEFAULT_REWARD_MULTIPLIER_BPS))
+    return max(0, scaled_xp), max(0, scaled_gold)
 
 
 def progress_to_dict(stats: UserStats) -> dict[str, int | str]:
@@ -169,4 +280,3 @@ def compute_session_rewards(settings: UserSettings, minutes: int) -> tuple[int, 
     xp = int(minutes) * int(getattr(settings, "xp_per_minute", 5))
     gold = int(minutes) * int(getattr(settings, "gold_per_minute", 1))
     return max(0, xp), max(0, gold)
-

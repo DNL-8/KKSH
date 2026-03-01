@@ -145,3 +145,108 @@ def test_video_lesson_completion_is_deduped_by_notes_ref(client, csrf_headers):
     state_after_other = client.get("/api/v1/me/state")
     assert state_after_other.status_code == 200
     assert state_after_other.json()["todayMinutes"] == 24
+
+
+def test_video_session_applies_vitals_costs(client, csrf_headers):
+    user = _signup(client, csrf_headers, email="video-vitals@example.com")["user"]
+
+    created = client.post(
+        "/api/v1/sessions",
+        json={"subject": "Python", "minutes": 45, "mode": "video_lesson"},
+        headers=csrf_headers(),
+    )
+    assert created.status_code == 201
+    assert created.json()["xpEarned"] > 0
+
+    progress = client.get("/api/v1/progress")
+    assert progress.status_code == 200
+    vitals = progress.json()["vitals"]
+    assert vitals["hp"] == 98
+    assert vitals["mana"] == 90
+    assert vitals["fatigue"] == 26
+
+    with get_session() as db:
+        row = db.exec(
+            select(StudySession).where(
+                StudySession.user_id == user["id"],
+                StudySession.mode == "video_lesson",
+                StudySession.deleted_at.is_(None),
+            )
+        ).first()
+        assert row is not None
+        assert int(row.hp_delta) == -2
+        assert int(row.mana_delta) == -10
+        assert int(row.fatigue_delta) == 6
+
+
+def test_session_update_and_delete_rollback_vitals(client, csrf_headers):
+    _signup(client, csrf_headers, email="session-vitals-rollback@example.com")
+
+    created = client.post(
+        "/api/v1/sessions",
+        json={"subject": "Treino", "minutes": 30, "mode": "workout"},
+        headers=csrf_headers(),
+    )
+    assert created.status_code == 201
+
+    listed = client.get("/api/v1/sessions?limit=1")
+    assert listed.status_code == 200
+    session_id = listed.json()["sessions"][0]["id"]
+
+    progress_after_create = client.get("/api/v1/progress").json()
+    assert progress_after_create["vitals"]["hp"] == 90
+    assert progress_after_create["vitals"]["mana"] == 97
+    assert progress_after_create["vitals"]["fatigue"] == 32
+
+    updated = client.patch(
+        f"/api/v1/sessions/{session_id}",
+        json={"minutes": 15},
+        headers=csrf_headers(),
+    )
+    assert updated.status_code == 204
+
+    progress_after_update = client.get("/api/v1/progress").json()
+    assert progress_after_update["vitals"]["hp"] == 94
+    assert progress_after_update["vitals"]["mana"] == 98
+    assert progress_after_update["vitals"]["fatigue"] == 26
+
+    deleted = client.delete(
+        f"/api/v1/sessions/{session_id}",
+        headers=csrf_headers(),
+    )
+    assert deleted.status_code == 204
+
+    progress_after_delete = client.get("/api/v1/progress").json()
+    assert progress_after_delete["vitals"]["hp"] == 100
+    assert progress_after_delete["vitals"]["mana"] == 100
+    assert progress_after_delete["vitals"]["fatigue"] == 20
+
+
+def test_session_exhaustion_penalty_reduces_rewards(client, csrf_headers):
+    user = _signup(client, csrf_headers, email="session-exhaustion@example.com")["user"]
+
+    created = client.post(
+        "/api/v1/sessions",
+        json={"subject": "Deep Study", "minutes": 500, "mode": "pomodoro"},
+        headers=csrf_headers(),
+    )
+    assert created.status_code == 201
+    body = created.json()
+    assert body["xpEarned"] == 875
+    assert body["goldEarned"] == 175
+
+    progress = client.get("/api/v1/progress").json()
+    assert progress["vitals"]["hp"] == 75
+    assert progress["vitals"]["mana"] == 0
+    assert progress["vitals"]["fatigue"] == 100
+
+    with get_session() as db:
+        row = db.exec(
+            select(StudySession).where(
+                StudySession.user_id == user["id"],
+                StudySession.subject == "Deep Study",
+                StudySession.deleted_at.is_(None),
+            )
+        ).first()
+        assert row is not None
+        assert int(row.reward_multiplier_bps) == 3500

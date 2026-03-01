@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
@@ -19,7 +19,16 @@ from app.core.deps import (
 from app.models import StudySession, User
 from app.schemas import CreateSessionIn, SessionListOut, SessionOut, UpdateSessionIn
 from app.services.cursor import decode_cursor, encode_cursor
-from app.services.progression import apply_xp_gold, compute_session_rewards
+from app.services.progression import (
+    DEFAULT_REWARD_MULTIPLIER_BPS,
+    apply_reward_multiplier,
+    apply_vitals,
+    apply_xp_gold,
+    classify_session_activity,
+    compute_session_rewards,
+    compute_session_vitals_delta,
+    get_or_create_user_stats,
+)
 from app.services.quests import (
     apply_session_to_quests,
     ensure_daily_quests,
@@ -31,6 +40,9 @@ from app.services.webhooks import enqueue_event
 
 router = APIRouter()
 VIDEO_COMPLETION_PREFIX = "video_completion::"
+COMBO_REWARD_MULTIPLIER_BPS = 12_000
+THREE_DAY_STREAK_MULTIPLIER_BPS = 11_000
+EXHAUSTION_REWARD_MULTIPLIER_BPS = 3_500
 
 
 def _week_key_from_date_key(dk: str) -> str:
@@ -40,6 +52,102 @@ def _week_key_from_date_key(dk: str) -> str:
         return week_key(datetime.strptime(dk, "%Y-%m-%d"))
     except Exception:
         return week_key()
+
+
+def _multiply_bps(left: int, right: int) -> int:
+    return max(0, int(round(int(left) * int(right) / DEFAULT_REWARD_MULTIPLIER_BPS)))
+
+
+def _resolve_multiplier_bps(*, combo_active: bool, streak_active: bool, exhausted: bool) -> int:
+    multiplier = DEFAULT_REWARD_MULTIPLIER_BPS
+    if combo_active:
+        multiplier = _multiply_bps(multiplier, COMBO_REWARD_MULTIPLIER_BPS)
+    if streak_active:
+        multiplier = _multiply_bps(multiplier, THREE_DAY_STREAK_MULTIPLIER_BPS)
+    if exhausted:
+        multiplier = _multiply_bps(multiplier, EXHAUSTION_REWARD_MULTIPLIER_BPS)
+    return multiplier
+
+
+def _parse_date_key(dk: str) -> datetime:
+    try:
+        return datetime.strptime(dk, "%Y-%m-%d")
+    except Exception:
+        return now_local()
+
+
+def _has_any_session_on_day(
+    session: Session,
+    *,
+    user_id: str,
+    dk: str,
+    exclude_session_id: str | None = None,
+) -> bool:
+    q = select(StudySession.id).where(
+        StudySession.user_id == user_id,
+        StudySession.date_key == dk,
+        StudySession.deleted_at.is_(None),
+    )
+    if exclude_session_id:
+        q = q.where(StudySession.id != exclude_session_id)
+    return session.exec(q.limit(1)).first() is not None
+
+
+def _day_activity_flags(
+    session: Session,
+    *,
+    user_id: str,
+    dk: str,
+    exclude_session_id: str | None = None,
+) -> tuple[bool, bool]:
+    q = select(StudySession.mode).where(
+        StudySession.user_id == user_id,
+        StudySession.date_key == dk,
+        StudySession.deleted_at.is_(None),
+    )
+    if exclude_session_id:
+        q = q.where(StudySession.id != exclude_session_id)
+
+    has_study = False
+    has_exercise = False
+    for raw_mode in session.exec(q).all():
+        activity = classify_session_activity(raw_mode)
+        if activity == "study":
+            has_study = True
+        elif activity == "exercise":
+            has_exercise = True
+        if has_study and has_exercise:
+            break
+    return has_study, has_exercise
+
+
+def _has_three_day_streak_bonus(session: Session, *, user_id: str, dk: str) -> bool:
+    target_date = _parse_date_key(dk).date()
+    previous = (target_date - timedelta(days=1)).strftime("%Y-%m-%d")
+    previous_previous = (target_date - timedelta(days=2)).strftime("%Y-%m-%d")
+    return _has_any_session_on_day(session, user_id=user_id, dk=previous) and _has_any_session_on_day(
+        session,
+        user_id=user_id,
+        dk=previous_previous,
+    )
+
+
+def _project_vitals_after_delta(
+    *,
+    current_hp: int,
+    current_mana: int,
+    current_fatigue: int,
+    max_hp: int,
+    max_mana: int,
+    max_fatigue: int,
+    hp_delta: int,
+    mana_delta: int,
+    fatigue_delta: int,
+) -> tuple[int, int, int]:
+    projected_hp = max(0, min(int(max_hp), int(current_hp) + int(hp_delta)))
+    projected_mana = max(0, min(int(max_mana), int(current_mana) + int(mana_delta)))
+    projected_fatigue = max(0, min(int(max_fatigue), int(current_fatigue) + int(fatigue_delta)))
+    return projected_hp, projected_mana, projected_fatigue
 
 
 def _session_to_out(r: StudySession) -> SessionOut:
@@ -108,7 +216,41 @@ def create_session(
 
     try:
         settings = get_or_create_user_settings(user, session, autocommit=False)
-        xp, gold = compute_session_rewards(settings, minutes=int(payload.minutes))
+        base_xp, base_gold = compute_session_rewards(settings, minutes=int(payload.minutes))
+        vitals_delta = compute_session_vitals_delta(mode=payload.mode, minutes=int(payload.minutes))
+
+        stats_row = get_or_create_user_stats(session, user, autocommit=False)
+        projected_hp, projected_mana, _projected_fatigue = _project_vitals_after_delta(
+            current_hp=int(stats_row.hp),
+            current_mana=int(stats_row.mana),
+            current_fatigue=int(stats_row.fatigue),
+            max_hp=int(stats_row.max_hp),
+            max_mana=int(stats_row.max_mana),
+            max_fatigue=int(stats_row.max_fatigue),
+            hp_delta=int(vitals_delta.hp_delta),
+            mana_delta=int(vitals_delta.mana_delta),
+            fatigue_delta=int(vitals_delta.fatigue_delta),
+        )
+
+        activity = classify_session_activity(payload.mode)
+        has_study, has_exercise = _day_activity_flags(session, user_id=user.id, dk=dk)
+        if activity == "study":
+            has_study = True
+        if activity == "exercise":
+            has_exercise = True
+        combo_active = activity in {"study", "exercise"} and has_study and has_exercise
+        streak_active = _has_three_day_streak_bonus(session, user_id=user.id, dk=dk)
+        exhausted = projected_hp <= 0 or projected_mana <= 0
+        reward_multiplier_bps = _resolve_multiplier_bps(
+            combo_active=combo_active,
+            streak_active=streak_active,
+            exhausted=exhausted,
+        )
+        xp, gold = apply_reward_multiplier(
+            xp=base_xp,
+            gold=base_gold,
+            multiplier_bps=reward_multiplier_bps,
+        )
 
         s = StudySession(
             user_id=user.id,
@@ -119,6 +261,10 @@ def create_session(
             date_key=dk,
             xp_earned=xp,
             gold_earned=gold,
+            hp_delta=int(vitals_delta.hp_delta),
+            mana_delta=int(vitals_delta.mana_delta),
+            fatigue_delta=int(vitals_delta.fatigue_delta),
+            reward_multiplier_bps=int(reward_multiplier_bps),
         )
         session.add(s)
         session.flush()
@@ -140,6 +286,13 @@ def create_session(
                 "minutes": int(s.minutes),
                 "mode": s.mode,
                 "date": s.date_key,
+                "hpDelta": int(s.hp_delta or 0),
+                "manaDelta": int(s.mana_delta or 0),
+                "fatigueDelta": int(s.fatigue_delta or 0),
+                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
+                "comboBonusApplied": bool(combo_active),
+                "threeDayStreakBonusApplied": bool(streak_active),
+                "exhaustionPenaltyApplied": bool(exhausted),
             },
             commit=False,
         )
@@ -161,7 +314,19 @@ def create_session(
                 "minutes": int(s.minutes),
                 "mode": s.mode,
                 "date": s.date_key,
+                "hpDelta": int(s.hp_delta or 0),
+                "manaDelta": int(s.mana_delta or 0),
+                "fatigueDelta": int(s.fatigue_delta or 0),
+                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
             },
+        )
+        apply_vitals(
+            session,
+            user,
+            hp_delta=int(s.hp_delta or 0),
+            mana_delta=int(s.mana_delta or 0),
+            fatigue_delta=int(s.fatigue_delta or 0),
+            autocommit=False,
         )
 
         plan = get_or_create_study_plan(user, session, autocommit=False)
@@ -182,6 +347,10 @@ def create_session(
                 "date": s.date_key,
                 "xpEarned": int(xp),
                 "goldEarned": int(gold),
+                "hpDelta": int(s.hp_delta or 0),
+                "manaDelta": int(s.mana_delta or 0),
+                "fatigueDelta": int(s.fatigue_delta or 0),
+                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
             },
             commit=False,
         )
@@ -265,6 +434,9 @@ def update_session(
     old_dk = row.date_key
     old_xp = int(row.xp_earned or 0)
     old_gold = int(row.gold_earned or 0)
+    old_hp_delta = int(getattr(row, "hp_delta", 0) or 0)
+    old_mana_delta = int(getattr(row, "mana_delta", 0) or 0)
+    old_fatigue_delta = int(getattr(row, "fatigue_delta", 0) or 0)
 
     try:
         if payload.subject is not None:
@@ -281,11 +453,49 @@ def update_session(
         session.add(row)
         session.flush()
 
-        # progression re-calc (only minutes affect rewards today)
+        # progression re-calc (minutes + activity modifiers)
         settings = get_or_create_user_settings(user, session, autocommit=False)
-        new_xp, new_gold = compute_session_rewards(settings, minutes=int(row.minutes))
+        base_xp, base_gold = compute_session_rewards(settings, minutes=int(row.minutes))
+        new_vitals_delta = compute_session_vitals_delta(mode=row.mode, minutes=int(row.minutes))
+
+        stats_row = get_or_create_user_stats(session, user, autocommit=False)
+        net_hp_delta = int(new_vitals_delta.hp_delta) - int(old_hp_delta)
+        net_mana_delta = int(new_vitals_delta.mana_delta) - int(old_mana_delta)
+        net_fatigue_delta = int(new_vitals_delta.fatigue_delta) - int(old_fatigue_delta)
+        projected_hp, projected_mana, _projected_fatigue = _project_vitals_after_delta(
+            current_hp=int(stats_row.hp),
+            current_mana=int(stats_row.mana),
+            current_fatigue=int(stats_row.fatigue),
+            max_hp=int(stats_row.max_hp),
+            max_mana=int(stats_row.max_mana),
+            max_fatigue=int(stats_row.max_fatigue),
+            hp_delta=net_hp_delta,
+            mana_delta=net_mana_delta,
+            fatigue_delta=net_fatigue_delta,
+        )
+
+        activity = classify_session_activity(row.mode)
+        has_study, has_exercise = _day_activity_flags(session, user_id=user.id, dk=row.date_key)
+        combo_active = activity in {"study", "exercise"} and has_study and has_exercise
+        streak_active = _has_three_day_streak_bonus(session, user_id=user.id, dk=row.date_key)
+        exhausted = projected_hp <= 0 or projected_mana <= 0
+        new_multiplier_bps = _resolve_multiplier_bps(
+            combo_active=combo_active,
+            streak_active=streak_active,
+            exhausted=exhausted,
+        )
+        new_xp, new_gold = apply_reward_multiplier(
+            xp=base_xp,
+            gold=base_gold,
+            multiplier_bps=new_multiplier_bps,
+        )
+
         row.xp_earned = new_xp
         row.gold_earned = new_gold
+        row.hp_delta = int(new_vitals_delta.hp_delta)
+        row.mana_delta = int(new_vitals_delta.mana_delta)
+        row.fatigue_delta = int(new_vitals_delta.fatigue_delta)
+        row.reward_multiplier_bps = int(new_multiplier_bps)
         session.add(row)
 
         apply_xp_gold(
@@ -304,7 +514,22 @@ def update_session(
                 "newXp": new_xp,
                 "oldGold": old_gold,
                 "newGold": new_gold,
+                "oldHpDelta": old_hp_delta,
+                "newHpDelta": int(new_vitals_delta.hp_delta),
+                "oldManaDelta": old_mana_delta,
+                "newManaDelta": int(new_vitals_delta.mana_delta),
+                "oldFatigueDelta": old_fatigue_delta,
+                "newFatigueDelta": int(new_vitals_delta.fatigue_delta),
+                "rewardMultiplierBps": int(new_multiplier_bps),
             },
+        )
+        apply_vitals(
+            session,
+            user,
+            hp_delta=net_hp_delta,
+            mana_delta=net_mana_delta,
+            fatigue_delta=net_fatigue_delta,
+            autocommit=False,
         )
 
         # recompute quest progress for affected days
@@ -353,6 +578,12 @@ def update_session(
                 "date": row.date_key,
                 "xpEarned": int(row.xp_earned or 0),
                 "goldEarned": int(row.gold_earned or 0),
+                "hpDelta": int(row.hp_delta or 0),
+                "manaDelta": int(row.mana_delta or 0),
+                "fatigueDelta": int(row.fatigue_delta or 0),
+                "rewardMultiplierBps": int(
+                    row.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS
+                ),
             },
             commit=False,
         )
@@ -368,6 +599,15 @@ def update_session(
                 "minutes": int(row.minutes),
                 "mode": row.mode,
                 "date": row.date_key,
+                "hpDelta": int(row.hp_delta or 0),
+                "manaDelta": int(row.mana_delta or 0),
+                "fatigueDelta": int(row.fatigue_delta or 0),
+                "rewardMultiplierBps": int(
+                    row.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS
+                ),
+                "comboBonusApplied": bool(combo_active),
+                "threeDayStreakBonusApplied": bool(streak_active),
+                "exhaustionPenaltyApplied": bool(exhausted),
             },
             commit=False,
         )
@@ -389,6 +629,10 @@ def delete_session(
     user: User = Depends(get_current_user),
 ):
     try:
+        hp_delta = int(getattr(row, "hp_delta", 0) or 0)
+        mana_delta = int(getattr(row, "mana_delta", 0) or 0)
+        fatigue_delta = int(getattr(row, "fatigue_delta", 0) or 0)
+
         # progression rollback
         apply_xp_gold(
             session,
@@ -400,7 +644,21 @@ def delete_session(
             event_type="session.deleted",
             source_type="study_session_delete",
             source_ref=f"{row.id}:delete",
-            payload_json={"sessionId": row.id, "date": row.date_key},
+            payload_json={
+                "sessionId": row.id,
+                "date": row.date_key,
+                "hpDelta": hp_delta,
+                "manaDelta": mana_delta,
+                "fatigueDelta": fatigue_delta,
+            },
+        )
+        apply_vitals(
+            session,
+            user,
+            hp_delta=-hp_delta,
+            mana_delta=-mana_delta,
+            fatigue_delta=-fatigue_delta,
+            autocommit=False,
         )
 
         row.deleted_at = datetime.now(timezone.utc)
@@ -434,6 +692,11 @@ def delete_session(
                 "minutes": int(row.minutes),
                 "mode": row.mode,
                 "date": row.date_key,
+                "xpEarned": int(row.xp_earned or 0),
+                "goldEarned": int(row.gold_earned or 0),
+                "hpDelta": hp_delta,
+                "manaDelta": mana_delta,
+                "fatigueDelta": fatigue_delta,
             },
             commit=False,
         )
@@ -449,6 +712,11 @@ def delete_session(
                 "minutes": int(row.minutes),
                 "mode": row.mode,
                 "date": row.date_key,
+                "xpEarned": int(row.xp_earned or 0),
+                "goldEarned": int(row.gold_earned or 0),
+                "hpDelta": hp_delta,
+                "manaDelta": mana_delta,
+                "fatigueDelta": fatigue_delta,
             },
             commit=False,
         )

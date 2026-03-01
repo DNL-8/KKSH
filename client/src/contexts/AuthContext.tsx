@@ -11,6 +11,7 @@ import type { AuthUser, GlobalStats } from "../layout/types";
 const INITIAL_STATS: GlobalStats = {
     hp: 100,
     mana: 100,
+    fatigue: 20,
     xp: 0,
     maxXp: 1000,
     level: 1,
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
             hp: Math.max(0, Number(progress.vitals?.hp ?? INITIAL_STATS.hp)),
             mana: Math.max(0, Number(progress.vitals?.mana ?? INITIAL_STATS.mana)),
+            fatigue: Math.max(0, Number(progress.vitals?.fatigue ?? INITIAL_STATS.fatigue)),
             xp: Math.max(0, Number(progress.xp ?? INITIAL_STATS.xp)),
             maxXp: Math.max(1, Number(progress.maxXp ?? INITIAL_STATS.maxXp)),
             level: Math.max(1, Number(progress.level ?? INITIAL_STATS.level)),

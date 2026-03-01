@@ -11,7 +11,7 @@ import { CHANGELOG_FINGERPRINT } from "../lib/changelog";
 import { widthPercentClass } from "../lib/percentClasses";
 import { NAV_ITEMS } from "./Sidebar";
 import { Icon } from "../components/common/Icon";
-import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
+import { useSystemRPG, getNextRank, getRank, getSystemLevelFromXp } from "../lib/systemStore";
 
 const HISTORY_SEEN_STORAGE_KEY = "cmd8_history_seen_fingerprint_v1";
 
@@ -20,12 +20,16 @@ const HISTORY_SEEN_STORAGE_KEY = "cmd8_history_seen_fingerprint_v1";
 /* ------------------------------------------------------------------ */
 
 function StatBar({
+    label,
+    detail,
     icon,
     iconColor,
     value,
     barClass,
     textClass,
 }: {
+    label: string;
+    detail: string;
     icon: string;
     iconColor: string;
     value: number;
@@ -33,7 +37,10 @@ function StatBar({
     textClass: string;
 }) {
     return (
-        <div className="group flex items-center gap-2">
+        <div
+            className="group relative flex items-center gap-2"
+            title={`${label}: ${detail}`}
+        >
             <Icon name={icon} className={`shrink-0 text-xs ${iconColor} transition-all duration-300 group-hover:scale-125 group-hover:drop-shadow-[0_0_4px_currentColor]`} />
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#020718] shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]">
                 <div className={`relative h-full rounded-full transition-all duration-700 ${barClass} ${widthPercentClass(value)}`}>
@@ -44,6 +51,10 @@ function StatBar({
                 </div>
             </div>
             <span className={`w-8 text-right text-[10px] font-black tabular-nums ${textClass}`}>{value}%</span>
+            <div className="pointer-events-none absolute left-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-lg border border-slate-200/20 bg-slate-950/90 px-2.5 py-2 text-[10px] font-semibold text-slate-100 opacity-0 shadow-xl backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100">
+                <p className="text-[9px] uppercase tracking-[0.12em] text-slate-300">{label} · {value}%</p>
+                <p className="mt-1 leading-relaxed text-slate-200">{detail}</p>
+            </div>
         </div>
     );
 }
@@ -82,15 +93,27 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
         ? Math.max(0, Math.min(100, Math.round(systemRPG.mana)))
         : Math.max(0, Math.min(100, Math.round(globalStats.mana)));
 
+    const staminaPercent = isSystemPage
+        ? Math.max(0, Math.min(100, Math.round(100 - systemRPG.vigor)))
+        : Math.max(0, Math.min(100, Math.round(100 - globalStats.fatigue)));
+
     const activeXpPercent = isSystemPage
-        ? (systemRPG.xp - getRank(systemRPG.xp).minXp) / (getNextRank(systemRPG.xp).minXp - getRank(systemRPG.xp).minXp) * 100
+        ? (() => {
+            const currentRank = getRank(systemRPG.xp);
+            const nextRank = getNextRank(systemRPG.xp);
+            const range = Math.max(1, nextRank.minXp - currentRank.minXp);
+            return ((systemRPG.xp - currentRank.minXp) / range) * 100;
+        })()
         : (globalStats.xp / globalStats.maxXp) * 100;
 
     const xpPercent = Math.max(0, Math.min(100, Math.round(activeXpPercent || 0)));
-    const displayLevel = isSystemPage ? systemRPG.level : globalStats.level;
+    const displayLevel = isSystemPage
+        ? Math.max(Number(systemRPG.level ?? 1), getSystemLevelFromXp(Number(systemRPG.xp ?? 0)))
+        : globalStats.level;
 
     const animHp = useAnimatedNumber(hpPercent, 600);
     const animMana = useAnimatedNumber(manaPercent, 600);
+    const animStamina = useAnimatedNumber(staminaPercent, 600);
     const animXp = useAnimatedNumber(xpPercent, 600);
     const presenceLabel = preferences.stealthMode ? "Stealth" : "Online";
 
@@ -212,6 +235,8 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
 
                         <div className="min-w-0 flex-1 space-y-2">
                             <StatBar
+                                label="HP"
+                                detail="Energia fisica. Cai com esforco fisico e sobe com descanso, sono e recuperacao."
                                 icon="heart"
                                 iconColor="text-red-500"
                                 value={animHp}
@@ -219,6 +244,8 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 textClass={isLightTheme ? "text-red-700" : "text-red-300"}
                             />
                             <StatBar
+                                label="Mana"
+                                detail="Energia mental. Diminui com estudo e foco intenso; recupera com pausas e sono."
                                 icon="raindrops"
                                 iconColor="text-blue-400"
                                 value={animMana}
@@ -226,11 +253,22 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                                 textClass={isLightTheme ? "text-blue-700" : "text-blue-300"}
                             />
                             <StatBar
-                                icon="star"
+                                label="Stamina"
+                                detail="Resistencia atual (100 - fadiga). Quanto maior, melhor sua performance sustentada."
+                                icon="bolt"
                                 iconColor="text-yellow-400"
+                                value={animStamina}
+                                barClass="bg-gradient-to-r from-yellow-700 via-amber-500 to-orange-300"
+                                textClass={isLightTheme ? "text-yellow-700" : "text-yellow-300"}
+                            />
+                            <StatBar
+                                label="EXP"
+                                detail="Progresso para o proximo nivel. Complete sessoes e missoes para evoluir."
+                                icon="star"
+                                iconColor="text-violet-400"
                                 value={animXp}
-                                barClass="bg-gradient-to-r from-yellow-700 via-yellow-500 to-amber-300"
-                                textClass={isLightTheme ? "text-amber-700" : "text-yellow-300"}
+                                barClass="bg-gradient-to-r from-violet-700 via-fuchsia-500 to-purple-300"
+                                textClass={isLightTheme ? "text-violet-700" : "text-violet-300"}
                             />
                         </div>
                     </div>

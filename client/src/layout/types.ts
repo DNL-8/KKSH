@@ -8,6 +8,7 @@ export interface AuthUser {
 export interface GlobalStats {
   hp: number;
   mana: number;
+  fatigue: number;
   xp: number;
   maxXp: number;
   level: number;

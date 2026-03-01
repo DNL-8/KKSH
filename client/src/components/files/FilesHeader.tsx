@@ -10,6 +10,8 @@ interface FilesHeaderProps {
 
 export function FilesHeader({ globalStats }: FilesHeaderProps) {
     const { isIosTheme } = useTheme();
+    const staminaPercent = Math.max(0, Math.min(100, Math.round(100 - globalStats.fatigue)));
+    const xpPercent = Math.max(0, Math.min(100, Math.round((globalStats.xp / Math.max(1, globalStats.maxXp)) * 100)));
     return (
         <>
             <div className={`rounded-[26px] px-5 py-6 md:px-8 ${isIosTheme ? "ios26-section-hero" : "border border-slate-300/50 bg-slate-950/60 backdrop-blur-2xl shadow-2xl"}`}>
@@ -33,14 +35,37 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                     </div>
 
                     <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass/40 backdrop-blur-md shadow-inner"}`}>
-                        <HudProgressBar value={globalStats.hp} max={100} tone="red" label="HP" textValue={`${Math.round(globalStats.hp)}%`} />
-                        <HudProgressBar value={globalStats.mana} max={100} tone="blue" label="MP" textValue={`${Math.round(globalStats.mana)}%`} />
+                        <HudProgressBar
+                            value={globalStats.hp}
+                            max={100}
+                            tone="red"
+                            label="HP"
+                            textValue={`${Math.round(globalStats.hp)}%`}
+                            detail="Energia fisica atual. Cai com treino intenso e sobe com descanso."
+                        />
+                        <HudProgressBar
+                            value={globalStats.mana}
+                            max={100}
+                            tone="blue"
+                            label="MP"
+                            textValue={`${Math.round(globalStats.mana)}%`}
+                            detail="Energia mental atual. Consumo maior em estudo, foco e tela prolongada."
+                        />
+                        <HudProgressBar
+                            value={staminaPercent}
+                            max={100}
+                            tone="yellow"
+                            label="STA"
+                            textValue={`${staminaPercent}%`}
+                            detail="Resistencia operacional (100 - fadiga). Quanto maior, melhor constancia."
+                        />
                         <HudProgressBar
                             value={globalStats.xp}
                             max={globalStats.maxXp}
-                            tone="yellow"
+                            tone="purple"
                             label="EXP"
-                            textValue={`LVL ${globalStats.level}`}
+                            textValue={`${xpPercent}%`}
+                            detail="Progresso da experiencia para o proximo nivel."
                         />
                     </div>
                 </div>

@@ -59,6 +59,12 @@ _SQLITE_COMPAT_COLUMNS: dict[str, dict[str, str]] = {
         "rank": "TEXT DEFAULT 'F'",
         "version": "INTEGER DEFAULT 1",
     },
+    "study_sessions": {
+        "hp_delta": "INTEGER DEFAULT 0",
+        "mana_delta": "INTEGER DEFAULT 0",
+        "fatigue_delta": "INTEGER DEFAULT 0",
+        "reward_multiplier_bps": "INTEGER DEFAULT 10000",
+    },
 }
 
 _SQLITE_QUEST_INDEXES = (
@@ -129,6 +135,19 @@ def _ensure_sqlite_schema_compatibility() -> None:
         )
         connection.exec_driver_sql(
             "UPDATE user_stats SET version = 1 WHERE version IS NULL OR version < 1"
+        )
+        connection.exec_driver_sql(
+            "UPDATE study_sessions SET hp_delta = 0 WHERE hp_delta IS NULL"
+        )
+        connection.exec_driver_sql(
+            "UPDATE study_sessions SET mana_delta = 0 WHERE mana_delta IS NULL"
+        )
+        connection.exec_driver_sql(
+            "UPDATE study_sessions SET fatigue_delta = 0 WHERE fatigue_delta IS NULL"
+        )
+        connection.exec_driver_sql(
+            "UPDATE study_sessions SET reward_multiplier_bps = 10000 "
+            "WHERE reward_multiplier_bps IS NULL OR reward_multiplier_bps < 1"
         )
 
         for statement in _SQLITE_QUEST_INDEXES:
