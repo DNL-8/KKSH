@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Icon } from "../components/common/Icon";
 import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 import { useTheme } from "../contexts/ThemeContext";
 
-// --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
+// --- ESTILOS GLOBAIS (UX/UI Premium + AnimaÃ§Ãµes) ---
 const globalStyles = `
   @keyframes scanline {
     0% { transform: translateY(-100%); }
@@ -64,53 +64,53 @@ const WEEKLY_DUNGEONS = [
     {
         id: 'seg',
         day: 'Segunda',
-        title: "Peito + Tríceps",
+        title: "Peito + TrÃ­ceps",
         rank: "D",
-        type: "Força e Hipertrofia",
+        type: "ForÃ§a e Hipertrofia",
         estimatedMinutes: 60,
         blocks: [
             { id: 'seg_aq1', title: "Polichinelo", desc: "Aquecimento", time: "2 min" },
-            { id: 'seg_aq2', title: "Flexão Leve", desc: "Aquecimento", time: "2 x 10 reps" },
+            { id: 'seg_aq2', title: "FlexÃ£o Leve", desc: "Aquecimento", time: "2 x 10 reps" },
             { id: 'seg_aq3', title: "Mobilidade Ombro", desc: "Aquecimento", time: "3 min" },
-            { id: 'seg_1', title: "Supino no Chão c/ Barra", desc: "Principal: Foco em peitoral", time: "4 x 8–12 reps" },
-            { id: 'seg_2', title: "Supino Pegada Fechada", desc: "Principal: Foco tríceps", time: "3 x 10 reps" },
-            { id: 'seg_3', title: "Pullover com Barra", desc: "Principal: Expansão", time: "3 x 12 reps" },
-            { id: 'seg_4', title: "Mergulho entre Cadeiras", desc: "Principal: Peso corporal", time: "3 x 8–12 reps" },
-            { id: 'seg_fin', title: "Flexão (Finalizador)", desc: "Até falhar", time: "2 séries" },
-            { id: 'seg_al', title: "Alongamento Superior", desc: "Volta à calma", time: "5 min" },
+            { id: 'seg_1', title: "Supino no ChÃ£o c/ Barra", desc: "Principal: Foco em peitoral", time: "4 x 8â€“12 reps" },
+            { id: 'seg_2', title: "Supino Pegada Fechada", desc: "Principal: Foco trÃ­ceps", time: "3 x 10 reps" },
+            { id: 'seg_3', title: "Pullover com Barra", desc: "Principal: ExpansÃ£o", time: "3 x 12 reps" },
+            { id: 'seg_4', title: "Mergulho entre Cadeiras", desc: "Principal: Peso corporal", time: "3 x 8â€“12 reps" },
+            { id: 'seg_fin', title: "FlexÃ£o (Finalizador)", desc: "AtÃ© falhar", time: "2 sÃ©ries" },
+            { id: 'seg_al', title: "Alongamento Superior", desc: "Volta Ã  calma", time: "5 min" },
         ]
     },
     {
         id: 'ter',
-        day: 'Terça',
-        title: "Pernas (Quadríceps)",
+        day: 'TerÃ§a',
+        title: "Pernas (QuadrÃ­ceps)",
         rank: "D",
-        type: "Força Inferior",
+        type: "ForÃ§a Inferior",
         estimatedMinutes: 60,
         blocks: [
             { id: 'ter_aq', title: "Mobilidade Quadril + Joelho", desc: "Aquecimento", time: "10 min" },
-            { id: 'ter_1', title: "Agachamento com Barra", desc: "Principal: Base forte", time: "4 x 10–12 reps" },
-            { id: 'ter_2', title: "Agachamento Frontal", desc: "Principal: Foco quadríceps", time: "3 x 10 reps" },
-            { id: 'ter_3', title: "Avanço com Barra", desc: "Principal: Unilateral", time: "3 x 10 cada perna" },
-            { id: 'ter_4', title: "Isometria na Parede", desc: "Resistência (Wall sit)", time: "3 x 40 seg" },
-            { id: 'ter_fin', title: "Agachamento Livre (Finalizador)", desc: "Ritmo contínuo", time: "5 min diretos" },
-            { id: 'ter_al', title: "Alongamento Inferior", desc: "Volta à calma", time: "5 min" },
+            { id: 'ter_1', title: "Agachamento com Barra", desc: "Principal: Base forte", time: "4 x 10â€“12 reps" },
+            { id: 'ter_2', title: "Agachamento Frontal", desc: "Principal: Foco quadrÃ­ceps", time: "3 x 10 reps" },
+            { id: 'ter_3', title: "AvanÃ§o com Barra", desc: "Principal: Unilateral", time: "3 x 10 cada perna" },
+            { id: 'ter_4', title: "Isometria na Parede", desc: "ResistÃªncia (Wall sit)", time: "3 x 40 seg" },
+            { id: 'ter_fin', title: "Agachamento Livre (Finalizador)", desc: "Ritmo contÃ­nuo", time: "5 min diretos" },
+            { id: 'ter_al', title: "Alongamento Inferior", desc: "Volta Ã  calma", time: "5 min" },
         ]
     },
     {
         id: 'qua',
         day: 'Quarta',
-        title: "Costas + Bíceps",
+        title: "Costas + BÃ­ceps",
         rank: "D",
-        type: "Força de Puxada",
+        type: "ForÃ§a de Puxada",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'qua_aq', title: "Rotação + Escápulas", desc: "Aquecimento", time: "10 min" },
-            { id: 'qua_1', title: "Remada Curvada com Barra", desc: "Principal: Dorsal", time: "4 x 8–12 reps" },
+            { id: 'qua_aq', title: "RotaÃ§Ã£o + EscÃ¡pulas", desc: "Aquecimento", time: "10 min" },
+            { id: 'qua_1', title: "Remada Curvada com Barra", desc: "Principal: Dorsal", time: "4 x 8â€“12 reps" },
             { id: 'qua_2', title: "Levantamento Terra", desc: "Principal: Cadeia posterior pesada", time: "4 x 8 reps" },
-            { id: 'qua_3', title: "Rosca Direta com Barra", desc: "Principal: Bíceps", time: "3 x 10–12 reps" },
+            { id: 'qua_3', title: "Rosca Direta com Barra", desc: "Principal: BÃ­ceps", time: "3 x 10â€“12 reps" },
             { id: 'qua_4', title: "Remada Unilateral", desc: "Usar barra curta (halter)", time: "3 x 10 cada lado" },
-            { id: 'qua_al', title: "Alongamento Costas", desc: "Volta à calma", time: "5 min" },
+            { id: 'qua_al', title: "Alongamento Costas", desc: "Volta Ã  calma", time: "5 min" },
         ]
     },
     {
@@ -121,52 +121,128 @@ const WEEKLY_DUNGEONS = [
         type: "Peso Corporal e Core",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'qui_aq1', title: "Polichinelos + Rotação", desc: "Aquecimento", time: "2 min" },
-            { id: 'qui_aq2', title: "Barras Leves + Flexões", desc: "Aquecimento (2x5 barras, 2x10 flexões)", time: "8 min" },
-            { id: 'qui_1', title: "Barra Fixa (Pronada)", desc: "Força: Se falhar, faça negativas de 3-5s", time: "4 x 6–10 reps" },
-            { id: 'qui_2', title: "Barra Fixa (Supinada)", desc: "Força: Chin-up para bíceps/dorsal", time: "3 x 6–10 reps" },
-            { id: 'qui_3', title: "Flexão de Braço", desc: "Força: Peito e Tríceps", time: "3 x 12–15 reps" },
-            { id: 'qui_4', title: "Australian Pull-up", desc: "Força: Em barra baixa ou mesa", time: "3 x 10–12 reps" },
-            { id: 'qui_5', title: "Elevação de Pernas (Barra)", desc: "Core: Meta final de 15 reps limpas", time: "3 x 8–12 reps" },
-            { id: 'qui_6', title: "Prancha + Abd. Bicicleta", desc: "Core: 40-60s prancha e 20 bicicletas", time: "3 séries" },
-            { id: 'qui_fin', title: "Finalizador Hardcore", desc: "3x: 5 barras, 10 flexões, 15 agachamentos", time: "Sem descanso" },
+            { id: 'qui_aq1', title: "Polichinelos + RotaÃ§Ã£o", desc: "Aquecimento", time: "2 min" },
+            { id: 'qui_aq2', title: "Barras Leves + FlexÃµes", desc: "Aquecimento (2x5 barras, 2x10 flexÃµes)", time: "8 min" },
+            { id: 'qui_1', title: "Barra Fixa (Pronada)", desc: "ForÃ§a: Se falhar, faÃ§a negativas de 3-5s", time: "4 x 6â€“10 reps" },
+            { id: 'qui_2', title: "Barra Fixa (Supinada)", desc: "ForÃ§a: Chin-up para bÃ­ceps/dorsal", time: "3 x 6â€“10 reps" },
+            { id: 'qui_3', title: "FlexÃ£o de BraÃ§o", desc: "ForÃ§a: Peito e TrÃ­ceps", time: "3 x 12â€“15 reps" },
+            { id: 'qui_4', title: "Australian Pull-up", desc: "ForÃ§a: Em barra baixa ou mesa", time: "3 x 10â€“12 reps" },
+            { id: 'qui_5', title: "ElevaÃ§Ã£o de Pernas (Barra)", desc: "Core: Meta final de 15 reps limpas", time: "3 x 8â€“12 reps" },
+            { id: 'qui_6', title: "Prancha + Abd. Bicicleta", desc: "Core: 40-60s prancha e 20 bicicletas", time: "3 sÃ©ries" },
+            { id: 'qui_fin', title: "Finalizador Hardcore", desc: "3x: 5 barras, 10 flexÃµes, 15 agachamentos", time: "Sem descanso" },
         ]
     },
     {
         id: 'sex',
         day: 'Sexta',
-        title: "Ombro + Abdômen",
+        title: "Ombro + AbdÃ´men",
         rank: "C",
-        type: "Força e Core",
+        type: "ForÃ§a e Core",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'sex_aq', title: "Rotação Manguito + Core", desc: "Aquecimento", time: "10 min" },
-            { id: 'sex_1', title: "Desenvolvimento com Barra", desc: "Principal: Ombros completos", time: "4 x 8–12 reps" },
-            { id: 'sex_2', title: "Elevação Frontal", desc: "Principal: Deltoide anterior", time: "3 x 12 reps" },
-            { id: 'sex_3', title: "Remada Alta", desc: "Principal: Trapézio e ombro", time: "3 x 10 reps" },
-            { id: 'sex_4', title: "Prancha Abdominal", desc: "Core: Isometria", time: "3 x 40–60 seg" },
+            { id: 'sex_aq', title: "RotaÃ§Ã£o Manguito + Core", desc: "Aquecimento", time: "10 min" },
+            { id: 'sex_1', title: "Desenvolvimento com Barra", desc: "Principal: Ombros completos", time: "4 x 8â€“12 reps" },
+            { id: 'sex_2', title: "ElevaÃ§Ã£o Frontal", desc: "Principal: Deltoide anterior", time: "3 x 12 reps" },
+            { id: 'sex_3', title: "Remada Alta", desc: "Principal: TrapÃ©zio e ombro", time: "3 x 10 reps" },
+            { id: 'sex_4', title: "Prancha Abdominal", desc: "Core: Isometria", time: "3 x 40â€“60 seg" },
             { id: 'sex_5', title: "Abdominal com Peso", desc: "Core: Usar anilha", time: "3 x 15 reps" },
-            { id: 'sex_al', title: "Alongamento Geral", desc: "Volta à calma", time: "5 min" },
+            { id: 'sex_al', title: "Alongamento Geral", desc: "Volta Ã  calma", time: "5 min" },
         ]
     },
     {
         id: 'sab',
-        day: 'Sábado',
-        title: "BOSS RAID: Full Body Metabólico",
+        day: 'SÃ¡bado',
+        title: "BOSS RAID: Full Body MetabÃ³lico",
         rank: "B",
         type: "Condicionamento Extremo",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'sab_aq', title: "Aquecimento Dinâmico", desc: "Preparo cardíaco", time: "10 min" },
+            { id: 'sab_aq', title: "Aquecimento DinÃ¢mico", desc: "Preparo cardÃ­aco", time: "10 min" },
             { id: 'sab_1', title: "Thruster com Barra", desc: "Circuito: Voltas 1 a 4", time: "12 reps" },
             { id: 'sab_2', title: "Terra + Remada", desc: "Circuito: Voltas 1 a 4", time: "10 reps" },
             { id: 'sab_3', title: "Burpee", desc: "Circuito: Voltas 1 a 4", time: "10 reps" },
             { id: 'sab_4', title: "Mountain Climber", desc: "Circuito: Voltas 1 a 4", time: "30 seg" },
-            { id: 'sab_desc', title: "Descanso do Circuito", desc: "Recuperação", time: "1 min por volta" },
-            { id: 'sab_al', title: "Alongamento Completo", desc: "Volta à calma", time: "10 min" },
+            { id: 'sab_desc', title: "Descanso do Circuito", desc: "RecuperaÃ§Ã£o", time: "1 min por volta" },
+            { id: 'sab_al', title: "Alongamento Completo", desc: "Volta Ã  calma", time: "10 min" },
         ]
     }
 ];
+
+type InventoryRarity = "common" | "rare" | "epic" | "legendary" | "mythic";
+
+type InventoryLoadoutItem = {
+    id: string;
+    icon: string;
+    name: string;
+    owned: boolean;
+    rarity: InventoryRarity;
+};
+
+const SYSTEM_INVENTORY_STORAGE_KEY = "cmd8_system_inventory_v2";
+const SYSTEM_INVENTORY_PANEL_OPEN_STORAGE_KEY = "cmd8_system_inventory_panel_open_v1";
+
+const INVENTORY_RARITY_OPTIONS: Array<{
+    value: InventoryRarity;
+    label: string;
+    toneClass: string;
+}> = [
+    { value: "common", label: "Comum", toneClass: "text-slate-500" },
+    { value: "rare", label: "Raro", toneClass: "text-cyan-500" },
+    { value: "epic", label: "Epico", toneClass: "text-purple-500" },
+    { value: "legendary", label: "Lendario", toneClass: "text-amber-500" },
+    { value: "mythic", label: "Mitico", toneClass: "text-rose-500" },
+];
+
+const DEFAULT_INVENTORY_LOADOUT: InventoryLoadoutItem[] = [
+    { id: "bar_150", icon: "dumbbell", name: "Barra 1,50m", owned: true, rarity: "rare" },
+    { id: "bar_short", icon: "dumbbell", name: "Barra curta 20cm (Halter)", owned: true, rarity: "rare" },
+    { id: "plates_5kg", icon: "hexagon", name: "4x Anilhas de 5kg (20kg)", owned: true, rarity: "rare" },
+    { id: "pullup_bar", icon: "sword", name: "Barra Fixa", owned: true, rarity: "epic" },
+];
+
+const getRarityToneClass = (rarity: InventoryRarity): string => {
+    return INVENTORY_RARITY_OPTIONS.find((option) => option.value === rarity)?.toneClass ?? "text-slate-500";
+};
+
+const getRarityLabel = (rarity: InventoryRarity): string => {
+    return INVENTORY_RARITY_OPTIONS.find((option) => option.value === rarity)?.label ?? "Comum";
+};
+
+const parseStoredInventoryLoadout = (raw: string | null): InventoryLoadoutItem[] => {
+    if (!raw) {
+        return DEFAULT_INVENTORY_LOADOUT;
+    }
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            return DEFAULT_INVENTORY_LOADOUT;
+        }
+        const sanitized: InventoryLoadoutItem[] = parsed
+            .map((item: unknown) => {
+                if (!item || typeof item !== "object") {
+                    return null;
+                }
+                const row = item as Partial<InventoryLoadoutItem>;
+                if (typeof row.id !== "string" || typeof row.name !== "string" || typeof row.icon !== "string") {
+                    return null;
+                }
+                const rarity = INVENTORY_RARITY_OPTIONS.some((option) => option.value === row.rarity)
+                    ? (row.rarity as InventoryRarity)
+                    : "common";
+                return {
+                    id: row.id,
+                    name: row.name,
+                    icon: row.icon,
+                    owned: Boolean(row.owned),
+                    rarity,
+                } as InventoryLoadoutItem;
+            })
+            .filter(Boolean) as InventoryLoadoutItem[];
+        return sanitized.length > 0 ? sanitized : DEFAULT_INVENTORY_LOADOUT;
+    } catch {
+        return DEFAULT_INVENTORY_LOADOUT;
+    }
+};
 
 // Componente Visual: Janela de Sistema 3D Refinada
 const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA", icon = "terminal", headerAction = null }: any) => {
@@ -202,6 +278,73 @@ export function SystemPage() {
     const [completedBlocks, setCompletedBlocks] = useState<any[]>([]);
     const [xpGainedInfo, setXpGainedInfo] = useState<any>(null);
     const [showSystemAlert, setShowSystemAlert] = useState(false);
+    const [inventoryLoadout, setInventoryLoadout] = useState<InventoryLoadoutItem[]>(() => {
+        if (typeof window === "undefined") {
+            return DEFAULT_INVENTORY_LOADOUT;
+        }
+        return parseStoredInventoryLoadout(window.localStorage.getItem(SYSTEM_INVENTORY_STORAGE_KEY));
+    });
+    const [isInventoryConfigOpen, setIsInventoryConfigOpen] = useState<boolean>(() => {
+        if (typeof window === "undefined") {
+            return true;
+        }
+        try {
+            const raw = window.localStorage.getItem(SYSTEM_INVENTORY_PANEL_OPEN_STORAGE_KEY);
+            if (raw === "0" || raw === "false") {
+                return false;
+            }
+            return true;
+        } catch {
+            return true;
+        }
+    });
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+        try {
+            window.localStorage.setItem(SYSTEM_INVENTORY_STORAGE_KEY, JSON.stringify(inventoryLoadout));
+        } catch {
+            // Ignore persistence failures.
+        }
+    }, [inventoryLoadout]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+        try {
+            window.localStorage.setItem(
+                SYSTEM_INVENTORY_PANEL_OPEN_STORAGE_KEY,
+                isInventoryConfigOpen ? "1" : "0",
+            );
+        } catch {
+            // Ignore persistence failures.
+        }
+    }, [isInventoryConfigOpen]);
+
+    const toggleInventoryItemOwned = (itemId: string) => {
+        setInventoryLoadout((prev) =>
+            prev.map((item) =>
+                item.id === itemId
+                    ? { ...item, owned: !item.owned }
+                    : item,
+            ),
+        );
+    };
+
+    const updateInventoryItemRarity = (itemId: string, rarity: InventoryRarity) => {
+        setInventoryLoadout((prev) =>
+            prev.map((item) =>
+                item.id === itemId
+                    ? { ...item, rarity }
+                    : item,
+            ),
+        );
+    };
+
+    const activeInventoryItems = inventoryLoadout.filter((item) => item.owned);
 
     useEffect(() => {
         let interval: any;
@@ -261,7 +404,7 @@ export function SystemPage() {
         setScreen('dashboard');
     };
 
-    // --- ECRÃS ---
+    // --- ECRÃƒS ---
 
     const renderOnboarding = () => (
         <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden">
@@ -271,29 +414,113 @@ export function SystemPage() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
                         <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float" />
                         <h1 className="text-2xl font-black tracking-widest text-slate-900 uppercase">
-                            Sincronização
+                            SincronizaÃ§Ã£o
                         </h1>
                         <p className="mt-2 text-xs text-cyan-400/60 font-mono tracking-widest">NOVO ARSENAL DETETADO</p>
                     </div>
 
                     <form onSubmit={(e) => { e.preventDefault(); setScreen('dashboard'); }} className="space-y-6">
                         <div className="liquid-glass-inner p-4 border border-white/10 rounded-lg">
-                            <h3 className="text-[10px] font-mono text-cyan-500 mb-4 uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Icon name="target" className="text-sm" /> Itens no Inventário
-                            </h3>
-                            <ul className="text-sm text-slate-600 space-y-3">
-                                {[
-                                    { icon: "dumbbell", text: 'Barra 1,50m', color: 'text-cyan-400' },
-                                    { icon: "dumbbell", text: 'Barra curta 20cm (Halter)', color: 'text-cyan-400' },
-                                    { icon: "hexagon", text: '4x Anilhas de 5kg (20kg)', color: 'text-cyan-400' },
-                                    { icon: "sword", text: 'Barra Fixa (Épico)', color: 'text-purple-400' },
-                                ].map((item, idx) => (
-                                    <li key={idx} className="flex items-center gap-3 p-2 hover:liquid-glass-inner rounded transition-colors">
-                                        <Icon name={item.icon} className={`text-base ${item.color}`} />
-                                        <span className="font-medium tracking-wide">{item.text}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="mb-4 flex items-center justify-between gap-2">
+                                <h3 className="text-[10px] font-mono text-cyan-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Icon name="target" className="text-sm" /> Itens no Inventário
+                                </h3>
+                                <button
+                                    type="button"
+                                    data-testid="system-inventory-gear-button"
+                                    onClick={() => setIsInventoryConfigOpen((current) => !current)}
+                                    aria-controls="system-inventory-config-panel"
+                                    aria-expanded={isInventoryConfigOpen}
+                                    aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
+                                    className={`h-8 w-8 rounded-lg border transition-all duration-200 flex items-center justify-center ${isInventoryConfigOpen
+                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-600 shadow-[0_0_10px_rgba(6,182,212,0.35)]"
+                                        : "border-slate-300 text-slate-500 hover:border-cyan-500 hover:text-cyan-600"
+                                        }`}
+                                >
+                                    <Icon name="settings" className="text-sm" />
+                                </button>
+                            </div>
+
+                            {isInventoryConfigOpen ? (
+                                <div
+                                    id="system-inventory-config-panel"
+                                    data-testid="system-inventory-editor"
+                                    className="space-y-3 transition-all duration-200 ease-out"
+                                >
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                                        Configuracao manual de item e raridade
+                                    </p>
+                                    <ul className="text-sm text-slate-600 space-y-3">
+                                        {inventoryLoadout.map((item) => (
+                                            <li key={item.id} className="rounded-lg border border-white/10 p-2" data-testid={`system-inventory-item-${item.id}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        data-testid={`system-inventory-toggle-${item.id}`}
+                                                        onClick={() => toggleInventoryItemOwned(item.id)}
+                                                        className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
+                                                            ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
+                                                            : "border-slate-300 text-slate-400"
+                                                            }`}
+                                                        aria-pressed={item.owned}
+                                                        aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
+                                                    >
+                                                        {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
+                                                    </button>
+                                                    <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
+                                                    <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                        {item.name}
+                                                    </span>
+                                                    <select
+                                                        data-testid={`system-inventory-rarity-${item.id}`}
+                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
+                                                        value={item.rarity}
+                                                        onChange={(event) =>
+                                                            updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
+                                                        }
+                                                        aria-label={`Raridade de ${item.name}`}
+                                                    >
+                                                        {INVENTORY_RARITY_OPTIONS.map((option) => (
+                                                            <option key={option.value} value={option.value}>
+                                                                {option.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
+                                        Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    id="system-inventory-config-panel"
+                                    data-testid="system-inventory-summary"
+                                    className="space-y-2 rounded-lg border border-white/10 bg-white/30 px-3 py-2 transition-all duration-200 ease-out"
+                                >
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                                        Resumo rapido
+                                    </p>
+                                    {activeInventoryItems.length > 0 ? (
+                                        <ul className="space-y-2">
+                                            {activeInventoryItems.map((item) => (
+                                                <li key={`summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
+                                                    <span className="truncate font-semibold text-slate-700">{item.name}</span>
+                                                    <span className={`rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
+                                                        {getRarityLabel(item.rarity)}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-[12px] font-semibold text-slate-500">
+                                            Nenhum item ativo selecionado.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-slate-900 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
@@ -353,9 +580,111 @@ export function SystemPage() {
                         </div>
                     </SystemWindow>
 
+                    <SystemWindow
+                        title="ITENS NO INVENTARIO"
+                        icon="target"
+                        headerAction={(
+                            <button
+                                type="button"
+                                data-testid="system-dashboard-inventory-gear-button"
+                                onClick={() => setIsInventoryConfigOpen((current) => !current)}
+                                aria-controls="system-dashboard-inventory-config-panel"
+                                aria-expanded={isInventoryConfigOpen}
+                                aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
+                                className={`h-8 w-8 rounded-lg border transition-all duration-200 flex items-center justify-center ${isInventoryConfigOpen
+                                    ? "border-cyan-400 bg-cyan-500/20 text-cyan-600 shadow-[0_0_10px_rgba(6,182,212,0.35)]"
+                                    : "border-slate-300 text-slate-500 hover:border-cyan-500 hover:text-cyan-600"
+                                    }`}
+                            >
+                                <Icon name="settings" className="text-sm" />
+                            </button>
+                        )}
+                    >
+                        {isInventoryConfigOpen ? (
+                            <div
+                                id="system-dashboard-inventory-config-panel"
+                                data-testid="system-dashboard-inventory-editor"
+                                className="space-y-3 transition-all duration-200 ease-out"
+                            >
+                                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                                    Configuracao manual de item e raridade
+                                </p>
+                                <ul className="text-sm text-slate-600 space-y-3">
+                                    {inventoryLoadout.map((item) => (
+                                        <li key={`dashboard-${item.id}`} className="rounded-lg border border-white/10 p-2" data-testid={`system-dashboard-inventory-item-${item.id}`}>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    data-testid={`system-dashboard-inventory-toggle-${item.id}`}
+                                                    onClick={() => toggleInventoryItemOwned(item.id)}
+                                                    className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
+                                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
+                                                        : "border-slate-300 text-slate-400"
+                                                        }`}
+                                                    aria-pressed={item.owned}
+                                                    aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
+                                                >
+                                                    {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
+                                                </button>
+                                                <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
+                                                <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                    {item.name}
+                                                </span>
+                                                <select
+                                                    data-testid={`system-dashboard-inventory-rarity-${item.id}`}
+                                                    className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
+                                                    value={item.rarity}
+                                                    onChange={(event) =>
+                                                        updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
+                                                    }
+                                                    aria-label={`Raridade de ${item.name}`}
+                                                >
+                                                    {INVENTORY_RARITY_OPTIONS.map((option) => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
+                                    Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                id="system-dashboard-inventory-config-panel"
+                                data-testid="system-dashboard-inventory-summary"
+                                className="space-y-2 rounded-lg border border-white/10 bg-white/30 px-3 py-2 transition-all duration-200 ease-out"
+                            >
+                                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                                    Resumo rapido
+                                </p>
+                                {activeInventoryItems.length > 0 ? (
+                                    <ul className="space-y-2">
+                                        {activeInventoryItems.map((item) => (
+                                            <li key={`dashboard-summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
+                                                <span className="truncate font-semibold text-slate-700">{item.name}</span>
+                                                <span className={`rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
+                                                    {getRarityLabel(item.rarity)}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-[12px] font-semibold text-slate-500">
+                                        Nenhum item ativo selecionado.
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </SystemWindow>
+
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-mono text-cyan-600 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
-                            <Icon name="pulse" className="text-sm" /> Próxima missao
+                            <Icon name="pulse" className="text-sm" /> PrÃ³xima missao
                         </h3>
                         <button
                             type="button"
@@ -438,7 +767,7 @@ export function SystemPage() {
 
                 <div className="mb-8 relative">
                     <span className="inline-block text-[10px] font-mono text-purple-600 border border-purple-500/30 liquid-glass-inner px-2 py-1 rounded-md uppercase tracking-widest mb-3">
-                        Rank {activeDungeon?.rank} • {activeDungeon?.day}
+                        Rank {activeDungeon?.rank} â€¢ {activeDungeon?.day}
                     </span>
                     <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3">
                         {activeDungeon?.title}
@@ -472,7 +801,7 @@ export function SystemPage() {
                     onClick={() => { setWorkoutTimer(0); setCompletedBlocks([]); setScreen('workout'); }}
                     className="btn-danger w-full py-5 text-white font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
                 >
-                    <Icon name="sword" className="text-xl" /> Iniciar Incursão
+                    <Icon name="sword" className="text-xl" /> Iniciar IncursÃ£o
                 </button>
             </div>
         </div>
@@ -518,7 +847,7 @@ export function SystemPage() {
                                         : 'liquid-glass-inner border-white/20 hover:border-cyan-400'
                                         }`}
                                     aria-pressed={isChecked}
-                                    aria-label={`Marcar bloco ${block.title} como ${isChecked ? "não concluído" : "concluído"}`}
+                                    aria-label={`Marcar bloco ${block.title} como ${isChecked ? "nÃ£o concluÃ­do" : "concluÃ­do"}`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -557,9 +886,9 @@ export function SystemPage() {
                 {showSystemAlert && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">
                         <div className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl">
-                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
+                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">AnÃ¡lise TÃ¡tica</h3>
                             <p className="text-slate-700 text-sm leading-relaxed mb-8">
-                                O Sistema recomenda períodos de descanso de 60-90s entre as séries para maximizar o ganho de XP e regeneração de vigor.
+                                O Sistema recomenda perÃ­odos de descanso de 60-90s entre as sÃ©ries para maximizar o ganho de XP e regeneraÃ§Ã£o de vigor.
                             </p>
                             <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 btn-primary text-white font-black font-mono uppercase rounded-xl">
                                 Entendido
@@ -576,13 +905,13 @@ export function SystemPage() {
             <div className="animate-screen max-w-sm w-full relative z-10">
                 <div className="text-center mb-10">
                     <Icon name="trophy" className="text-[64px] text-yellow-500 mb-4" />
-                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">Concluído</h2>
+                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">ConcluÃ­do</h2>
                 </div>
 
                 <SystemWindow title="Recompensas Adquiridas">
                     <div className="space-y-4">
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
-                            <span className="text-slate-600 font-bold uppercase text-xs">Ações</span>
+                            <span className="text-slate-600 font-bold uppercase text-xs">AÃ§Ãµes</span>
                             <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.blocks} XP</span>
                         </div>
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
@@ -626,4 +955,7 @@ export function SystemPage() {
         </>
     );
 }
+
+
+
 
