@@ -182,6 +182,7 @@ type InventoryLoadoutItem = {
 
 const SYSTEM_INVENTORY_STORAGE_KEY = "cmd8_system_inventory_v2";
 const SYSTEM_INVENTORY_PANEL_OPEN_STORAGE_KEY = "cmd8_system_inventory_panel_open_v1";
+const MAX_INVENTORY_ITEMS = 24;
 
 const INVENTORY_RARITY_OPTIONS: Array<{
     value: InventoryRarity;
@@ -215,6 +216,11 @@ const DEFAULT_INVENTORY_LOADOUT: InventoryLoadoutItem[] = [
 
 const getDefaultLoadoutItemById = (itemId: string): InventoryLoadoutItem | undefined => {
     return DEFAULT_INVENTORY_LOADOUT.find((item) => item.id === itemId);
+};
+
+const createInventoryItemId = (): string => {
+    const randomPart = Math.random().toString(36).slice(2, 8);
+    return `inv_custom_${Date.now()}_${randomPart}`;
 };
 
 const getRarityToneClass = (rarity: InventoryRarity): string => {
@@ -391,6 +397,28 @@ export function SystemPage() {
         );
     };
 
+    const addInventoryItem = () => {
+        setInventoryLoadout((prev) => {
+            if (prev.length >= MAX_INVENTORY_ITEMS) {
+                return prev;
+            }
+            const nextNumber = prev.length + 1;
+            const nextItem: InventoryLoadoutItem = {
+                id: createInventoryItemId(),
+                icon: "dumbbell",
+                name: `Equipamento ${nextNumber}`,
+                equipmentType: "Barra",
+                owned: true,
+                rarity: "common",
+            };
+            return [...prev, nextItem];
+        });
+    };
+
+    const removeInventoryItem = (itemId: string) => {
+        setInventoryLoadout((prev) => prev.filter((item) => item.id !== itemId));
+    };
+
     const activeInventoryItems = inventoryLoadout.filter((item) => item.owned);
 
     useEffect(() => {
@@ -497,7 +525,7 @@ export function SystemPage() {
                                     <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
                                         Configuracao manual de item e raridade
                                     </p>
-                                    <ul className="text-sm text-slate-600 space-y-3">
+                                    <ul data-testid="system-inventory-items-list" className="text-sm text-slate-600 space-y-3">
                                         {inventoryLoadout.map((item) => (
                                             <li key={item.id} className="rounded-lg border border-white/10 p-2" data-testid={`system-inventory-item-${item.id}`}>
                                                 <div className="space-y-2">
@@ -532,8 +560,17 @@ export function SystemPage() {
                                                                 <option key={option.value} value={option.value}>
                                                                     {option.label}
                                                                 </option>
-                                                            ))}
+                                                                ))}
                                                         </select>
+                                                        <button
+                                                            type="button"
+                                                            data-testid={`system-inventory-remove-${item.id}`}
+                                                            onClick={() => removeInventoryItem(item.id)}
+                                                            className="rounded-md border border-red-300/70 bg-red-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-600 transition-colors hover:border-red-400 hover:text-red-700"
+                                                            aria-label={`Remover ${item.name}`}
+                                                        >
+                                                            Remover
+                                                        </button>
                                                     </div>
                                                     <div className="grid gap-2 sm:grid-cols-2">
                                                         <input
@@ -563,8 +600,23 @@ export function SystemPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
-                                        Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
+                                            Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            data-testid="system-inventory-add-item"
+                                            onClick={addInventoryItem}
+                                            disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
+                                            className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
+                                                ? "border-slate-300/60 text-slate-400 cursor-not-allowed"
+                                                : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500 hover:text-cyan-800"
+                                                }`}
+                                            aria-label="Adicionar equipamento"
+                                        >
+                                            + Adicionar equipamento
+                                        </button>
                                     </div>
                                 </div>
                             ) : (
@@ -687,7 +739,7 @@ export function SystemPage() {
                                 <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
                                     Configuracao manual de item e raridade
                                 </p>
-                                <ul className="text-sm text-slate-600 space-y-3">
+                                <ul data-testid="system-dashboard-inventory-items-list" className="text-sm text-slate-600 space-y-3">
                                     {inventoryLoadout.map((item) => (
                                         <li key={`dashboard-${item.id}`} className="rounded-lg border border-white/10 p-2" data-testid={`system-dashboard-inventory-item-${item.id}`}>
                                             <div className="space-y-2">
@@ -722,8 +774,17 @@ export function SystemPage() {
                                                             <option key={option.value} value={option.value}>
                                                                 {option.label}
                                                             </option>
-                                                        ))}
+                                                            ))}
                                                     </select>
+                                                    <button
+                                                        type="button"
+                                                        data-testid={`system-dashboard-inventory-remove-${item.id}`}
+                                                        onClick={() => removeInventoryItem(item.id)}
+                                                        className="rounded-md border border-red-300/70 bg-red-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-600 transition-colors hover:border-red-400 hover:text-red-700"
+                                                        aria-label={`Remover ${item.name}`}
+                                                    >
+                                                        Remover
+                                                    </button>
                                                 </div>
                                                 <div className="grid gap-2 sm:grid-cols-2">
                                                     <input
@@ -753,8 +814,23 @@ export function SystemPage() {
                                         </li>
                                     ))}
                                 </ul>
-                                <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
-                                    Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
+                                        Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        data-testid="system-dashboard-inventory-add-item"
+                                        onClick={addInventoryItem}
+                                        disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
+                                        className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
+                                            ? "border-slate-300/60 text-slate-400 cursor-not-allowed"
+                                            : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500 hover:text-cyan-800"
+                                            }`}
+                                        aria-label="Adicionar equipamento"
+                                    >
+                                        + Adicionar equipamento
+                                    </button>
                                 </div>
                             </div>
                         ) : (

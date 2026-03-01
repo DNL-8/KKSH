@@ -106,3 +106,42 @@ test("engrenagem do inventario no dashboard alterna editor/resumo e preserva con
   await expect(page.getByTestId("system-dashboard-inventory-type-bar_150")).toHaveValue("Cardio");
   await expect(page.getByTestId("system-dashboard-inventory-toggle-bar_short")).toHaveAttribute("aria-pressed", "false");
 });
+
+test("inventario permite adicionar e remover equipamento com persistencia", async ({ page }) => {
+  await page.goto("/sistema");
+
+  const list = page.getByTestId("system-inventory-items-list").locator("li");
+  await expect(list.first()).toBeVisible();
+  const initialCount = await list.count();
+  const addButton = page.getByTestId("system-inventory-add-item");
+
+  await addButton.click();
+  await expect(list).toHaveCount(initialCount + 1);
+
+  const newItem = list.nth(initialCount);
+  const newNameInput = newItem.locator("[data-testid^='system-inventory-name-']");
+  const newTypeSelect = newItem.locator("[data-testid^='system-inventory-type-']");
+  const newRaritySelect = newItem.locator("[data-testid^='system-inventory-rarity-']");
+
+  await newNameInput.fill("Kettlebell 12kg");
+  await newTypeSelect.selectOption("Halter");
+  await newRaritySelect.selectOption("epic");
+
+  const gearButton = page.getByTestId("system-inventory-gear-button");
+  await gearButton.click();
+  const summary = page.getByTestId("system-inventory-summary");
+  await expect(summary).toContainText("Kettlebell 12kg");
+  await expect(summary).toContainText("Halter");
+  await expect(summary).toContainText("Epico");
+
+  await page.reload();
+  await expect(page.getByTestId("system-inventory-summary")).toContainText("Kettlebell 12kg");
+
+  await page.getByTestId("system-inventory-gear-button").click();
+  const itemAfterReload = page.getByTestId("system-inventory-items-list").locator("li").filter({ hasText: "Kettlebell 12kg" }).first();
+  await itemAfterReload.locator("[data-testid^='system-inventory-remove-']").click();
+  await expect(page.getByTestId("system-inventory-items-list").locator("li")).toHaveCount(initialCount);
+
+  await page.getByTestId("system-inventory-gear-button").click();
+  await expect(page.getByTestId("system-inventory-summary")).not.toContainText("Kettlebell 12kg");
+});
