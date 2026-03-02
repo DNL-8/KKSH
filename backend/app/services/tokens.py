@@ -58,9 +58,7 @@ def is_refresh_token_active(session: Session, *, refresh_token: str) -> bool:
         return True
 
     token_hash = sha256(refresh_token)
-    row = session.exec(
-        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-    ).first()
+    row = session.exec(select(RefreshToken).where(RefreshToken.token_hash == token_hash)).first()
     if not row:
         return False
 
@@ -106,7 +104,7 @@ def cleanup_expired_refresh_tokens(session: Session, *, keep_revoked_days: int =
     if not settings.persist_refresh_tokens:
         return 0
 
-    from sqlalchemy import delete, or_, and_
+    from sqlalchemy import and_, delete, or_
 
     now = utcnow()
     revoked_cutoff = now - timedelta(days=keep_revoked_days)

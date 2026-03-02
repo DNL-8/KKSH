@@ -22,6 +22,7 @@ logger = logging.getLogger("app")
 #  Helpers
 # ------------------------------------------------------------------
 
+
 def _error_payload(code: str, message: str, details: Any = None) -> dict[str, Any]:
     return {
         "code": code,
@@ -33,6 +34,7 @@ def _error_payload(code: str, message: str, details: Any = None) -> dict[str, An
 # ------------------------------------------------------------------
 #  Security headers
 # ------------------------------------------------------------------
+
 
 def _add_security_headers(resp: Response, *, is_https: bool) -> None:
     """Apply a conservative set of security headers."""
@@ -64,6 +66,7 @@ async def security_headers_middleware(request: Request, call_next):
 # ------------------------------------------------------------------
 #  Cache-Control
 # ------------------------------------------------------------------
+
 
 def _apply_cache_control(request: Request, response: Response) -> None:
     if request.method.upper() not in {"GET", "HEAD"}:
@@ -101,6 +104,7 @@ async def cache_control_middleware(request: Request, call_next):
 # ------------------------------------------------------------------
 #  Request-ID, API version & access log
 # ------------------------------------------------------------------
+
 
 async def request_id_version_and_access_log(request: Request, call_next):
     rid = request.headers.get("x-request-id") or str(uuid4())

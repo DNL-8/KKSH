@@ -99,7 +99,12 @@ COMBAT_MODULES: list[CombatModule] = [
             {
                 "id": "q_adv_1",
                 "text": "O que e uma Segmentacao de Dados (Slicer)?",
-                "options": ["Uma formula de corte", "Um filtro visual interativo", "Uma macro", "Um grafico de pizza"],
+                "options": [
+                    "Uma formula de corte",
+                    "Um filtro visual interativo",
+                    "Uma macro",
+                    "Um grafico de pizza",
+                ],
                 "correctAnswer": 1,
                 "damage": 50,
             },
@@ -141,7 +146,12 @@ COMBAT_MODULES: list[CombatModule] = [
             {
                 "id": "q_dash_3",
                 "text": "Qual regra de design ajuda a destacar o mais importante?",
-                "options": ["Usar todas as cores", "Espaco em branco (Respiro)", "Graficos 3D", "Muitas bordas"],
+                "options": [
+                    "Usar todas as cores",
+                    "Espaco em branco (Respiro)",
+                    "Graficos 3D",
+                    "Muitas bordas",
+                ],
                 "correctAnswer": 1,
                 "damage": 60,
             },
@@ -223,4 +233,3 @@ def get_combat_module(module_id: str | None) -> CombatModule:
     if module_id and module_id in MODULE_BY_ID:
         return MODULE_BY_ID[module_id]
     return COMBAT_MODULES[0]
-

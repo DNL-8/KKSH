@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
-from typing import Any
 
 from fastapi import HTTPException, Request, status
 
@@ -63,7 +62,9 @@ async def enforce_fixed_window_limit(
             await redis_client.expire(key, int(window_seconds) + 5)
             if count > max_requests:
                 record_ai_rate_limited(scope)
-                _rate_limit_error(message, scope=scope, limit=max_requests, window_seconds=window_seconds)
+                _rate_limit_error(
+                    message, scope=scope, limit=max_requests, window_seconds=window_seconds
+                )
             return
         except Exception:
             pass  # Redis hiccups should not take down the endpoint.

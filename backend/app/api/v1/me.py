@@ -58,6 +58,7 @@ def _mask_api_key(key: str | None) -> str | None:
         return None
     return f"{key[:4]}{'*' * (len(key) - 8)}{key[-4:]}"
 
+
 router = APIRouter()
 _RESET_RULE = Rule(max_requests=6, window_seconds=60)
 
@@ -66,7 +67,11 @@ _RESET_RULE = Rule(max_requests=6, window_seconds=60)
 def me(user: User | None = Depends(get_optional_user)):
     if not user:
         return {"user": None}
-    return {"user": UserOut(id=user.id, username=user.username, email=user.email, isAdmin=is_admin(user))}
+    return {
+        "user": UserOut(
+            id=user.id, username=user.username, email=user.email, isAdmin=is_admin(user)
+        )
+    }
 
 
 @router.patch("/me", response_model=UserOut)
@@ -80,12 +85,9 @@ def update_me(
         # We could rely on DB constraint, but a friendly error is better
         existing = session.exec(select(User).where(User.username == payload.username)).first()
         if existing and existing.id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="username_taken"
-            )
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username_taken")
         user.username = payload.username
-    
+
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -397,7 +399,9 @@ def reset_state(
 
         if "missions" in normalized:
             daily_rows = session.exec(select(DailyQuest).where(DailyQuest.user_id == user.id)).all()
-            weekly_rows = session.exec(select(WeeklyQuest).where(WeeklyQuest.user_id == user.id)).all()
+            weekly_rows = session.exec(
+                select(WeeklyQuest).where(WeeklyQuest.user_id == user.id)
+            ).all()
 
             for row in daily_rows:
                 row.progress_minutes = 0
@@ -473,7 +477,9 @@ def reset_state(
             summary["inventoryItemsReset"] = touched
 
         if "reviews" in normalized:
-            review_rows = session.exec(select(DrillReview).where(DrillReview.user_id == user.id)).all()
+            review_rows = session.exec(
+                select(DrillReview).where(DrillReview.user_id == user.id)
+            ).all()
             for row in review_rows:
                 session.delete(row)
             summary["reviewsDeleted"] = len(review_rows)
@@ -529,7 +535,7 @@ def update_settings(
         settings_row.xp_per_minute = payload.xpPerMinute
     if is_admin(user) and payload.goldPerMinute is not None:
         settings_row.gold_per_minute = payload.goldPerMinute
-    
+
     # New fields
     if payload.geminiApiKey is not None:
         # Allow clearing if empty string passed? Or just update if provided.

@@ -9,7 +9,6 @@ from sqlmodel import Session, select
 
 from app.models import User, UserSettings, UserStats, XpLedgerEvent
 
-
 RANK_RULES: tuple[tuple[int, int, str], ...] = (
     (1, 4, "F"),
     (5, 9, "E"),

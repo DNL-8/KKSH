@@ -5,7 +5,6 @@ from typing import Annotated, Optional
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-
 WebhookUrl = Annotated[str, StringConstraints(strip_whitespace=True, min_length=8, max_length=2048)]
 WebhookEvent = Annotated[
     str,

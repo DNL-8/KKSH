@@ -50,4 +50,3 @@ def get_leaderboard(
     user: User = Depends(get_current_user),  # noqa: ARG001 - keeps endpoint authenticated
 ):
     return leaderboard_payload(session, scope=scope, limit=limit)
-

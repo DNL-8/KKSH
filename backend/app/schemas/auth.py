@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -23,7 +22,9 @@ class AuthIn(BaseModel):
 
 
 class UserUpdateIn(BaseModel):
-    username: Optional[str] = Field(default=None, min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
+    username: Optional[str] = Field(
+        default=None, min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$"
+    )
 
 
 class UserOut(BaseModel):

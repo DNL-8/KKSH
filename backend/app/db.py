@@ -136,9 +136,7 @@ def _ensure_sqlite_schema_compatibility() -> None:
         connection.exec_driver_sql(
             "UPDATE user_stats SET version = 1 WHERE version IS NULL OR version < 1"
         )
-        connection.exec_driver_sql(
-            "UPDATE study_sessions SET hp_delta = 0 WHERE hp_delta IS NULL"
-        )
+        connection.exec_driver_sql("UPDATE study_sessions SET hp_delta = 0 WHERE hp_delta IS NULL")
         connection.exec_driver_sql(
             "UPDATE study_sessions SET mana_delta = 0 WHERE mana_delta IS NULL"
         )

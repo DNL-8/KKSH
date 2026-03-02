@@ -125,7 +125,9 @@ def _has_three_day_streak_bonus(session: Session, *, user_id: str, dk: str) -> b
     target_date = _parse_date_key(dk).date()
     previous = (target_date - timedelta(days=1)).strftime("%Y-%m-%d")
     previous_previous = (target_date - timedelta(days=2)).strftime("%Y-%m-%d")
-    return _has_any_session_on_day(session, user_id=user_id, dk=previous) and _has_any_session_on_day(
+    return _has_any_session_on_day(
+        session, user_id=user_id, dk=previous
+    ) and _has_any_session_on_day(
         session,
         user_id=user_id,
         dk=previous_previous,
@@ -289,7 +291,9 @@ def create_session(
                 "hpDelta": int(s.hp_delta or 0),
                 "manaDelta": int(s.mana_delta or 0),
                 "fatigueDelta": int(s.fatigue_delta or 0),
-                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
+                "rewardMultiplierBps": int(
+                    s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS
+                ),
                 "comboBonusApplied": bool(combo_active),
                 "threeDayStreakBonusApplied": bool(streak_active),
                 "exhaustionPenaltyApplied": bool(exhausted),
@@ -317,7 +321,9 @@ def create_session(
                 "hpDelta": int(s.hp_delta or 0),
                 "manaDelta": int(s.mana_delta or 0),
                 "fatigueDelta": int(s.fatigue_delta or 0),
-                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
+                "rewardMultiplierBps": int(
+                    s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS
+                ),
             },
         )
         apply_vitals(
@@ -350,7 +356,9 @@ def create_session(
                 "hpDelta": int(s.hp_delta or 0),
                 "manaDelta": int(s.mana_delta or 0),
                 "fatigueDelta": int(s.fatigue_delta or 0),
-                "rewardMultiplierBps": int(s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS),
+                "rewardMultiplierBps": int(
+                    s.reward_multiplier_bps or DEFAULT_REWARD_MULTIPLIER_BPS
+                ),
             },
             commit=False,
         )

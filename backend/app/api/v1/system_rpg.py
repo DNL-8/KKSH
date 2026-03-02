@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 
 from app.core.deps import db_session, get_current_user
@@ -26,7 +26,7 @@ def get_system_rpg_stats(
     current_user: User = Depends(get_current_user),
 ) -> SystemRPGStats:
     """Read the current user's System RPG stats."""
-    
+
     statement = select(SystemRPGStats).where(SystemRPGStats.user_id == current_user.id)
     stats = session.exec(statement).first()
 
@@ -56,7 +56,7 @@ def update_system_rpg_stats(
     update_data: SystemRPGStatsUpdate,
 ) -> SystemRPGStats:
     """Update the current user's System RPG stats."""
-    
+
     statement = select(SystemRPGStats).where(SystemRPGStats.user_id == current_user.id)
     stats = session.exec(statement).first()
 

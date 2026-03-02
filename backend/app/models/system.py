@@ -126,7 +126,9 @@ class XpLedgerEvent(SQLModel, table=True):
     xp_delta: int = Field(default=0)
     gold_delta: int = Field(default=0)
     ruleset_version: int = Field(default=1, index=True)
-    payload_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    payload_json: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False)
+    )
     created_at: datetime = Field(default_factory=utcnow, index=True)
 
 
@@ -135,7 +137,9 @@ class CommandIdempotency(SQLModel, table=True):
 
     __tablename__ = "command_idempotency"
     __table_args__ = (
-        UniqueConstraint("user_id", "command_type", "idempotency_key", name="uq_command_idempotency"),
+        UniqueConstraint(
+            "user_id", "command_type", "idempotency_key", name="uq_command_idempotency"
+        ),
     )
 
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
@@ -149,6 +153,8 @@ class CommandIdempotency(SQLModel, table=True):
     )
     command_type: str = Field(index=True)
     idempotency_key: str = Field(index=True)
-    response_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    response_json: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False)
+    )
     status_code: int = Field(default=200)
     created_at: datetime = Field(default_factory=utcnow, index=True)

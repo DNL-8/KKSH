@@ -14,7 +14,12 @@ from app.services.backend_first import (
 )
 from app.services.combat_content import CombatModule, get_combat_module
 from app.services.inventory import use_inventory_item
-from app.services.progression import apply_vitals, apply_xp_gold, get_or_create_user_stats, progress_to_dict
+from app.services.progression import (
+    apply_vitals,
+    apply_xp_gold,
+    get_or_create_user_stats,
+    progress_to_dict,
+)
 
 PLAYER_MAX_HP = 100
 WORLD_BOSS_HP = 9_999_999
@@ -95,7 +100,9 @@ def _build_deck(module: CombatModule, previous_question_id: str | None) -> list[
         return []
     deck = _shuffle(question_ids)
     if len(deck) > 1 and previous_question_id and deck[0] == previous_question_id:
-        swap_idx = next((idx for idx, value in enumerate(deck) if value != previous_question_id), -1)
+        swap_idx = next(
+            (idx for idx, value in enumerate(deck) if value != previous_question_id), -1
+        )
         if swap_idx > 0:
             deck[0], deck[swap_idx] = deck[swap_idx], deck[0]
     return deck
@@ -364,16 +371,20 @@ def answer_question(
             event_type="combat.victory",
             source_type="combat_battle",
             source_ref=battle.id,
-            payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank)},
+            payload_json={
+                "battleId": battle.id,
+                "moduleId": battle.module_id,
+                "bossRank": str(battle.enemy_rank),
+            },
         )
     else:
         enemy_damage = _roll_boss_damage(str(battle.enemy_rank))
         battle.player_hp = max(0, int(battle.player_hp) - enemy_damage)
         battle.current_question_id = None
-        
+
         if enemy_damage > 0:
             apply_vitals(session, user, hp_delta=-enemy_damage, autocommit=False)
-            
+
         if int(battle.player_hp) <= 0:
             battle.status = "defeat"
             battle.turn_state = "DEFEAT"
@@ -390,7 +401,12 @@ def answer_question(
                 event_type="combat.defeat",
                 source_type="combat_battle",
                 source_ref=battle.id,
-                payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank), "penalty": True},
+                payload_json={
+                    "battleId": battle.id,
+                    "moduleId": battle.module_id,
+                    "bossRank": str(battle.enemy_rank),
+                    "penalty": True,
+                },
             )
         else:
             battle.turn_state = "PLAYER_IDLE"
@@ -452,7 +468,7 @@ def flee_battle(
     battle.status = "victory"
     battle.turn_state = "VICTORY"
     battle.current_question_id = None
-    
+
     apply_xp_gold(
         session,
         user,
@@ -463,7 +479,12 @@ def flee_battle(
         event_type="combat.flee",
         source_type="combat_battle",
         source_ref=battle.id,
-        payload_json={"battleId": battle.id, "moduleId": battle.module_id, "bossRank": str(battle.enemy_rank), "extracted": True},
+        payload_json={
+            "battleId": battle.id,
+            "moduleId": battle.module_id,
+            "bossRank": str(battle.enemy_rank),
+            "extracted": True,
+        },
     )
 
     battle.updated_at = datetime.now(timezone.utc)
@@ -525,12 +546,12 @@ def consume_item_in_battle(
 
     # Consume directly from core inventory module
     inv_result = use_inventory_item(session, user, item_id=item_id, qty=1)
-    
+
     # Calculate In-Game specific healing bonuses (Coffee gives +40 HP in combat)
     heal_amount = 0
     if item_id == "coffee" and inv_result["consumedQty"] > 0:
         heal_amount = 40
-    
+
     battle.player_hp = min(int(battle.player_max_hp), int(battle.player_hp) + heal_amount)
     battle.updated_at = datetime.now(timezone.utc)
     session.add(battle)

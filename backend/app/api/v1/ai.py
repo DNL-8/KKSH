@@ -13,16 +13,15 @@ from app.core.config import settings
 from app.core.deps import db_session, get_current_user, get_optional_user
 from app.core.rate_limit import Rule, rate_limit
 from app.models import SystemWindowMessage, User
-
-from app.services.gemini_client import (
-    GeminiError,
-    generate_content_text,
-    parse_json_object,
-)
 from app.services.ai_rate_limiter import (
     enforce_guest_daily_limit,
     enforce_user_burst_limit,
     enforce_user_daily_limit,
+)
+from app.services.gemini_client import (
+    GeminiError,
+    generate_content_text,
+    parse_json_object,
 )
 
 router = APIRouter(prefix="/ai", tags=["ai"])

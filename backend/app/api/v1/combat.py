@@ -20,7 +20,13 @@ from app.schemas import (
     CombatStartOut,
 )
 from app.services.backend_first import CommandError, require_idempotency_key
-from app.services.combat import answer_question, consume_item_in_battle, draw_question, flee_battle, start_battle
+from app.services.combat import (
+    answer_question,
+    consume_item_in_battle,
+    draw_question,
+    flee_battle,
+    start_battle,
+)
 
 router = APIRouter(prefix="/combat", tags=["combat"])
 _COMBAT_RULE = Rule(max_requests=40, window_seconds=60)

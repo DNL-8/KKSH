@@ -288,7 +288,9 @@ def classify_provider_error(
 class GeminiError(Exception):
     """Raised when the Gemini provider fails."""
 
-    def __init__(self, status_code: int, code: str, message: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self, status_code: int, code: str, message: str, details: dict[str, Any] | None = None
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.code = code
@@ -307,7 +309,9 @@ def _create_client_tuple(
         from google import genai
     except Exception as exc:
         raise GeminiError(
-            503, "ai_sdk_unavailable", "AI SDK is not installed",
+            503,
+            "ai_sdk_unavailable",
+            "AI SDK is not installed",
         ) from exc
 
     client = genai.Client(api_key=api_key)
@@ -352,7 +356,9 @@ async def generate_content_text(
             raise
         except Exception as exc:
             last_provider_error = classify_provider_error(
-                exc, stage="initialization", model_name=model_name,
+                exc,
+                stage="initialization",
+                model_name=model_name,
             )
             record_ai_error("generate", error_type="init_error")
             continue
@@ -368,9 +374,13 @@ async def generate_content_text(
             raise
         except Exception as exc:
             last_provider_error = classify_provider_error(
-                exc, stage="request", model_name=model_name,
+                exc,
+                stage="request",
+                model_name=model_name,
             )
-            error_type = last_provider_error.get("code", "unknown") if last_provider_error else "unknown"
+            error_type = (
+                last_provider_error.get("code", "unknown") if last_provider_error else "unknown"
+            )
             record_ai_error("generate", error_type=error_type)
             continue
 
@@ -394,6 +404,8 @@ async def generate_content_text(
 
     record_ai_error("generate", error_type="all_failed")
     raise GeminiError(
-        502, "ai_upstream_error", "AI provider request failed",
+        502,
+        "ai_upstream_error",
+        "AI provider request failed",
         {"error": "No AI model attempts were successful."},
     )

@@ -6,6 +6,7 @@ quests, inventory).
 
 P2 #20: sessions router should be a thin controller delegating to this service.
 """
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,6 @@ from typing import Any
 
 from sqlmodel import Session
 
-from app.core.config import settings
 from app.models import StudySession, User, UserSettings
 from app.services.progression import apply_xp_gold, compute_session_rewards
 from app.services.quests import apply_session_to_quests, ensure_quests_for_today
@@ -66,9 +66,7 @@ def create_study_session(
 
     # 4. Quests
     try:
-        ensure_quests_for_today(
-            db, user, user_settings, autocommit=False, today_key=date_key
-        )
+        ensure_quests_for_today(db, user, user_settings, autocommit=False, today_key=date_key)
         apply_session_to_quests(db, user, subject, minutes, today_key=date_key)
     except Exception:
         logger.warning("quest_side_effect_failed", exc_info=True)
@@ -120,9 +118,7 @@ def delete_study_session(
     xp_earned = int(study_session.xp_earned or 0)
     gold_earned = int(study_session.gold_earned or 0)
     if xp_earned or gold_earned:
-        apply_xp_gold(
-            db, user, xp_delta=-xp_earned, gold_delta=-gold_earned, autocommit=False
-        )
+        apply_xp_gold(db, user, xp_delta=-xp_earned, gold_delta=-gold_earned, autocommit=False)
 
     db.commit()
 

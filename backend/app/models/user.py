@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import JSON, Column, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, String, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 from .base import utcnow
@@ -119,11 +119,11 @@ class SystemRPGStats(SQLModel, table=True):
     streak: int = Field(default=0)
     active_minutes: int = Field(default=0)
     completed_raids: int = Field(default=0)
-    
+
     # Attributes
     vigor: int = Field(default=10)
     forca: int = Field(default=15)
     agilidade: int = Field(default=8)
     inteligencia: int = Field(default=5)
-    
+
     updated_at: datetime = Field(default_factory=utcnow)

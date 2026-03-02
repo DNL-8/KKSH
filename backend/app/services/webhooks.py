@@ -126,7 +126,9 @@ def send_webhook(
         require_https = settings.env not in ("dev", "test")
         validate_public_http_url(url, require_https=require_https)
         effective_timeout = (
-            float(timeout_sec) if timeout_sec is not None else float(settings.webhook_delivery_timeout_sec)
+            float(timeout_sec)
+            if timeout_sec is not None
+            else float(settings.webhook_delivery_timeout_sec)
         )
         resp = httpx.post(
             url,

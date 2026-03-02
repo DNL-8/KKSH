@@ -18,10 +18,12 @@ from app.models import (
     Subject,
     User,
     UserSettings,
-    UserStats,
     UserWebhook,
     WeeklyQuest,
 )
+
+# Re-export from canonical location (services/progression.py) to avoid breakage.
+from app.services.progression import get_or_create_user_stats  # noqa: F401
 
 
 def db_session() -> Generator[Session, None, None]:
@@ -218,7 +220,3 @@ def get_or_create_user_settings(
     else:
         session.flush()
     return row
-
-
-# Re-export from canonical location (services/progression.py) to avoid breakage.
-from app.services.progression import get_or_create_user_stats  # noqa: F401

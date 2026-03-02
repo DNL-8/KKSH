@@ -6,6 +6,7 @@ import random
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import cast
 
 import sqlalchemy as sa
 from sqlmodel import Session, select
@@ -97,7 +98,7 @@ WHERE wo.id = selected.id
 RETURNING wo.id
 """
     )
-    rows = session.exec(
+    rows = session.execute(
         sql,
         {
             "now": now,
@@ -119,43 +120,35 @@ def _claim_batch_generic(
     lock_ttl_sec: int,
 ) -> list[str]:
     locked_until = now + timedelta(seconds=lock_ttl_sec)
+    outbox_table = cast(sa.Table, WebhookOutbox.__table__)  # type: ignore[attr-defined]
+    outbox_cols = outbox_table.c
+    claimable_where = sa.or_(
+        sa.and_(
+            outbox_cols.status.in_([OUTBOX_STATUS_PENDING, OUTBOX_STATUS_RETRY]),
+            outbox_cols.next_attempt_at <= now,
+        ),
+        sa.and_(
+            outbox_cols.status == OUTBOX_STATUS_PROCESSING,
+            outbox_cols.locked_until < now,
+        ),
+    )
+    unlocked_where = sa.or_(outbox_cols.locked_until.is_(None), outbox_cols.locked_until < now)
     candidates = session.exec(
         select(WebhookOutbox)
-        .where(
-            sa.or_(
-                sa.and_(
-                    WebhookOutbox.status.in_([OUTBOX_STATUS_PENDING, OUTBOX_STATUS_RETRY]),
-                    WebhookOutbox.next_attempt_at <= now,
-                ),
-                sa.and_(
-                    WebhookOutbox.status == OUTBOX_STATUS_PROCESSING,
-                    WebhookOutbox.locked_until < now,
-                ),
-            ),
-            sa.or_(WebhookOutbox.locked_until.is_(None), WebhookOutbox.locked_until < now),
-        )
-        .order_by(WebhookOutbox.next_attempt_at.asc(), WebhookOutbox.created_at.asc())
+        .where(claimable_where, unlocked_where)
+        .order_by(outbox_cols.next_attempt_at.asc(), outbox_cols.created_at.asc())
         .limit(int(limit) * 3)
     ).all()
 
     ids: list[str] = []
     for row in candidates:
-        result = session.exec(
+        result = session.execute(
             sa.update(WebhookOutbox)
             .execution_options(synchronize_session=False)
             .where(
-                WebhookOutbox.id == row.id,
-                sa.or_(
-                    sa.and_(
-                        WebhookOutbox.status.in_([OUTBOX_STATUS_PENDING, OUTBOX_STATUS_RETRY]),
-                        WebhookOutbox.next_attempt_at <= now,
-                    ),
-                    sa.and_(
-                        WebhookOutbox.status == OUTBOX_STATUS_PROCESSING,
-                        WebhookOutbox.locked_until < now,
-                    ),
-                ),
-                sa.or_(WebhookOutbox.locked_until.is_(None), WebhookOutbox.locked_until < now),
+                outbox_cols.id == row.id,
+                claimable_where,
+                unlocked_where,
             )
             .values(
                 status=OUTBOX_STATUS_PROCESSING,
@@ -165,7 +158,7 @@ def _claim_batch_generic(
                 updated_at=now,
             )
         )
-        if int(result.rowcount or 0) == 1:
+        if int(getattr(result, "rowcount", 0) or 0) == 1:
             ids.append(str(row.id))
             if len(ids) >= int(limit):
                 break
@@ -200,14 +193,18 @@ def _claim_batch(session: Session, *, worker_id: str) -> list[WebhookOutbox]:
     if not ids:
         return []
 
-    rows = session.exec(select(WebhookOutbox).where(WebhookOutbox.id.in_(ids))).all()
+    outbox_table = cast(sa.Table, WebhookOutbox.__table__)  # type: ignore[attr-defined]
+    outbox_cols = outbox_table.c
+    rows = session.exec(select(WebhookOutbox).where(outbox_cols.id.in_(ids))).all()
     index = {row.id: row for row in rows}
     return [index[row_id] for row_id in ids if row_id in index]
 
 
 def _set_outbox_depth(session: Session) -> None:
+    outbox_table = cast(sa.Table, WebhookOutbox.__table__)  # type: ignore[attr-defined]
+    outbox_cols = outbox_table.c
     rows = session.exec(
-        select(WebhookOutbox.status, sa.func.count(WebhookOutbox.id)).group_by(WebhookOutbox.status)
+        select(outbox_cols.status, sa.func.count(outbox_cols.id)).group_by(outbox_cols.status)
     ).all()
     depth = {
         "shadow": 0,

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from .progression import ProgressionOut, VitalsOut
+from .progression import ProgressionOut
 
 
 class CombatQuestionOut(BaseModel):
@@ -20,7 +19,9 @@ class CombatBattleStateOut(BaseModel):
     playerMaxHp: int
     enemyHp: int
     enemyMaxHp: int
-    turn: Literal["PLAYER_IDLE", "PLAYER_QUIZ", "VICTORY", "DEFEAT", "ENEMY_TURN", "PLAYER_ATTACKING"]
+    turn: Literal[
+        "PLAYER_IDLE", "PLAYER_QUIZ", "VICTORY", "DEFEAT", "ENEMY_TURN", "PLAYER_ATTACKING"
+    ]
     status: Literal["ongoing", "victory", "defeat"]
 
 

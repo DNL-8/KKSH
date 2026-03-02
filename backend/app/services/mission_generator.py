@@ -6,12 +6,11 @@ import unicodedata
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 from sqlmodel import Session, select
 
-from app.core.config import settings
 from app.models import DailyQuest, User, UserSettings, WeeklyQuest
 from app.services.gemini_client import (
     GeminiError,
@@ -255,6 +254,7 @@ def _resolve_user_api_key(user_settings: UserSettings | None) -> str:
     """Resolve API key from user settings, falling back to system key."""
     if user_settings and user_settings.gemini_api_key:
         from app.core.secrets import decrypt_secret
+
         raw = (decrypt_secret(user_settings.gemini_api_key) or "").strip()
         if raw:
             return get_api_key(user_gemini_key=raw)
@@ -277,7 +277,9 @@ async def _try_generate_with_gemini(
     if personality == "hardcore":
         personality_prompt = "Atue como um Sargento Instrutor militar. Seja rigido, use girias militares e exija disciplina maxima."
     elif personality == "zen":
-        personality_prompt = "Atue como um Mentor Zen. Seja calmo, filosofico e foque no equilibrio e consistencia."
+        personality_prompt = (
+            "Atue como um Mentor Zen. Seja calmo, filosofico e foque no equilibrio e consistencia."
+        )
     elif personality == "gamer":
         personality_prompt = "Atue como um Gamemaster RPG. Use termos de jogos (buff, nerf, grind), seja empolgado e trate o estudo como XP."
     else:

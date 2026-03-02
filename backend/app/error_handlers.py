@@ -24,8 +24,10 @@ def _error_payload(code: str, message: str, details: Any = None) -> dict[str, An
     }
 
 
-async def validation_error_handler(_: Request, exc: RequestValidationError):
-    safe_errors = jsonable_encoder(exc.errors())
+async def validation_error_handler(_: Request, exc: Exception) -> JSONResponse:
+    safe_errors: list[Any] = []
+    if isinstance(exc, RequestValidationError):
+        safe_errors = jsonable_encoder(exc.errors())
     return JSONResponse(
         status_code=422,
         content=_error_payload(
@@ -36,20 +38,28 @@ async def validation_error_handler(_: Request, exc: RequestValidationError):
     )
 
 
-async def http_error_handler(_: Request, exc: StarletteHTTPException):
-    detail = exc.detail
+async def http_error_handler(_: Request, exc: Exception) -> JSONResponse:
+    if isinstance(exc, StarletteHTTPException):
+        detail = exc.detail
+        status_code = exc.status_code
+        headers = exc.headers
+    else:
+        detail = str(exc)
+        status_code = 500
+        headers = None
+
     if isinstance(detail, dict) and {"code", "message", "details"}.issubset(detail.keys()):
         payload = detail
     else:
         payload = _error_payload(
             code="http_error",
             message=str(detail) if detail else "HTTP error",
-            details={"status_code": exc.status_code},
+            details={"status_code": status_code},
         )
-    return JSONResponse(status_code=exc.status_code, content=payload, headers=exc.headers)
+    return JSONResponse(status_code=status_code, content=payload, headers=headers)
 
 
-async def unhandled_error_handler(request: Request, exc: Exception):
+async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.exception(
         "unhandled_error",
         extra={"path": request.url.path, "method": request.method},

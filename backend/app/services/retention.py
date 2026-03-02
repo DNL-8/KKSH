@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete, and_, select, func
+from sqlalchemy import delete, func, select
 from sqlmodel import Session
 
 from app.models import AuditEvent, SystemWindowMessage
@@ -60,12 +60,16 @@ def purge_system_messages(
 
     for user_id, count in over_limit:
         excess = count - max_per_user
-        oldest_ids = session.execute(
-            select(SystemWindowMessage.id)
-            .where(SystemWindowMessage.user_id == user_id)
-            .order_by(SystemWindowMessage.created_at.asc())
-            .limit(excess)
-        ).scalars().all()
+        oldest_ids = (
+            session.execute(
+                select(SystemWindowMessage.id)
+                .where(SystemWindowMessage.user_id == user_id)
+                .order_by(SystemWindowMessage.created_at.asc())
+                .limit(excess)
+            )
+            .scalars()
+            .all()
+        )
         if oldest_ids:
             session.execute(
                 delete(SystemWindowMessage).where(SystemWindowMessage.id.in_(oldest_ids))

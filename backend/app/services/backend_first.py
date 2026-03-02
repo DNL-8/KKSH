@@ -143,7 +143,9 @@ def _resolve_mission(
     mission_instance_id: str,
 ) -> tuple[MissionCycle, DailyQuest | WeeklyQuest]:
     daily = session.exec(
-        select(DailyQuest).where(DailyQuest.id == mission_instance_id, DailyQuest.user_id == user_id)
+        select(DailyQuest).where(
+            DailyQuest.id == mission_instance_id, DailyQuest.user_id == user_id
+        )
     ).first()
     if daily:
         return "daily", daily
@@ -179,7 +181,9 @@ def start_mission(
     if replay:
         return replay
 
-    _cycle, mission = _resolve_mission(session, user_id=user.id, mission_instance_id=mission_instance_id)
+    _cycle, mission = _resolve_mission(
+        session, user_id=user.id, mission_instance_id=mission_instance_id
+    )
     if bool(mission.claimed):
         raise CommandError(
             status_code=409,
@@ -220,7 +224,9 @@ def claim_mission_reward(
     if replay:
         return replay
 
-    cycle, mission = _resolve_mission(session, user_id=user.id, mission_instance_id=mission_instance_id)
+    cycle, mission = _resolve_mission(
+        session, user_id=user.id, mission_instance_id=mission_instance_id
+    )
     if bool(mission.claimed):
         raise CommandError(
             status_code=409,
@@ -238,9 +244,15 @@ def claim_mission_reward(
             details={"targetMinutes": target_minutes, "progressMinutes": progress_minutes},
         )
 
-    xp_delta = int(mission.reward_xp) if mission.reward_xp is not None else (50 if cycle == "daily" else 200)
+    xp_delta = (
+        int(mission.reward_xp)
+        if mission.reward_xp is not None
+        else (50 if cycle == "daily" else 200)
+    )
     gold_delta = (
-        int(mission.reward_gold) if mission.reward_gold is not None else (25 if cycle == "daily" else 100)
+        int(mission.reward_gold)
+        if mission.reward_gold is not None
+        else (25 if cycle == "daily" else 100)
     )
 
     claim = RewardClaim(
@@ -512,7 +524,9 @@ def _enforce_daily_event_cap(
     xp_today = int(totals[0] or 0)
     gold_today = int(totals[1] or 0)
 
-    if xp_today + int(xp_delta) > int(caps["xp"]) or gold_today + int(gold_delta) > int(caps["gold"]):
+    if xp_today + int(xp_delta) > int(caps["xp"]) or gold_today + int(gold_delta) > int(
+        caps["gold"]
+    ):
         raise CommandError(
             status_code=429,
             code="event_daily_cap_exceeded",
@@ -691,7 +705,9 @@ def list_missions_payload(
         ).all()
     if cycle in {"weekly", "both"}:
         weekly_rows = session.exec(
-            select(WeeklyQuest).where(WeeklyQuest.user_id == user.id, WeeklyQuest.week_key == week_value)
+            select(WeeklyQuest).where(
+                WeeklyQuest.user_id == user.id, WeeklyQuest.week_key == week_value
+            )
         ).all()
 
     return {
@@ -787,7 +803,9 @@ def leaderboard_payload(
 
     user_ids = [str(row[0]) for row in rows]
     user_rows = (
-        session.exec(select(User.id, User.email).where(User.id.in_(user_ids))).all() if user_ids else []
+        session.exec(select(User.id, User.email).where(User.id.in_(user_ids))).all()
+        if user_ids
+        else []
     )
     email_by_user = {str(user_id): str(email) for user_id, email in user_rows}
 

@@ -58,9 +58,7 @@ def mount_frontend(app: FastAPI) -> None:
             raise StarletteHTTPException(status_code=404, detail="Not found")
 
         relative = frontend_path.strip("/")
-        requested = (
-            (frontend_dist / relative).resolve() if relative else frontend_index.resolve()
-        )
+        requested = (frontend_dist / relative).resolve() if relative else frontend_index.resolve()
         if requested.exists() and requested.is_file() and _is_within(frontend_dist, requested):
             return FileResponse(requested)
         return FileResponse(frontend_index)

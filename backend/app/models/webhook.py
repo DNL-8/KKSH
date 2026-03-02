@@ -62,7 +62,9 @@ class WebhookOutbox(SQLModel, table=True):
         ),
     )
     event: str = Field(index=True)
-    payload_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
+    payload_json: dict[str, Any] = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False)
+    )
     status: str = Field(
         default="pending",
         sa_column=Column(String(32), nullable=False, index=True),

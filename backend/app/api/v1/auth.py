@@ -96,7 +96,9 @@ def signup(
     get_or_create_user_stats(session, user, autocommit=False)
     goals = parse_goals(plan.goals_json)
     ensure_daily_quests(session=session, user=user, dk=date_key(now), goals=goals, autocommit=False)
-    ensure_weekly_quests(session=session, user=user, wk=week_key(now), goals=goals, autocommit=False)
+    ensure_weekly_quests(
+        session=session, user=user, wk=week_key(now), goals=goals, autocommit=False
+    )
     session.commit()
 
     access = create_access_token(user.id)
@@ -130,7 +132,9 @@ def login(
     get_or_create_user_stats(session, user, autocommit=False)
     goals = parse_goals(plan.goals_json)
     ensure_daily_quests(session=session, user=user, dk=date_key(now), goals=goals, autocommit=False)
-    ensure_weekly_quests(session=session, user=user, wk=week_key(now), goals=goals, autocommit=False)
+    ensure_weekly_quests(
+        session=session, user=user, wk=week_key(now), goals=goals, autocommit=False
+    )
     session.commit()
 
     access = create_access_token(user.id)
