@@ -441,6 +441,19 @@ export function FilesPage() {
     }
   }, [handleFilesSelected]);
 
+  useEffect(() => {
+    if (!isSidebarMobileOpen) {
+      return;
+    }
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSidebarMobileOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isSidebarMobileOpen]);
+
   return (
     <div
       className={`files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700 ${isIosTheme ? "ios26-text-secondary" : ""}`}
@@ -457,13 +470,13 @@ export function FilesPage() {
           ? "ios26-section-hero border-2 border-dashed border-[hsl(var(--accent)/0.45)]"
           : "border-4 border-dashed border-cyan-400/60 bg-[#020814]/80 backdrop-blur-xl shadow-[0_0_100px_rgba(34,211,238,0.2)_inset]"
           }`}>
-          <div className="text-center animate-in zoom-in-50 duration-300 flex flex-col items-center">
-            <div className="h-32 w-32 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 animate-pulse shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-              <Icon name="cloud-upload" className="text-7xl text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+            <div className="text-center animate-in zoom-in-50 duration-300 flex flex-col items-center">
+              <div className="h-32 w-32 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6 animate-pulse shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+                <Icon name="cloud-upload" className="text-7xl text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+              </div>
+              <h2 className="text-4xl font-black uppercase tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-cyan-500 drop-shadow-sm">Upload Local</h2>
+              <p className="mt-3 text-cyan-200/60 font-medium tracking-widest uppercase text-sm">Solte os arquivos para processamento local</p>
             </div>
-            <h2 className="text-4xl font-black uppercase tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-cyan-500 drop-shadow-sm">Upload Matrix</h2>
-            <p className="mt-3 text-cyan-200/60 font-medium tracking-widest uppercase text-sm">Solte os arquivos para processamento local</p>
-          </div>
         </div>
       )}
       <input
@@ -526,33 +539,35 @@ export function FilesPage() {
           <div className="flex flex-wrap items-center gap-2 px-1 pt-1">
             {isBridgeConnected && (
               <button
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors active:scale-95 ${isIosTheme
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors active:scale-95 ${isIosTheme
                   ? "ios26-chip ios26-focusable"
                   : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
                   }`}
+                aria-label="Abrir navegador Bridge"
                 onClick={() => setShowBridgeBrowser(true)}
+                type="button"
               >
                 <Icon name="folder-search" className="text-[12px]" />
-                Browse Bridge
+                Abrir Bridge
               </button>
             )}
 
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme
               ? isBridgeConnected ? "ios26-chip ios26-status-success" : "ios26-chip"
-              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner text-slate-500"
+              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner text-slate-300"
               }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
               Bridge {isBridgeConnected ? "Online" : "Offline"}
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isIosTheme
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isIosTheme
               ? isPersisted ? "ios26-chip ios26-chip-active" : "ios26-chip ios26-status-warning"
               : isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"
-              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (Pode ser limpo pelo navegador)"}>
+              }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (pode ser limpo pelo navegador)"}>
               <div className={`w-1.5 h-1.5 rounded-full ${isPersisted ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"}`} />
-              HD {isPersisted ? "Persistente" : "Temporário"}
+              HD {isPersisted ? "Persistente" : "Temporario"}
             </div>
           </div>
         </div>
@@ -611,14 +626,14 @@ export function FilesPage() {
             <div className={`rounded-[24px] p-4 ${isIosTheme ? "ios26-section" : "files-panel"}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-black tracking-tight text-slate-900">{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <h3 className={`text-lg font-black tracking-tight ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
                     Pasta: {selectedVideo?.relativePath ?? "-"}
                   </p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
                     Armazenamento: {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
                   </p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
                     Duracao detectada: {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando metadados"}
                   </p>
                 </div>
@@ -655,8 +670,10 @@ export function FilesPage() {
                   <button
                     className={`rounded-xl p-2 transition-colors ${isIosTheme
                       ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
-                      : "border border-slate-700 liquid-glass text-slate-600 hover:text-slate-200"
+                      : "border border-slate-700 liquid-glass text-slate-300 hover:text-slate-100"
                       }`}
+                    aria-label={activeTab === "overview" ? "Abrir painel de metadados" : "Voltar para visao geral"}
+                    aria-pressed={activeTab !== "overview"}
                     title={activeTab === "overview" ? "Abrir metadados" : "Voltar para visao geral"}
                     data-testid="files-toggle-metadata-panel"
                     onClick={handleToggleMetadataPanel}
@@ -707,8 +724,8 @@ export function FilesPage() {
                     <Icon name="file-video" className="text-[20px]" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-800">Material de Apoio</h4>
-                    <p className="text-xs text-slate-500">Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
+                    <h4 className={`text-sm font-bold ${isIosTheme ? "text-slate-800" : "text-slate-100"}`}>Material de Apoio</h4>
+                    <p className={`text-xs ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
                   </div>
                 </div>
               </button>
@@ -724,6 +741,7 @@ export function FilesPage() {
             className={`fixed inset-0 z-[120] lg:hidden transition-all duration-300 ${isSidebarMobileOpen ? "visible" : "invisible pointer-events-none delay-300"}`}
             role="dialog"
             aria-modal="true"
+            aria-label="Lista de aulas"
           >
             {/* Backdrop */}
             <div
@@ -737,7 +755,7 @@ export function FilesPage() {
 
             {/* Sidebar Container */}
             <div
-              className={`absolute bottom-0 right-0 top-0 w-[340px] max-w-[90vw] transition-transform duration-300 ease-in-out ${isSidebarMobileOpen ? "translate-x-0" : "translate-x-full"}`}
+              className={`absolute bottom-0 right-0 top-0 w-[340px] max-w-[92vw] transition-transform duration-300 ease-in-out ${isSidebarMobileOpen ? "translate-x-0" : "translate-x-full"}`}
             >
               <LessonSidebar
                 folderSections={filteredFolderSections}

@@ -58,6 +58,7 @@ export function FilesToolbar({
     const { isIosTheme } = useTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const advancedMenuId = "files-toolbar-advanced-menu";
 
     let progressText = " Carregando...";
     if (importProgress) {
@@ -83,22 +84,39 @@ export function FilesToolbar({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        if (!isMenuOpen) {
+            return;
+        }
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsMenuOpen(false);
+            }
+        };
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [isMenuOpen]);
+
     return (
         <div className={`flex flex-col gap-4 mb-4 ${isIosTheme ? "ios26-text-secondary" : ""}`} data-testid="files-toolbar">
 
             {/* Top row: Search and Main Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                 {/* Search Bar - Wider and cleaner */}
                 <div className="relative w-full sm:max-w-md group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Icon name="search" className="text-slate-500 group-focus-within:text-[hsl(var(--accent))] transition-colors text-[14px]" />
+                        <Icon
+                            name="search"
+                            className={`transition-colors text-[14px] group-focus-within:text-[hsl(var(--accent))] ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}
+                        />
                     </div>
                     <input
                         className={`w-full text-sm rounded-xl block pl-10 p-2.5 transition-all outline-none ${isIosTheme
                             ? "ios26-field ios26-focusable text-slate-800"
                             : "liquid-glass border border-slate-300/50 text-slate-200 focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
                             }`}
+                        aria-label="Pesquisar videos por nome ou pasta"
                         data-testid="files-search-input"
                         onChange={(event) => onSearchChange(event.target.value)}
                         placeholder="Pesquisar por nome ou pasta..."
@@ -106,15 +124,30 @@ export function FilesToolbar({
                         value={searchTerm}
                     />
                     {/* Badge floating inside search */}
-                    <div className="absolute inset-y-0 right-2 flex items-center pt-px">
-                        <span className="liquid-glass-inner border border-slate-300/50 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 right-2 hidden items-center pt-px sm:flex">
+                        <span
+                            className={`rounded-md border px-2 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${isIosTheme
+                                ? "ios26-chip text-slate-700"
+                                : "liquid-glass-inner border-cyan-500/35 text-cyan-100"
+                                }`}
+                        >
+                            {completedLessonCount}/{visibleVideosCount} aulas ({completionRate}%)
+                        </span>
+                    </div>
+                    <div className="mt-2 sm:hidden">
+                        <span
+                            className={`inline-flex items-center rounded-md border px-2 py-1 text-[9px] font-black uppercase tracking-widest ${isIosTheme
+                                ? "ios26-chip text-slate-700"
+                                : "liquid-glass-inner border-cyan-500/35 text-cyan-100"
+                                }`}
+                        >
                             {completedLessonCount}/{visibleVideosCount} aulas ({completionRate}%)
                         </span>
                     </div>
                 </div>
 
                 {/* Primary Actions */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex w-full items-center gap-2 sm:w-auto">
                     <button
                         className={`flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${isIosTheme
                             ? "ios26-control ios26-focusable text-slate-800"
@@ -148,11 +181,14 @@ export function FilesToolbar({
                     <div className="relative" ref={menuRef}>
                         <button
                             className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all active:scale-95 ${isMenuOpen
-                                ? isIosTheme ? "ios26-control ios26-focusable text-slate-900 shadow-lg" : "liquid-glass-inner border-slate-300/50 text-slate-900 shadow-lg"
-                                : isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "liquid-glass border-slate-300/50 text-slate-600 hover:bg-white/[0.10] hover:text-slate-900"
+                                ? isIosTheme ? "ios26-control ios26-focusable text-slate-900 shadow-lg" : "liquid-glass-inner border-cyan-500/35 text-cyan-100 shadow-lg"
+                                : isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "liquid-glass border-cyan-500/30 text-slate-300 hover:bg-white/[0.08] hover:text-slate-100"
                                 }`}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Opcoes avancadas"
+                            aria-controls={advancedMenuId}
+                            aria-expanded={isMenuOpen}
+                            aria-haspopup="menu"
                             type="button"
                         >
                             <Icon name="menu-dots-vertical" className="text-[16px]" />
@@ -160,12 +196,17 @@ export function FilesToolbar({
 
                         {/* Dropdown Content */}
                         {isMenuOpen && (
-                            <div className={`absolute right-0 top-12 z-50 w-64 rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right ${isIosTheme ? "ios26-section-hero" : "border border-slate-300/50 bg-[#060b14]/95 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.8)]"}`}>
-                                <div className="px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-300/50">
+                            <div
+                                className={`absolute right-0 top-12 z-50 w-64 rounded-2xl p-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right ${isIosTheme ? "ios26-section-hero" : "border border-cyan-500/30 bg-[#060b14]/95 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.8)]"}`}
+                                id={advancedMenuId}
+                                role="menu"
+                                aria-label="Menu avancado da biblioteca"
+                            >
+                                <div className={`px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest border-b ${isIosTheme ? "text-slate-500 border-slate-300/50" : "text-slate-400 border-cyan-500/20"}`}>
                                     Biblioteca
                                 </div>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:bg-white/[0.10] hover:text-slate-900 disabled:opacity-50"
+                                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors disabled:opacity-50 ${isIosTheme ? "text-slate-800 hover:bg-white/[0.10] hover:text-slate-900" : "text-slate-200 hover:bg-white/[0.08] hover:text-slate-50"}`}
                                     disabled={loading || saving || visibleVideosCount === 0}
                                     onClick={() => { onExportMetadata(); setIsMenuOpen(false); }}
                                     type="button"
@@ -174,7 +215,7 @@ export function FilesToolbar({
                                     Fazer Backup (Exportar)
                                 </button>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:bg-white/[0.10] hover:text-slate-900 disabled:opacity-50"
+                                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors disabled:opacity-50 ${isIosTheme ? "text-slate-800 hover:bg-white/[0.10] hover:text-slate-900" : "text-slate-200 hover:bg-white/[0.08] hover:text-slate-50"}`}
                                     disabled={loading || saving}
                                     onClick={() => { onImportMetadataClick(); setIsMenuOpen(false); }}
                                     type="button"
@@ -185,7 +226,7 @@ export function FilesToolbar({
 
                                 {directoryHandleSupported && (
                                     <>
-                                        <div className="px-2 py-1.5 mt-2 mb-1 text-[9px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-300/50">
+                                        <div className={`px-2 py-1.5 mt-2 mb-1 text-[9px] font-black uppercase tracking-widest border-b ${isIosTheme ? "text-slate-500 border-slate-300/50" : "text-slate-400 border-cyan-500/20"}`}>
                                             Avancado
                                         </div>
                                         <button
@@ -200,7 +241,7 @@ export function FilesToolbar({
                                     </>
                                 )}
 
-                                <div className="my-1 border-t border-slate-300/50" />
+                                <div className={`my-1 border-t ${isIosTheme ? "border-slate-300/50" : "border-cyan-500/20"}`} />
                                 <button
                                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
                                     disabled={visibleVideosCount === 0 || loading || saving}
@@ -217,14 +258,15 @@ export function FilesToolbar({
             </div>
 
             {/* Bottom Row: Minimal view toggles */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
                         <Icon name="sort-alt" className="text-[12px]" /> Ordenacao
                     </span>
                     <div className="relative">
                         <select
-                            className="appearance-none bg-transparent text-xs font-bold text-slate-800 outline-none hover:text-slate-900 cursor-pointer pr-4 transition-colors disabled:opacity-50"
+                            className={`appearance-none bg-transparent text-xs font-bold outline-none cursor-pointer pr-4 transition-colors disabled:opacity-50 ${isIosTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-200 hover:text-slate-50"}`}
+                            aria-label="Ordenacao da biblioteca"
                             disabled={visibleVideosCount === 0 || loading}
                             onChange={(event) => onOrderModeChange(event.target.value as OrderMode)}
                             value={orderMode}
@@ -237,13 +279,14 @@ export function FilesToolbar({
                             <option value="size_desc" className="liquid-glass">{ORDER_LABELS.size_desc}</option>
                             <option value="size_asc" className="liquid-glass">{ORDER_LABELS.size_asc}</option>
                         </select>
-                        <Icon name="angle-down" className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[10px]" />
+                        <Icon name="angle-down" className={`absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] ${isIosTheme ? "text-slate-500" : "text-slate-400"}`} />
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <button
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-600 hover:text-slate-900"}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.08] text-slate-300 hover:text-slate-100"}`}
+                        aria-label="Abrir lista de videos"
                         onClick={onToggleMobileSidebar}
                         type="button"
                         title="Ver lista de videos"
@@ -251,7 +294,8 @@ export function FilesToolbar({
                         <Icon name="list" className="text-[14px]" />
                     </button>
                     <button
-                        className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-600 hover:text-[hsl(var(--accent))]"}`}
+                        className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-300 hover:text-[hsl(var(--accent))]"}`}
+                        aria-label="Abrir configuracoes visuais"
                         onClick={onOpenVisualSettings}
                         type="button"
                         title="Configuracoes Visuais"

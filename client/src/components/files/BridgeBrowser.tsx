@@ -77,21 +77,32 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
         }
     }, [currentPath, scanFolder]);
 
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [onClose]);
+
     return (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass backdrop-blur-sm"}`} role="dialog" aria-modal="true">
-            <div className={`flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl ${isIosTheme ? "ios26-section-hero" : "border border-slate-800 bg-[#090b10]"}`}>
-                <div className={`flex items-center justify-between border-b p-4 ${isIosTheme ? "ios26-divider" : "border-slate-800 liquid-glass"}`}>
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass backdrop-blur-sm"}`} role="dialog" aria-modal="true" aria-label="Navegador de arquivos Bridge">
+            <div className={`flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl ${isIosTheme ? "ios26-section-hero" : "border border-cyan-500/25 bg-[#090b10]"}`}>
+                <div className={`flex items-center justify-between border-b p-4 ${isIosTheme ? "ios26-divider" : "border-cyan-500/20 liquid-glass"}`}>
                     <div className="flex items-center gap-3">
                         <button
-                            className={`rounded-lg p-2 disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:bg-white/[0.10]"}`}
+                            className={`rounded-lg p-2 disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable" : "text-slate-300 hover:bg-white/[0.08] hover:text-slate-100"}`}
                             disabled={!currentPath}
                             onClick={goBack}
                             type="button"
+                            aria-label="Voltar"
                         >
-                            <Icon name="arrow-left" className="text-slate-600" />
+                            <Icon name="arrow-left" />
                         </button>
                         <h2 className="max-w-md truncate font-bold text-slate-200">
-                            {currentPath || "Select Drive"}
+                            {currentPath || "Selecione unidade"}
                         </h2>
                     </div>
                     <div className="flex items-center gap-2">
@@ -103,20 +114,21 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                                 type="button"
                             >
                                 {scanning ? <Icon name="spinner" className="animate-spin" /> : <Icon name="database" />}
-                                {scanning ? "Scanning..." : "Scan to Library"}
+                                {scanning ? "Escaneando..." : "Escanear para biblioteca"}
                             </button>
                         )}
                         <button
-                            className={`rounded-lg p-2 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-600 hover:bg-red-900/20 hover:text-red-400"}`}
+                            className={`rounded-lg p-2 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-300 hover:bg-red-900/20 hover:text-red-300"}`}
                             onClick={onClose}
                             type="button"
+                            aria-label="Fechar navegador Bridge"
                         >
                             <Icon name="x" />
                         </button>
                     </div>
                 </div>
 
-                <div className="custom-scrollbar flex-1 overflow-y-auto p-4">
+                <div className="custom-scrollbar flex-1 overflow-y-auto p-4" aria-busy={loading ? "true" : "false"}>
                     {loading ? (
                         <div className="flex justify-center py-10">
                             <Icon name="spinner" className="text-3xl text-cyan-500 animate-spin" />
@@ -126,50 +138,58 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                             {drives.map((drive) => (
                                 <button
                                     key={drive}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-700 liquid-glass-inner p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-cyan-500/25 liquid-glass-inner p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
                                     onClick={() => void browse(drive)}
                                     type="button"
                                 >
-                                    <Icon name="device-hdd" className="text-4xl text-slate-500" />
+                                    <Icon name="device-hdd" className="text-4xl text-slate-300" />
                                     <span className="font-bold text-slate-200">{drive}</span>
                                 </button>
                             ))}
                         </div>
                     ) : (
                         <div className="space-y-1">
-                            {items.map((item) => (
-                                <div
-                                    key={`${item.path}::${item.name}`}
-                                    className={`cursor-pointer rounded-lg border border-transparent p-3 transition-colors ${item.is_dir
-                                        ? "text-blue-200 hover:bg-white/[0.10]"
-                                        : isVideo(item.name)
-                                            ? "text-emerald-100 hover:border-emerald-500/30 hover:bg-emerald-900/20"
-                                            : "cursor-not-allowed text-slate-500 opacity-50"
-                                        }`}
-                                    onClick={() => {
-                                        if (item.is_dir) {
-                                            void browse(item.path);
-                                            return;
-                                        }
-                                        if (isVideo(item.name)) {
-                                            onPlayVideo(getStreamUrl(item.path), item.name, item.path);
-                                        }
-                                    }}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Icon
-                                            name={item.is_dir ? "folder" : isVideo(item.name) ? "file-video" : "file"}
-                                            className={item.is_dir ? "text-blue-400" : isVideo(item.name) ? "text-emerald-400" : "text-slate-600"}
-                                        />
-                                        <span className="flex-1 truncate">{item.name}</span>
-                                        <span className="text-xs font-mono opacity-50">
-                                            {item.is_dir ? "-" : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
+                            {items.map((item) => {
+                                const itemIsVideo = isVideo(item.name);
+                                const actionable = item.is_dir || itemIsVideo;
+
+                                return (
+                                    <button
+                                        key={`${item.path}::${item.name}`}
+                                        className={`w-full rounded-lg border border-transparent p-3 text-left transition-colors ${item.is_dir
+                                            ? "text-blue-200 hover:bg-white/[0.10]"
+                                            : itemIsVideo
+                                                ? "text-emerald-100 hover:border-emerald-500/30 hover:bg-emerald-900/20"
+                                                : "cursor-not-allowed text-slate-400 opacity-50"
+                                            }`}
+                                        disabled={!actionable}
+                                        onClick={() => {
+                                            if (item.is_dir) {
+                                                void browse(item.path);
+                                                return;
+                                            }
+                                            if (itemIsVideo) {
+                                                onPlayVideo(getStreamUrl(item.path), item.name, item.path);
+                                            }
+                                        }}
+                                        type="button"
+                                        aria-label={item.is_dir ? `Abrir pasta ${item.name}` : itemIsVideo ? `Reproduzir video ${item.name}` : `Arquivo nao suportado ${item.name}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Icon
+                                                name={item.is_dir ? "folder" : itemIsVideo ? "file-video" : "file"}
+                                                className={item.is_dir ? "text-blue-400" : itemIsVideo ? "text-emerald-400" : "text-slate-400"}
+                                            />
+                                            <span className="flex-1 truncate">{item.name}</span>
+                                            <span className="text-xs font-mono opacity-50">
+                                                {item.is_dir ? "-" : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                             {items.length === 0 && (
-                                <div className="py-10 text-center italic text-slate-500">Empty folder</div>
+                                <div className="py-10 text-center italic text-slate-400">Pasta vazia</div>
                             )}
                         </div>
                     )}

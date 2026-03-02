@@ -47,8 +47,8 @@ export function FilesAlerts({
                 <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
                     <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-300" />
                     <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Capacidade Maxima</p>
-                        <p className="text-xs text-amber-100/70 font-medium">Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">BROWSE BRIDGE</span> para navegar sem limitacoes.</p>
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Compatibilidade limitada (Firefox/Safari)</p>
+                        <p className="text-xs text-amber-100/70 font-medium">Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">Abrir Bridge</span> para navegar sem limitacoes.</p>
                     </div>
                 </div>
             )}
@@ -68,7 +68,7 @@ export function FilesAlerts({
                             Conectar agora
                         </button>
                         <button
-                            className="rounded-xl border border-slate-300/50 liquid-glass-inner px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-800 transition-colors hover:bg-white/[0.10] active:scale-95"
+                            className="rounded-xl border border-cyan-500/20 liquid-glass-inner px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:bg-white/[0.08] hover:text-slate-50 active:scale-95"
                             onClick={onClearHighVolumeHint}
                             type="button"
                         >
@@ -92,7 +92,7 @@ export function FilesAlerts({
                 <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
                     <Icon name="trash" className="mt-0.5 text-[16px] text-amber-300" />
                     <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Capacidade Maxima</p>
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Filtro de Arquivos</p>
                         <p className="text-xs text-amber-100/70">Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}</p>
                     </div>
                 </div>

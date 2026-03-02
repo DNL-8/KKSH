@@ -59,8 +59,8 @@ export function LessonSidebar({
   );
 
   const wrapperClasses = mobile
-    ? `h-full w-[340px] max-w-[92vw] flex flex-col ${isIosTheme ? "ios26-section-hero" : "border-l border-slate-300/50 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl"}`
-    : `h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-slate-950/40 backdrop-blur-xl shadow-2xl"}`;
+    ? `h-full w-[340px] max-w-[92vw] flex flex-col ${isIosTheme ? "ios26-section-hero" : "border-l border-cyan-500/30 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl"}`
+    : `h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] ${isIosTheme ? "ios26-section" : "border border-cyan-500/25 bg-slate-950/40 backdrop-blur-xl shadow-2xl"}`;
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -160,19 +160,19 @@ export function LessonSidebar({
       const { section, collapsed, completedCount } = item;
       return (
         <div className="mt-1 px-2 first:mt-0">
-          <div className="group flex items-center justify-between gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner px-3 py-2 transition-colors hover:bg-white/[0.10]">
+          <div className={`group flex items-center justify-between gap-2 rounded-xl border liquid-glass-inner px-3 py-2 transition-colors hover:bg-white/[0.10] ${isIosTheme ? "border-slate-300/50" : "border-cyan-500/25"}`}>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-800 group-hover:text-slate-900 transition-colors" title={section.path} role="heading" aria-level={3}>
+              <p className={`truncate text-[10px] font-black uppercase tracking-widest transition-colors ${isIosTheme ? "text-slate-800 group-hover:text-slate-900" : "text-slate-200 group-hover:text-slate-50"}`} title={section.path} role="heading" aria-level={3}>
                 {section.path}
               </p>
-              <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 group-hover:text-slate-600">
+              <p className={`text-[9px] font-black uppercase tracking-wider ${isIosTheme ? "text-slate-500 group-hover:text-slate-600" : "text-slate-400 group-hover:text-slate-300"}`}>
                 {completedCount} / {section.lessons.length} aulas
               </p>
             </div>
             <button
               aria-expanded={!collapsed}
               aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-              className={`rounded-lg p-1.5 transition-colors disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-500 hover:bg-white/[0.10] hover:text-slate-900"}`}
+              className={`rounded-lg p-1.5 transition-colors disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-400 hover:bg-white/[0.08] hover:text-slate-100"}`}
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
               type="button"
@@ -212,7 +212,7 @@ export function LessonSidebar({
               ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
               : active
                 ? "border-[hsl(var(--accent)/0.5)] bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                : "border-slate-700/50 liquid-glass-inner text-slate-500 group-hover:border-slate-600 group-hover:text-slate-600"
+                : "border-slate-700/50 liquid-glass-inner text-slate-300 group-hover:border-slate-500 group-hover:text-slate-100"
               }`}
           >
             {lessonCompleted ? (
@@ -226,7 +226,7 @@ export function LessonSidebar({
 
           <div className="min-w-0 flex-1">
             <p
-              className={`truncate text-[13px] font-bold leading-tight transition-colors ${active ? "text-[hsl(var(--accent-light))]" : "text-slate-800 group-hover:text-slate-900"
+              className={`truncate text-[13px] font-bold leading-tight transition-colors ${active ? "text-[hsl(var(--accent-light))]" : isIosTheme ? "text-slate-800 group-hover:text-slate-900" : "text-slate-100 group-hover:text-slate-50"
                 }`}
             >
               {lesson.name}
@@ -234,11 +234,11 @@ export function LessonSidebar({
             {lessonCompleted ? (
               <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-emerald-400/80">
                 <span className="rounded bg-emerald-500/10 px-1.5 py-0.5">
-                  Concluída (+XP)
+                  Concluida (+XP)
                 </span>
               </div>
             ) : (
-              <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+              <div className={`mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
                 <span className="rounded liquid-glass-inner px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
                   {formatBytes(lesson.size)}
                 </span>
@@ -263,7 +263,7 @@ export function LessonSidebar({
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
       <div className="shrink-0 space-y-3 border-b border-cyan-950/60 px-4 py-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="files-display text-xl font-extrabold uppercase tracking-[0.12em] text-slate-900 md:text-2xl">
+          <h3 className={`files-display text-xl font-extrabold uppercase tracking-[0.12em] md:text-2xl ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>
             {mobile ? "Conteudo" : "Arquivos avulsos"}
           </h3>
           <span className="files-chip px-2 py-1 text-[10px]">
@@ -287,7 +287,7 @@ export function LessonSidebar({
 
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[14px]" />
+            <Icon name="search" className={`absolute left-3 top-1/2 -translate-y-1/2 text-[14px] ${isIosTheme ? "text-slate-500" : "text-slate-400"}`} />
             <input
               className={`w-full rounded-lg py-2.5 pl-9 pr-8 text-xs font-medium transition-all ${isIosTheme ? "ios26-field ios26-focusable text-slate-800" : "border border-cyan-900/50 bg-[#06162b] text-slate-200 placeholder-slate-500 shadow-inner focus:border-cyan-400/55 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"}`}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -297,7 +297,7 @@ export function LessonSidebar({
             />
             {searchQuery && (
               <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-200"
+                className={`absolute right-2 top-1/2 -translate-y-1/2 transition-colors ${isIosTheme ? "text-slate-600 hover:text-slate-800" : "text-slate-400 hover:text-slate-100"}`}
                 onClick={() => setSearchQuery("")}
                 type="button"
                 aria-label="Limpar busca"
@@ -309,7 +309,7 @@ export function LessonSidebar({
 
           {mobile && onClose && (
             <button
-              className={`flex items-center justify-center rounded-lg px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-700 liquid-glass text-slate-800"}`}
+              className={`flex items-center justify-center rounded-lg px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-700 liquid-glass text-slate-200"}`}
               onClick={onClose}
               type="button"
               aria-label="Fechar menu"
@@ -322,7 +322,7 @@ export function LessonSidebar({
 
       <div className={`flex-1 min-h-0 ${isIosTheme ? "ios26-section" : "bg-[#041022]"}`}>
         {flatItems.length === 0 ? (
-          <div className="py-8 text-center text-xs font-medium text-slate-500">
+          <div className={`py-8 text-center text-xs font-medium ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
             {searchQuery
               ? `Nenhum arquivo encontrado para "${searchQuery}".`
               : "Nenhum video disponivel nesta lista."}

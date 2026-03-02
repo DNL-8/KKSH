@@ -42,7 +42,7 @@ export function HudProgressBar({ value, max, tone, label, textValue, detail }: H
         <div className={`h-full rounded-full transition-all duration-700 ${HUD_BAR_TONE_CLASS[tone]} ${widthPercentClass(percentage)}`} />
       </div>
       <div className="pointer-events-none absolute left-0 top-[calc(100%+6px)] z-40 w-[230px] rounded-lg border border-slate-200/20 bg-slate-950/90 px-2.5 py-2 text-[10px] font-semibold text-slate-100 opacity-0 shadow-xl backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100">
-        <p className="text-[9px] uppercase tracking-[0.12em] text-slate-300">{label} · {textValue}</p>
+        <p className="text-[9px] uppercase tracking-[0.12em] text-slate-300">{label} - {textValue}</p>
         <p className="mt-1 leading-relaxed text-slate-200">{tooltip}</p>
       </div>
     </div>
