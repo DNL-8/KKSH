@@ -29,7 +29,7 @@ export function ProgressBar({
           {subLabel && <span className="text-[8px] leading-none text-slate-600">{subLabel}</span>}
         </div>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800/50 liquid-glass/50 p-0.5 shadow-inner">
+      <div className="h-2 w-full overflow-hidden rounded-full border border-slate-800/50 liquid-glass p-0.5 shadow-inner">
         <div
           className={`relative h-full rounded-full transition-all duration-700 ease-out ${color} ${glow} ${widthPercentClass(percentInt(value))}`}
         >
@@ -39,3 +39,4 @@ export function ProgressBar({
     </div>
   );
 }
+

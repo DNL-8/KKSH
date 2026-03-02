@@ -34,7 +34,7 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                         </p>
                     </div>
 
-                    <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass/40 backdrop-blur-md shadow-inner"}`}>
+                    <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass backdrop-blur-md shadow-inner"}`}>
                         <HudProgressBar
                             value={globalStats.hp}
                             max={100}
@@ -80,3 +80,4 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
         </>
     );
 }
+

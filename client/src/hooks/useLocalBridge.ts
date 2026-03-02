@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const LOCAL_BRIDGE_URL = `http://${window.location.hostname}:8765`;
 

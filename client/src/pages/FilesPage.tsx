@@ -540,7 +540,7 @@ export function FilesPage() {
             {/* Local Bridge Indicator */}
             <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme
               ? isBridgeConnected ? "ios26-chip ios26-status-success" : "ios26-chip"
-              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner/50 text-slate-500"
+              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner text-slate-500"
               }`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
               Bridge {isBridgeConnected ? "Online" : "Offline"}
@@ -729,7 +729,7 @@ export function FilesPage() {
             <div
               className={`absolute inset-0 transition-opacity duration-300 ${isSidebarMobileOpen ? "opacity-100" : "opacity-0"} ${isIosTheme
                 ? "ios26-section"
-                : "liquid-glass/70 backdrop-blur-sm"
+                : "liquid-glass backdrop-blur-sm"
                 }`}
               onClick={() => setIsSidebarMobileOpen(false)}
               aria-hidden="true"
@@ -767,6 +767,7 @@ export function FilesPage() {
     </div >
   );
 }
+
 
 
 

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { Icon } from "../components/common/Icon";
 
 export function AuthPanel() {
@@ -20,6 +21,7 @@ export function AuthPanel() {
         setAuthMode,
         setAuthFeedback,
     } = useAuth();
+    const { isLightTheme } = useTheme();
 
     const navigate = useNavigate();
 
@@ -30,28 +32,34 @@ export function AuthPanel() {
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-label="Painel de login">
             <button
-                className="absolute inset-0 liquid-glass/60 backdrop-blur-md transition-all duration-500 animate-in fade-in"
+                className="absolute inset-0 liquid-glass backdrop-blur-md transition-all duration-500 animate-in fade-in"
                 onClick={closeAuthPanel}
                 type="button"
                 aria-label="Fechar painel de login"
             />
-            <section className="relative z-10 w-full max-w-sm overflow-hidden rounded-[32px] border border-slate-300/50 bg-[#0a0c12]/80 p-0 shadow-2xl backdrop-blur-xl transition-all duration-500 animate-in zoom-in-95 slide-in-from-bottom-4">
+            <section
+                className={`relative z-10 w-full max-w-sm overflow-hidden rounded-[32px] border p-0 shadow-2xl backdrop-blur-xl transition-all duration-500 animate-in zoom-in-95 slide-in-from-bottom-4 ${isLightTheme
+                    ? "border-slate-300/60 bg-white/85"
+                    : "border-slate-300/50 bg-[#0a0c12]/85"
+                    }`}
+            >
                 {/* Header Gradient */}
                 <div className="absolute top-0 h-32 w-full bg-gradient-to-b from-[hsl(var(--accent)/0.15)] to-transparent" />
 
                 <div className="relative p-6 px-8 pt-8">
                     <div className="mb-8 flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">
+                            <h2 className={`text-xl font-black uppercase italic tracking-tighter ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>
                                 {authMode === "login" ? "System " : "New "}
                                 <span className="text-[hsl(var(--accent))]">{authMode === "login" ? "Access" : "Operator"}</span>
                             </h2>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            <p className={`text-[10px] font-bold uppercase tracking-widest ${isLightTheme ? "text-slate-500" : "text-slate-300"}`}>
                                 {authMode === "login" ? "Credenciais de Operador" : "Registrar novo acesso"}
                             </p>
                         </div>
                         <button
-                            className="flex h-8 w-8 items-center justify-center rounded-full liquid-glass-inner text-slate-600 transition-colors hover:liquid-glass-inner hover:text-slate-900"
+                            className={`flex h-8 w-8 items-center justify-center rounded-full liquid-glass-inner transition-colors hover:bg-white/[0.10] ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"
+                                }`}
                             onClick={closeAuthPanel}
                             type="button"
                         >
@@ -66,7 +74,7 @@ export function AuthPanel() {
                                     <Icon name="user" className="text-[48px]" />
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-sm font-bold text-slate-900">{authUser.username || authUser.email}</p>
+                                    <p className={`text-sm font-bold ${isLightTheme ? "text-slate-900" : "text-slate-100"}`}>{authUser.username || authUser.email}</p>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Online</p>
                                 </div>
                             </div>
@@ -85,7 +93,7 @@ export function AuthPanel() {
                     ) : (
                         <form className="space-y-4" data-testid="shell-auth-panel" onSubmit={handleAuthSubmit}>
                             <div className="space-y-1">
-                                <label className="ml-1 text-[10px] font-black uppercase tracking-wider text-slate-600" htmlFor="auth-email">
+                                <label className={`ml-1 text-[10px] font-black uppercase tracking-wider ${isLightTheme ? "text-slate-600" : "text-slate-300"}`} htmlFor="auth-email">
                                     Email
                                 </label>
                                 <div className="relative group">
@@ -95,7 +103,8 @@ export function AuthPanel() {
                                     <input
                                         id="auth-email"
                                         autoComplete="email"
-                                        className="w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-600 focus:border-[hsl(var(--accent)/0.5)] focus:liquid-glass/60 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all"
+                                        className={`w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
+                                            }`}
                                         data-testid="shell-auth-email"
                                         onChange={(event) => setAuthEmail(event.target.value)}
                                         placeholder="nome@exemplo.com"
@@ -106,7 +115,7 @@ export function AuthPanel() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="ml-1 text-[10px] font-black uppercase tracking-wider text-slate-600" htmlFor="auth-password">
+                                <label className={`ml-1 text-[10px] font-black uppercase tracking-wider ${isLightTheme ? "text-slate-600" : "text-slate-300"}`} htmlFor="auth-password">
                                     Password
                                 </label>
                                 <div className="relative group">
@@ -116,10 +125,11 @@ export function AuthPanel() {
                                     <input
                                         id="auth-password"
                                         autoComplete="current-password"
-                                        className="w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-600 focus:border-[hsl(var(--accent)/0.5)] focus:liquid-glass/60 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all"
+                                        className={`w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
+                                            }`}
                                         data-testid="shell-auth-password"
                                         onChange={(event) => setAuthPassword(event.target.value)}
-                                        placeholder="••••••••"
+                                        placeholder="********"
                                         type="password"
                                         value={authPassword}
                                     />
@@ -144,7 +154,8 @@ export function AuthPanel() {
 
                             <div className="text-center">
                                 <button
-                                    className="text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:text-[hsl(var(--accent))]"
+                                    className={`text-[10px] font-bold uppercase tracking-wider transition-colors hover:text-[hsl(var(--accent))] ${isLightTheme ? "text-slate-500" : "text-slate-300"
+                                        }`}
                                     disabled={authSubmitting}
                                     onClick={() => {
                                         setAuthMode(authMode === "login" ? "signup" : "login");
@@ -152,7 +163,7 @@ export function AuthPanel() {
                                     }}
                                     type="button"
                                 >
-                                    {authMode === "login" ? "Não possui acesso? Crie agora" : "Já possui conta? Acessar"}
+                                    {authMode === "login" ? "Nao possui acesso? Crie agora" : "Ja possui conta? Acessar"}
                                 </button>
                             </div>
                         </form>
@@ -160,12 +171,13 @@ export function AuthPanel() {
 
                     <div className="my-6 flex items-center gap-3">
                         <div className="h-px flex-1 liquid-glass-inner" />
-                        <span className="text-[10px] font-bold uppercase text-slate-600">Opções</span>
+                        <span className={`text-[10px] font-bold uppercase ${isLightTheme ? "text-slate-600" : "text-slate-300"}`}>Opcoes</span>
                         <div className="h-px flex-1 liquid-glass-inner" />
                     </div>
 
                     <button
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-800 transition-all hover:border-slate-300/50 hover:liquid-glass-inner hover:text-slate-900 active:scale-95"
+                        className={`flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner px-4 py-3 text-[10px] font-black uppercase tracking-wider transition-all hover:border-slate-300/50 hover:bg-white/[0.10] active:scale-95 ${isLightTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-100 hover:text-white"
+                            }`}
                         data-testid="shell-open-core-settings"
                         onClick={() => {
                             closeAuthPanel();
@@ -174,7 +186,7 @@ export function AuthPanel() {
                         type="button"
                     >
                         <Icon name="settings" className="text-[14px]" />
-                        Configurações do App
+                        Configuracoes do App
                     </button>
 
                     {authFeedback && (
@@ -187,3 +199,4 @@ export function AuthPanel() {
         </div>
     );
 }
+

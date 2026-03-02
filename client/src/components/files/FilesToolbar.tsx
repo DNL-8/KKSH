@@ -97,7 +97,7 @@ export function FilesToolbar({
                     <input
                         className={`w-full text-sm rounded-xl block pl-10 p-2.5 transition-all outline-none ${isIosTheme
                             ? "ios26-field ios26-focusable text-slate-800"
-                            : "liquid-glass/40 border border-slate-300/50 text-slate-200 focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
+                            : "liquid-glass border border-slate-300/50 text-slate-200 focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] focus:border-[hsl(var(--accent)/0.5)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] placeholder-slate-500"
                             }`}
                         data-testid="files-search-input"
                         onChange={(event) => onSearchChange(event.target.value)}
@@ -107,7 +107,7 @@ export function FilesToolbar({
                     />
                     {/* Badge floating inside search */}
                     <div className="absolute inset-y-0 right-2 flex items-center pt-px">
-                        <span className="liquid-glass-inner/80 border border-slate-300/50 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                        <span className="liquid-glass-inner border border-slate-300/50 text-slate-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
                             {completedLessonCount}/{visibleVideosCount} aulas ({completionRate}%)
                         </span>
                     </div>
@@ -149,7 +149,7 @@ export function FilesToolbar({
                         <button
                             className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all active:scale-95 ${isMenuOpen
                                 ? isIosTheme ? "ios26-control ios26-focusable text-slate-900 shadow-lg" : "liquid-glass-inner border-slate-300/50 text-slate-900 shadow-lg"
-                                : isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "liquid-glass/40 border-slate-300/50 text-slate-600 hover:liquid-glass-inner hover:text-slate-900"
+                                : isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "liquid-glass border-slate-300/50 text-slate-600 hover:bg-white/[0.10] hover:text-slate-900"
                                 }`}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Opcoes avancadas"
@@ -165,7 +165,7 @@ export function FilesToolbar({
                                     Biblioteca
                                 </div>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-50"
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:bg-white/[0.10] hover:text-slate-900 disabled:opacity-50"
                                     disabled={loading || saving || visibleVideosCount === 0}
                                     onClick={() => { onExportMetadata(); setIsMenuOpen(false); }}
                                     type="button"
@@ -174,7 +174,7 @@ export function FilesToolbar({
                                     Fazer Backup (Exportar)
                                 </button>
                                 <button
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:liquid-glass-inner hover:text-slate-900 disabled:opacity-50"
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-800 transition-colors hover:bg-white/[0.10] hover:text-slate-900 disabled:opacity-50"
                                     disabled={loading || saving}
                                     onClick={() => { onImportMetadataClick(); setIsMenuOpen(false); }}
                                     type="button"
@@ -243,7 +243,7 @@ export function FilesToolbar({
 
                 <div className="flex items-center gap-2">
                     <button
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:liquid-glass-inner text-slate-600 hover:text-slate-900"}`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-600 hover:text-slate-900"}`}
                         onClick={onToggleMobileSidebar}
                         type="button"
                         title="Ver lista de videos"
@@ -251,7 +251,7 @@ export function FilesToolbar({
                         <Icon name="list" className="text-[14px]" />
                     </button>
                     <button
-                        className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:liquid-glass-inner text-slate-600 hover:text-[hsl(var(--accent))]"}`}
+                        className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-600 hover:text-[hsl(var(--accent))]"}`}
                         onClick={onOpenVisualSettings}
                         type="button"
                         title="Configuracoes Visuais"
@@ -265,3 +265,4 @@ export function FilesToolbar({
         </div>
     );
 }
+

@@ -264,12 +264,12 @@ export function EvolutionPage() {
               <div className="flex items-start justify-between gap-6">
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-950/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.2)] backdrop-blur-sm">
-                    <Icon name="sword" className="text-[13px]" /> Rank {activeQuest?.rank ?? "F"} - Dungeon
+                    <Icon name="sword" className="text-[13px]" /> Rank {activeQuest?.rank ?? "F"} - Masmorra
                   </div>
                   <h2 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 drop-shadow-sm md:text-5xl">CATEDRAL {activeQuest?.subject.toUpperCase() ?? "Geral"}</h2>
                   <p className="max-w-xl text-[13px] leading-relaxed text-slate-600 font-medium">
                     {activeQuest?.objective ??
-                      "Uma dungeon focada em evolucao geral."}
+                      "Uma masmorra focada em evolucao geral."}
                   </p>
                 </div>
                 <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-300/50 bg-gradient-to-br from-black to-slate-900 shadow-[inset_0_5px_15px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)]">
@@ -292,7 +292,7 @@ export function EvolutionPage() {
                     {activeQuest?.rewardLabel ?? "+0 XP / +0 G"}
                   </span>
                 </div>
-                <div className="h-4 overflow-hidden rounded-full border border-cyan-500/30 liquid-glass/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] p-0.5">
+                <div className="h-4 overflow-hidden rounded-full border border-cyan-500/30 liquid-glass shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] p-0.5">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r from-blue-900 via-cyan-500 to-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.6),inset_0_0_5px_rgba(255,255,255,0.5)] transition-all duration-700 ease-out`}
                     style={{ width: `${dungeonProgressPercent}%` }}
@@ -425,7 +425,7 @@ export function EvolutionPage() {
                     </div>
                     <h4 className={`text-[13px] font-bold leading-snug ${quest.completed ? "text-slate-500" : "text-slate-900"}`}>{quest.title}</h4>
                     <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Progresso: <span className="text-slate-800">{quest.progressLabel}</span> • Nv. <span className="text-orange-300">{quest.difficulty}</span>
+                      Progresso: <span className="text-slate-800">{quest.progressLabel}</span> - Nv. <span className="text-orange-300">{quest.difficulty}</span>
                     </p>
                     <div className="mt-4 rounded-xl border border-slate-300/50 liquid-glass-inner p-3 text-[10px] font-mono text-slate-600 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                       Recompensa: <span className="font-bold text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]">{quest.rewardLabel}</span>

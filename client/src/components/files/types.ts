@@ -1,4 +1,4 @@
-﻿
+
 import type { StoredVideo } from "../../lib/localVideosStore";
 
 export interface FolderSection {

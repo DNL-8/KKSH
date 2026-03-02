@@ -52,7 +52,7 @@ function StatBar({
             </div>
             <span className={`w-8 text-right text-[10px] font-black tabular-nums ${textClass}`}>{value}%</span>
             <div className="pointer-events-none absolute left-0 top-[calc(100%+6px)] z-50 w-[240px] rounded-lg border border-slate-200/20 bg-slate-950/90 px-2.5 py-2 text-[10px] font-semibold text-slate-100 opacity-0 shadow-xl backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100">
-                <p className="text-[9px] uppercase tracking-[0.12em] text-slate-300">{label} · {value}%</p>
+                <p className="text-[9px] uppercase tracking-[0.12em] text-slate-300">{label} - {value}%</p>
                 <p className="mt-1 leading-relaxed text-slate-200">{detail}</p>
             </div>
         </div>
@@ -224,7 +224,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
                         <div
                             className={`group flex h-[56px] w-[56px] shrink-0 flex-col items-center justify-center rounded-xl transition-all duration-500 sm:h-[64px] sm:w-[64px] ${isIosTheme
                                 ? "ios26-card ios26-sheen"
-                                : "border border-[hsl(var(--accent)/0.2)] liquid-glass/60 shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
+                                : "border border-[hsl(var(--accent)/0.2)] liquid-glass shadow-[inset_0_0_20px_rgba(148,163,184,0.15)] hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[inset_0_0_20px_rgba(var(--glow),0.15),0_0_20px_rgba(var(--glow),0.1)]"
                                 }`}
                             data-testid="top-level-card"
                         >
@@ -362,3 +362,4 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
         </header>
     );
 }
+

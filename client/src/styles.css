@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -703,7 +703,7 @@ select:focus-visible,
 
 /* iOS 16 Liquid Glass System */
 .ios-bg {
-  /* Removido para evitar stacking, usar apenas no container pai se necessÃ¡rio ou usar .ios-bg-root */
+  /* Removido para evitar stacking, usar apenas no container pai se necessário ou usar .ios-bg-root */
   background: transparent;
 }
 

@@ -1,4 +1,4 @@
-﻿import { DEFAULT_RELATIVE_PATH, type StoredVideo } from "../../lib/localVideosStore";
+import { DEFAULT_RELATIVE_PATH, type StoredVideo } from "../../lib/localVideosStore";
 import { Icon } from "../common/Icon";
 
 interface LocalVideoCardProps {

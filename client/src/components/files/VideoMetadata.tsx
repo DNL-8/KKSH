@@ -30,7 +30,7 @@ export function VideoMetadata({
                 <button
                     className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "overview"
                         ? isIosTheme ? "ios26-chip-active" : "bg-[hsl(var(--accent)/0.15)] text-[hsl(var(--accent-light))] shadow-[0_0_15px_rgba(var(--glow),0.1)]"
-                        : isIosTheme ? "ios26-chip ios26-focusable" : "bg-transparent text-slate-500 hover:text-slate-800 hover:liquid-glass-inner"
+                        : isIosTheme ? "ios26-chip ios26-focusable" : "bg-transparent text-slate-500 hover:text-slate-800 hover:bg-white/[0.10]"
                         }`}
                     data-testid="tab-overview"
                     onClick={() => onTabChange("overview")}
@@ -41,7 +41,7 @@ export function VideoMetadata({
                 <button
                     className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "metadata"
                         ? isIosTheme ? "ios26-chip-active" : "bg-[hsl(var(--accent)/0.15)] text-[hsl(var(--accent-light))] shadow-[0_0_15px_rgba(var(--glow),0.1)]"
-                        : isIosTheme ? "ios26-chip ios26-focusable" : "bg-transparent text-slate-500 hover:text-slate-800 hover:liquid-glass-inner"
+                        : isIosTheme ? "ios26-chip ios26-focusable" : "bg-transparent text-slate-500 hover:text-slate-800 hover:bg-white/[0.10]"
                         }`}
                     data-testid="tab-metadata"
                     onClick={() => onTabChange("metadata")}
@@ -65,7 +65,7 @@ export function VideoMetadata({
                     </div>
 
                     {/* Unified Stats Bar */}
-                    <div className={`flex flex-col sm:flex-row items-stretch rounded-2xl overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/5 ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass/30"}`}>
+                    <div className={`flex flex-col sm:flex-row items-stretch rounded-2xl overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/5 ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass"}`}>
                         <div className="flex-1 p-5 relative overflow-hidden group">
                             <div className="absolute -right-4 -top-4 text-slate-800 transition-transform group-hover:scale-110 group-hover:text-[hsl(var(--accent)/0.05)]"><svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v12H4z" /></svg></div>
                             <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 relative z-10">Total Videos</p>
@@ -96,7 +96,7 @@ export function VideoMetadata({
             ) : (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {selectedVideo ? (
-                        <div className={`rounded-2xl overflow-hidden ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass/30"}`}>
+                        <div className={`rounded-2xl overflow-hidden ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass"}`}>
                             {/* Nome do arquivo - Header do Card */}
                             <div className="p-5 border-b border-slate-300/50 bg-white/[0.02] relative overflow-hidden">
                                 <div className="absolute right-0 top-0 w-32 h-32 bg-[hsl(var(--accent)/0.05)] rounded-full blur-[40px]" />
@@ -116,7 +116,7 @@ export function VideoMetadata({
                                 </div>
                                 <div className="p-5 group hover:bg-white/[0.02] transition-colors">
                                     <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">Codex</p>
-                                    <p className="font-mono text-[11px] font-bold text-slate-600 liquid-glass-inner/50 px-2 py-0.5 inline-block rounded">{selectedVideo.type || "video/*"}</p>
+                                    <p className="font-mono text-[11px] font-bold text-slate-600 liquid-glass-inner px-2 py-0.5 inline-block rounded">{selectedVideo.type || "video/*"}</p>
                                 </div>
                                 <div className="p-5 group hover:bg-white/[0.02] transition-colors">
                                     <p className="text-[9px] uppercase font-black tracking-widest text-slate-500 mb-1">Storage</p>
@@ -150,3 +150,4 @@ export function VideoMetadata({
         </div>
     );
 }
+

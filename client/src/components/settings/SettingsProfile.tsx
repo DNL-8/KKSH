@@ -40,13 +40,13 @@ export function SettingsProfile() {
 
     return (
         <div className={`overflow-hidden rounded-[40px] p-1 ${isIosTheme ? "ios26-section" : "border border-slate-800 bg-[#0a0a0b]/60 shadow-2xl backdrop-blur-xl"}`}>
-            <div className={`relative overflow-hidden rounded-[36px] p-8 md:p-12 ${isIosTheme ? "ios26-section" : "liquid-glass/50"}`}>
+            <div className={`relative overflow-hidden rounded-[36px] p-8 md:p-12 ${isIosTheme ? "ios26-section" : "liquid-glass"}`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-50" />
 
                 <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-start">
                     <div className="relative group perspective-1000">
                         <div className="absolute inset-0 -inset-4 rounded-full bg-[radial-gradient(circle,rgba(var(--glow),0.4),transparent_70%)] blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-110 transition duration-700" />
-                        <div className="relative h-24 w-24 overflow-hidden rounded-full border border-slate-300/50 liquid-glass/60 p-1 md:h-32 md:w-32 shadow-[inset_0_0_20px_rgba(var(--glow),0.3)] transform-style-3d transition-transform duration-500 group-hover:rotate-y-12">
+                        <div className="relative h-24 w-24 overflow-hidden rounded-full border border-slate-300/50 liquid-glass p-1 md:h-32 md:w-32 shadow-[inset_0_0_20px_rgba(var(--glow),0.3)] transform-style-3d transition-transform duration-500 group-hover:rotate-y-12">
                             <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#0c1020] to-[#04060a] text-[hsl(var(--accent))] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8)]">
                                 <Icon name="robot" className="h-10 w-10 md:h-12 md:w-12 text-[48px] drop-shadow-[0_0_10px_rgba(var(--glow),0.8)]" />
                             </div>
@@ -109,11 +109,11 @@ export function SettingsProfile() {
                         </div>
 
                         <div className="grid gap-5 md:grid-cols-2">
-                            <div className="rounded-2xl border border-slate-300/50 liquid-glass-inner p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:liquid-glass/60">
+                            <div className="rounded-2xl border border-slate-300/50 liquid-glass-inner p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:bg-white/[0.08]">
                                 <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] drop-shadow-[0_0_5px_rgba(var(--glow),0.3)]">ID do Usuario</span>
                                 <code className="font-mono text-[11px] text-slate-800 bg-white/[0.03] px-2 py-1 rounded">{user?.id}</code>
                             </div>
-                            <div className="rounded-2xl border border-slate-300/50 liquid-glass-inner p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:liquid-glass/60">
+                            <div className="rounded-2xl border border-slate-300/50 liquid-glass-inner p-5 shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] transition-all hover:bg-white/[0.08]">
                                 <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[hsl(var(--accent)/0.6)] drop-shadow-[0_0_5px_rgba(var(--glow),0.3)]">Email</span>
                                 <div className="flex items-center justify-between">
                                     <code className="font-mono text-[11px] text-slate-800 bg-white/[0.03] px-2 py-1 rounded">{user?.email}</code>
@@ -127,3 +127,4 @@ export function SettingsProfile() {
         </div>
     );
 }
+

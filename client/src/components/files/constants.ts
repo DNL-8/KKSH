@@ -1,4 +1,4 @@
-﻿
+
 import type { OrderMode, TabMode } from "./types";
 
 export const ORDER_MODES: OrderMode[] = ["source", "newest", "oldest", "name_asc", "name_desc", "size_desc", "size_asc"];

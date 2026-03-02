@@ -198,7 +198,7 @@ export function HubPage() {
                 onClick={openEditModal}
                 className={`rounded-full p-1.5 transition-colors ${isIosTheme
                   ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
-                  : "border border-slate-700/50 text-slate-600 hover:text-slate-900 hover:liquid-glass-inner"
+                  : "border border-slate-700/50 text-slate-600 hover:text-slate-900 hover:bg-white/[0.10]"
                   }`}
               >
                 <Icon name="settings" />
@@ -227,7 +227,7 @@ export function HubPage() {
             <div>
               <h2 className="text-2xl font-black uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 drop-shadow-sm">{authUser ? "Shadow Hunter" : "Operador"}</h2>
               <div className="mt-1 inline-flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-300">
-                <Icon name="shield-check" className="text-xs" /> Nivel {level} • Rank {rank}
+                <Icon name="shield-check" className="text-xs" /> Nivel {level} - Rank {rank}
               </div>
               <div className="mt-3 flex gap-3 text-slate-600">
                 <div className="flex items-center gap-1.5 rounded liquid-glass-inner px-2 py-1"><Icon name="bolt" className="text-xs text-yellow-400" /><span className="text-[9px] font-bold">120K</span></div>
@@ -281,7 +281,7 @@ export function HubPage() {
             </div>
             <div className="mb-4 flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-slate-600">
               <span className="text-slate-900">Rank {(activeQuest?.rank ?? "F").toUpperCase()}</span>
-              <span className="text-slate-600">•</span>
+              <span className="text-slate-600">-</span>
               <span className={activeQuest ? "text-red-400" : "text-cyan-400"}>{threatLabel}</span>
             </div>
 
@@ -290,7 +290,7 @@ export function HubPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-600/90 font-medium">
-              {activeQuest?.objective ?? activeQuest?.description ?? "Aguardando sincronizacao de dados diários. Conclua sessoes de foco ou revise conteudos para liberar a incursao."}
+              {activeQuest?.objective ?? activeQuest?.description ?? "Aguardando sincronizacao de dados diarios. Conclua sessoes de foco ou revise conteudos para liberar a incursao."}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -313,7 +313,7 @@ export function HubPage() {
                 <span>Sincronizacao Concluida</span>
                 <span data-testid="hub-mission-progress" className={`${activeQuest ? "text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]" : "text-slate-500"} font-mono`}>{missionProgress}</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full border border-slate-300/50 liquid-glass/60 shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] relative">
+              <div className="h-3 overflow-hidden rounded-full border border-slate-300/50 liquid-glass shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] relative">
                 <div className={`absolute left-0 top-0 h-full rounded-full transition-all duration-1000 ease-out ${widthPercentClass(missionPercent)} ${activeQuest ? "bg-gradient-to-r from-red-900 via-red-500 to-red-400 shadow-[0_0_15px_rgba(239,68,68,0.6)]" : "bg-slate-700"}`} />
               </div>
             </div>
@@ -326,7 +326,7 @@ export function HubPage() {
                 ? "ios26-control ios26-focusable text-slate-800"
                 : activeQuest
                   ? "border border-red-500/50 bg-red-600/20 text-red-100 hover:bg-red-500/40 hover:border-red-400 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md"
-                  : "border border-slate-700 liquid-glass-inner/50 text-slate-600 hover:bg-slate-700 hover:text-slate-900"
+                  : "border border-slate-700 liquid-glass-inner text-slate-600 hover:bg-slate-700 hover:text-slate-900"
                 }`}
             >
               <Icon name="sword" className="text-lg" /> Iniciar Incursao
@@ -339,7 +339,7 @@ export function HubPage() {
         <SystemCard icon="layers" tone="orange" title="Masmorra Ativa" value={`${dueReviews} Revisoes`} sub={`${openDailyQuests} Missoes em Aberto`} valueTestId="hub-system-masmorra-value" />
         <SystemCard icon="terminal" tone="blue" title="Protocolo Treino" value={`${todayMinutes}/${dailyTarget} min`} sub={`${todayPercent}% da Meta Diaria`} showBar progress={todayPercent} valueTestId="hub-system-training-value" />
         <SystemCard icon="cpu" tone="cyan" title="Nucleo Central" value={missionSource} sub={`Semana ${weekMinutes}/${weeklyTarget} min`} valueTestId="hub-system-core-value" action={<button type="button" onClick={() => navigateTo("/ia")} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-[10px] font-black uppercase tracking-wider text-cyan-300"><Icon name="grid" className="text-xs mr-2" />Sincronizado</button>} />
-        <SystemCard icon="chart-histogram" tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} • ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-slate-300/50 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
+        <SystemCard icon="chart-histogram" tone="purple" title="Status Evolucao" value={`Streak: ${streakDays}`} sub={`Nivel ${level} - ${weekPercent}% Semana`} valueTestId="hub-system-evolution-value" footer={<div className="mt-3 border-t border-slate-300/50 pt-3 text-[10px] font-black uppercase tracking-wider text-purple-400">Maestria I</div>} />
       </div>
     </div>
   );

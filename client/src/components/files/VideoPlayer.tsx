@@ -410,7 +410,7 @@ export function VideoPlayer({
 
       {!playing && !playerError && hasSource && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/35 liquid-glass/60 backdrop-blur-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/35 liquid-glass backdrop-blur-sm">
             <Icon name="play" className="ml-1 text-slate-900 text-[32px]" />
           </div>
         </div>
@@ -437,7 +437,7 @@ export function VideoPlayer({
       )}
 
       <button
-        className={`absolute right-4 top-4 z-30 rounded-2xl p-2 transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "border border-slate-300/50 liquid-glass-inner text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl hover:border-cyan-500/40 hover:liquid-glass/60 hover:text-cyan-300"}`}
+        className={`absolute right-4 top-4 z-30 rounded-2xl p-2 transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "border border-slate-300/50 liquid-glass-inner text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl hover:border-cyan-500/40 hover:bg-white/[0.08] hover:text-cyan-300"}`}
         onClick={() => {
           setShowHotkeys((current) => !current);
           revealControls();
@@ -461,7 +461,7 @@ export function VideoPlayer({
       )}
 
       <button
-        className={`absolute right-4 top-1/2 z-30 hidden md:block -translate-y-1/2 rounded-2xl p-2.5 transition-all disabled:cursor-not-allowed disabled:opacity-45 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "border border-slate-300/50 liquid-glass-inner text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl hover:border-cyan-500/40 hover:liquid-glass/60 hover:text-cyan-300"}`}
+        className={`absolute right-4 top-1/2 z-30 hidden md:block -translate-y-1/2 rounded-2xl p-2.5 transition-all disabled:cursor-not-allowed disabled:opacity-45 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "border border-slate-300/50 liquid-glass-inner text-slate-900/90 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl hover:border-cyan-500/40 hover:bg-white/[0.08] hover:text-cyan-300"}`}
         disabled={!hasSource}
         onClick={() => void togglePictureInPicture()}
         title="Mini player"
@@ -473,7 +473,7 @@ export function VideoPlayer({
       <div
         className={`absolute bottom-0 left-0 right-0 z-30 pt-16 px-4 pb-4 md:px-6 md:pb-6 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isIosTheme ? "bg-gradient-to-t from-white/55 via-white/20 to-transparent" : "bg-gradient-to-t from-[#01030a]/95 via-[#030d1f]/60 to-transparent"} ${controlsVisible ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-6"}`}
       >
-        <div className={`group/slider relative mb-4 h-1.5 w-full cursor-pointer rounded-full hover:h-2.5 transition-all ${isIosTheme ? "ios26-kpi" : "border border-cyan-500/20 liquid-glass/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"}`} onClick={onProgressClick}>
+        <div className={`group/slider relative mb-4 h-1.5 w-full cursor-pointer rounded-full hover:h-2.5 transition-all ${isIosTheme ? "ios26-kpi" : "border border-cyan-500/20 liquid-glass shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"}`} onClick={onProgressClick}>
           <div className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)] ${widthPercentClass(progressPercent)}`}>
             <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 scale-0 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(34,211,238,1)] transition-transform group-hover/slider:scale-100" />
           </div>
@@ -584,3 +584,4 @@ export function VideoPlayer({
     </div>
   );
 }
+

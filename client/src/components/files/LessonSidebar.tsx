@@ -160,7 +160,7 @@ export function LessonSidebar({
       const { section, collapsed, completedCount } = item;
       return (
         <div className="mt-1 px-2 first:mt-0">
-          <div className="group flex items-center justify-between gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner/20 px-3 py-2 transition-colors hover:liquid-glass-inner/40">
+          <div className="group flex items-center justify-between gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner px-3 py-2 transition-colors hover:bg-white/[0.10]">
             <div className="min-w-0 flex-1">
               <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-800 group-hover:text-slate-900 transition-colors" title={section.path} role="heading" aria-level={3}>
                 {section.path}
@@ -172,7 +172,7 @@ export function LessonSidebar({
             <button
               aria-expanded={!collapsed}
               aria-label={collapsed ? `Expandir pasta ${section.path}` : `Recolher pasta ${section.path}`}
-              className={`rounded-lg p-1.5 transition-colors disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-500 hover:liquid-glass-inner hover:text-slate-900"}`}
+              className={`rounded-lg p-1.5 transition-colors disabled:opacity-40 ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "text-slate-500 hover:bg-white/[0.10] hover:text-slate-900"}`}
               disabled={Boolean(searchQuery)}
               onClick={() => onToggleFolder(section.path)}
               type="button"
@@ -212,7 +212,7 @@ export function LessonSidebar({
               ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
               : active
                 ? "border-[hsl(var(--accent)/0.5)] bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-                : "border-slate-700/50 liquid-glass-inner/30 text-slate-500 group-hover:border-slate-600 group-hover:text-slate-600"
+                : "border-slate-700/50 liquid-glass-inner text-slate-500 group-hover:border-slate-600 group-hover:text-slate-600"
               }`}
           >
             {lessonCompleted ? (
@@ -239,7 +239,7 @@ export function LessonSidebar({
               </div>
             ) : (
               <div className="mt-1.5 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                <span className="rounded liquid-glass-inner/50 px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
+                <span className="rounded liquid-glass-inner px-1.5 py-0.5 group-hover:bg-slate-700/50 transition-colors">
                   {formatBytes(lesson.size)}
                 </span>
                 <span>{storageLabel}</span>
@@ -341,3 +341,4 @@ export function LessonSidebar({
     </div>
   );
 }
+

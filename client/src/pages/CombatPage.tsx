@@ -146,14 +146,14 @@ export function CombatPage() {
         applyBattleState(result.battleState);
         setEnemyMaxHp(result.boss.hp);
         setEnemyHp(result.boss.hp);
-        pushCombatLog(`Link neural estabelecido. Incursão ao Setor Iniciada.`);
+        pushCombatLog("Link neural estabelecido. Incursao ao setor iniciada.");
         setIsLobby(false);
       } catch (error) {
         if (error instanceof ApiRequestError && error.status === 401) {
           setLoginRequired(true);
-          showToast("Autenticação necessária para o Raid.", "error");
+          showToast("Autenticacao necessaria para o raid.", "error");
         } else {
-          showToast("Não foi possível iniciar a incursão.", "error");
+          showToast("Nao foi possivel iniciar a incursao.", "error");
         }
       } finally {
         setLoadingBattle(false);
@@ -172,7 +172,7 @@ export function CombatPage() {
       applyBattleState(result.battleState);
       setCurrentQuestion(result.question);
     } catch {
-      showToast("Sinal perdido ao carregar padrão de ataque.", "error");
+      showToast("Sinal perdido ao carregar padrao de ataque.", "error");
     } finally {
       setActionLocked(false);
     }
@@ -200,7 +200,7 @@ export function CombatPage() {
         setDamagePopup(correct ? { val: result.playerDamage, type: "damage" } : { val: 0, type: "miss" });
 
         if (correct) {
-          pushCombatLog(`Ataque Crítico! ${result.playerDamage} Dano no Core.`);
+          pushCombatLog(`Ataque critico! ${result.playerDamage} dano no core.`);
         } else {
           pushCombatLog("Ataque falhou. O World Boss resistiu.");
         }
@@ -220,12 +220,12 @@ export function CombatPage() {
         applyBattleState(result.battleState);
 
         if (result.battleState.status === "defeat") {
-          pushCombatLog(">>> VITAIS ZERADOS. INJEÇÃO DE EMERGÊNCIA FALHOU <<<");
-          showToast("Você foi abatido na incursão!", "error");
+          pushCombatLog(">>> VITAIS ZERADOS. INJECAO DE EMERGENCIA FALHOU <<<");
+          showToast("Voce foi abatido na incursao!", "error");
           void invalidateProgressCaches();
         }
       } catch {
-        pushCombatLog("Falha na execução da rotina de combate.");
+        pushCombatLog("Falha na execucao da rotina de combate.");
         setTurnState("PLAYER_IDLE");
       } finally {
         setActionLocked(false);
@@ -245,8 +245,8 @@ export function CombatPage() {
         damage: result.totalDamageDealt
       });
       applyBattleState(result.battleState);
-      pushCombatLog("Extração tática concluída. XP Assegurado.");
-      showToast("Você fugiu com sucesso!", "success");
+      pushCombatLog("Extracao tatica concluida. XP assegurado.");
+      showToast("Voce fugiu com sucesso!", "success");
       void invalidateProgressCaches();
     } catch {
       showToast("O World Boss anulou sua rota de fuga!", "error");
@@ -258,7 +258,7 @@ export function CombatPage() {
   const handleHeal = useCallback(async () => {
     if (turnState !== "PLAYER_IDLE" || actionLocked || !battleIdRef.current) return;
     if (potionQty <= 0) {
-      showToast("Você não tem Café infinito no inventário!", "error");
+      showToast("Voce nao tem Cafe infinito no inventario!", "error");
       return;
     }
     setActionLocked(true);
@@ -272,7 +272,7 @@ export function CombatPage() {
       setDamagePopup({ val: result.healAmount, type: "heal" });
       window.setTimeout(() => setDamagePopup(null), 1000);
 
-      pushCombatLog(`Injeção Caffeinica aplicada. +${result.healAmount} HP Módulos restaurados.`);
+      pushCombatLog(`Injecao cafeinica aplicada. +${result.healAmount} HP modulos restaurados.`);
       void invalidateProgressCaches();
     } catch {
       showToast("Falha ao consumir item.", "error");
@@ -303,8 +303,8 @@ export function CombatPage() {
           <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]">
             Dano Absoluto
           </h1>
-          <p className="max-w-xl text-slate-600 font-medium text-sm mt-6">
-            O algoritmo mestre está corrompendo as fundações. Insira-se na interface, cause o máximo de dano possível e extraia antes que seus vitais zerem.
+          <p className="max-w-xl text-slate-300 font-medium text-sm mt-6">
+            O algoritmo mestre esta corrompendo as fundacoes. Entre na interface, cause o maximo de dano e extraia antes que seus vitais zerem.
           </p>
         </div>
 
@@ -320,11 +320,11 @@ export function CombatPage() {
             <div className="flex-1 w-full space-y-4">
               <div className="flex justify-between items-end">
                 <div>
-                  <h3 className="text-3xl font-black uppercase italic text-slate-900 tracking-tighter">O Devorador de Arrays</h3>
+                  <h3 className="text-3xl font-black uppercase italic text-slate-100 tracking-tighter">O Devorador de Arrays</h3>
                   <div className="text-[10px] font-bold text-red-400 tracking-widest uppercase">Endless Protocol</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-black text-slate-900 decoration-red-500 underline decoration-4 underline-offset-4">9,999,999</div>
+                  <div className="text-2xl font-black text-slate-100 decoration-red-500 underline decoration-4 underline-offset-4">9,999,999</div>
                   <div className="text-[10px] font-bold text-slate-500 tracking-widest uppercase mt-1">Global HP</div>
                 </div>
               </div>
@@ -347,8 +347,8 @@ export function CombatPage() {
         <div className="max-w-6xl mx-auto w-full px-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
-              <h4 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900">Selecione um Setor</h4>
-              <p className="text-xs text-slate-500 font-medium">Temas teóricos definirão os padrões de ataque.</p>
+              <h4 className="text-2xl font-black uppercase italic tracking-tighter text-slate-100">Selecione um Setor</h4>
+              <p className="text-xs text-slate-300 font-medium">Temas teoricos definem os padroes de ataque.</p>
             </div>
             {loginRequired && (
               <button onClick={openAuthPanel} className="bg-red-500 hover:bg-red-400 text-slate-900 px-6 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)]">
@@ -364,21 +364,21 @@ export function CombatPage() {
                 onClick={() => setSelectedModuleId(mod.id)}
                 className={`text-left group relative overflow-hidden rounded-[32px] p-6 transition-all duration-300 ${selectedModuleId === mod.id
                   ? "liquid-glass-inner border-slate-300/50 shadow-[0_10px_40px_rgba(255,255,255,0.05)] ring-2 ring-white/30"
-                  : "liquid-glass-inner border-slate-300/50 hover:liquid-glass-inner hover:border-slate-300/50"
+                  : "liquid-glass-inner border-slate-300/50 hover:bg-white/[0.10] hover:border-slate-300/50"
                   } border backdrop-blur-md`}
               >
                 <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-30 ${mod.color} group-hover:opacity-60 transition-opacity`} />
                 <div className="relative z-10 flex flex-col h-full">
                   <div className="mb-4">
                     <Icon name="bolt" className={`${mod.color} text-2xl mb-4`} />
-                    <h5 className="text-lg font-black uppercase tracking-tight text-slate-900 mb-1">{mod.title}</h5>
-                    <p className="text-xs text-slate-600 line-clamp-2">{mod.description}</p>
+                    <h5 className="text-lg font-black uppercase tracking-tight text-slate-100 mb-1">{mod.title}</h5>
+                    <p className="text-xs text-slate-300 line-clamp-2">{mod.description}</p>
                   </div>
                   <div className="mt-auto flex justify-between items-center pt-4 border-t border-slate-300/50">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${mod.color}`}>
                       {mod.difficulty}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-500">
+                    <span className="text-[10px] font-bold text-slate-300">
                       {mod.questions.length} Nodes
                     </span>
                   </div>
@@ -428,7 +428,7 @@ export function CombatPage() {
             <Icon name="skull" className="text-3xl animate-pulse" />
           </div>
           <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-100 leading-none">
               O Devorador de Arrays
             </h2>
             <div className="text-[10px] font-bold tracking-widest text-red-400 mt-1">SETOR: {activeModule.title}</div>
@@ -437,8 +437,8 @@ export function CombatPage() {
 
         <div className="flex-1 w-full max-w-2xl px-4 md:px-0">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">HP do World Boss</span>
-            <span className="text-sm font-black text-slate-900">{enemyHp.toLocaleString()} / {enemyMaxHp.toLocaleString()}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">HP do World Boss</span>
+            <span className="text-sm font-black text-slate-100">{enemyHp.toLocaleString()} / {enemyMaxHp.toLocaleString()}</span>
           </div>
           <div className="h-3 w-full overflow-hidden rounded-full liquid-glass border border-slate-300/50 relative">
             <div className={`h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-1000 ${widthPercentClass(hpPercent)}`} />
@@ -462,14 +462,14 @@ export function CombatPage() {
           <div className="absolute inset-0 animate-pulse-slow rounded-full bg-red-600/10 blur-[120px] transition-all duration-700 group-hover:bg-red-600/30 w-[400px] h-[400px] -left-[100px] -top-[100px]" />
 
           <div className="relative z-10 text-9xl md:text-[200px] transition-transform duration-500 group-hover:scale-105">
-            <span className="opacity-80 mix-blend-screen inline-block animate-[float_4s_ease-in-out_infinite]">👾</span>
+            <Icon name="skull" className="text-red-500/80 text-[160px] md:text-[200px] drop-shadow-[0_0_30px_rgba(239,68,68,0.45)] animate-[float_4s_ease-in-out_infinite]" />
           </div>
         </div>
 
         {/* Floating Combat Logs */}
         <div className="absolute right-8 top-1/4 w-64 space-y-2 pointer-events-none fade-in mask-linear-fade h-64 overflow-hidden flex flex-col justify-end">
           {combatLogs.map((log, i) => (
-            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-slate-900 font-bold text-xs" : "text-slate-500"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
+            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-slate-100 font-bold text-xs" : "text-slate-300"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
               {log}
             </div>
           ))}
@@ -477,15 +477,15 @@ export function CombatPage() {
       </main>
 
       {/* BOTTOM HUD: Player Stats & Actions JRPG Style */}
-      <footer className="relative z-20 w-full border-t border-slate-300/50 liquid-glass/60 backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
+      <footer className="relative z-20 w-full border-t border-slate-300/50 liquid-glass backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
         {/* Vitals Panel */}
         <div className="w-full md:w-1/3 flex flex-col gap-4">
-          <h3 className="text-xl font-black italic text-slate-900 tracking-tighter uppercase mb-2">Suas métricas</h3>
+          <h3 className="text-xl font-black italic text-slate-100 tracking-tighter uppercase mb-2">Suas metricas</h3>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between items-end mb-1">
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">HP Vital</span>
-                <span className="text-sm font-black text-slate-900">{playerHp} <span className="text-slate-500">/ {playerMaxHp}</span></span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">HP Vital</span>
+                <span className="text-sm font-black text-slate-100">{playerHp} <span className="text-slate-400">/ {playerMaxHp}</span></span>
               </div>
               <div className="h-4 w-full liquid-glass rounded-sm overflow-hidden box-border border-b-2 border-slate-300/50">
                 <div className={`h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500 ${widthPercentClass(playerHpPercent)}`} />
@@ -499,7 +499,7 @@ export function CombatPage() {
           <button
             disabled={actionLocked || turnState !== "PLAYER_IDLE"}
             onClick={startPlayerAttack}
-            className="flex-1 md:flex-none relative overflow-hidden liquid-glass-inner border border-slate-300/50 hover:bg-white/20 hover:border-white/30 text-slate-900 rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex-1 md:flex-none relative overflow-hidden liquid-glass-inner border border-slate-300/50 hover:bg-white/20 hover:border-white/30 text-slate-100 rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             <span className="flex items-center justify-center gap-3">
@@ -531,7 +531,7 @@ export function CombatPage() {
 
       {/* Result Overlay */}
       {(turnState === "VICTORY" || turnState === "DEFEAT") && (
-        <div className="absolute inset-0 z-50 liquid-glass/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
+        <div className="absolute inset-0 z-50 liquid-glass backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
           <div className="max-w-xl w-full text-center space-y-8">
             <h2 className={`text-6xl md:text-8xl font-black italic uppercase tracking-tighter ${turnState === "VICTORY" ? "text-emerald-500" : "text-red-600"}`}>
               {turnState === "VICTORY" ? "BOSSKILL" : "M.I.A."}
@@ -539,19 +539,19 @@ export function CombatPage() {
 
             {extractedData && (
               <div className="liquid-glass-inner rounded-3xl p-8 border border-slate-300/50 space-y-6">
-                <p className="text-slate-600 text-sm font-medium">Balanço da Extração</p>
+                <p className="text-slate-300 text-sm font-medium">Balanco da extracao</p>
 
                 <div className="flex justify-center gap-8">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-500 uppercase font-black mb-1">Dano Causado</span>
+                    <span className="text-[10px] text-slate-300 uppercase font-black mb-1">Dano Causado</span>
                     <span className="text-3xl font-black text-rose-500">{extractedData.damage}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-500 uppercase font-black mb-1">XP Assegurado</span>
+                    <span className="text-[10px] text-slate-300 uppercase font-black mb-1">XP Assegurado</span>
                     <span className="text-3xl font-black text-blue-400">{extractedData.xp}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-500 uppercase font-black mb-1">Créditos</span>
+                    <span className="text-[10px] text-slate-300 uppercase font-black mb-1">Creditos</span>
                     <span className="text-3xl font-black text-yellow-500">{extractedData.gold}</span>
                   </div>
                 </div>
@@ -570,3 +570,4 @@ export function CombatPage() {
     </div>
   );
 }
+

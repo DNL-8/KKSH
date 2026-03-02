@@ -3,7 +3,7 @@ import { Icon } from "../components/common/Icon";
 import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 import { useTheme } from "../contexts/ThemeContext";
 
-// --- ESTILOS GLOBAIS (UX/UI Premium + AnimaÃ§Ãµes) ---
+// --- ESTILOS GLOBAIS (UX/UI Premium + Animações) ---
 const globalStyles = `
   @keyframes scanline {
     0% { transform: translateY(-100%); }
@@ -64,53 +64,53 @@ const WEEKLY_DUNGEONS = [
     {
         id: 'seg',
         day: 'Segunda',
-        title: "Peito + TrÃ­ceps",
+        title: "Peito + Tríceps",
         rank: "D",
-        type: "ForÃ§a e Hipertrofia",
+        type: "Força e Hipertrofia",
         estimatedMinutes: 60,
         blocks: [
             { id: 'seg_aq1', title: "Polichinelo", desc: "Aquecimento", time: "2 min" },
-            { id: 'seg_aq2', title: "FlexÃ£o Leve", desc: "Aquecimento", time: "2 x 10 reps" },
+            { id: 'seg_aq2', title: "Flexão Leve", desc: "Aquecimento", time: "2 x 10 reps" },
             { id: 'seg_aq3', title: "Mobilidade Ombro", desc: "Aquecimento", time: "3 min" },
-            { id: 'seg_1', title: "Supino no ChÃ£o c/ Barra", desc: "Principal: Foco em peitoral", time: "4 x 8â€“12 reps" },
-            { id: 'seg_2', title: "Supino Pegada Fechada", desc: "Principal: Foco trÃ­ceps", time: "3 x 10 reps" },
-            { id: 'seg_3', title: "Pullover com Barra", desc: "Principal: ExpansÃ£o", time: "3 x 12 reps" },
-            { id: 'seg_4', title: "Mergulho entre Cadeiras", desc: "Principal: Peso corporal", time: "3 x 8â€“12 reps" },
-            { id: 'seg_fin', title: "FlexÃ£o (Finalizador)", desc: "AtÃ© falhar", time: "2 sÃ©ries" },
-            { id: 'seg_al', title: "Alongamento Superior", desc: "Volta Ã  calma", time: "5 min" },
+            { id: 'seg_1', title: "Supino no Chao c/ Barra", desc: "Principal: Foco em peitoral", time: "4 x 8-12 reps" },
+            { id: 'seg_2', title: "Supino Pegada Fechada", desc: "Principal: Foco tríceps", time: "3 x 10 reps" },
+            { id: 'seg_3', title: "Pullover com Barra", desc: "Principal: Expansão", time: "3 x 12 reps" },
+            { id: 'seg_4', title: "Mergulho entre Cadeiras", desc: "Principal: Peso corporal", time: "3 x 8-12 reps" },
+            { id: 'seg_fin', title: "Flexão (Finalizador)", desc: "Até falhar", time: "2 séries" },
+            { id: 'seg_al', title: "Alongamento Superior", desc: "Volta à calma", time: "5 min" },
         ]
     },
     {
         id: 'ter',
-        day: 'TerÃ§a',
-        title: "Pernas (QuadrÃ­ceps)",
+        day: 'Terça',
+        title: "Pernas (Quadríceps)",
         rank: "D",
-        type: "ForÃ§a Inferior",
+        type: "Força Inferior",
         estimatedMinutes: 60,
         blocks: [
             { id: 'ter_aq', title: "Mobilidade Quadril + Joelho", desc: "Aquecimento", time: "10 min" },
-            { id: 'ter_1', title: "Agachamento com Barra", desc: "Principal: Base forte", time: "4 x 10â€“12 reps" },
-            { id: 'ter_2', title: "Agachamento Frontal", desc: "Principal: Foco quadrÃ­ceps", time: "3 x 10 reps" },
-            { id: 'ter_3', title: "AvanÃ§o com Barra", desc: "Principal: Unilateral", time: "3 x 10 cada perna" },
-            { id: 'ter_4', title: "Isometria na Parede", desc: "ResistÃªncia (Wall sit)", time: "3 x 40 seg" },
-            { id: 'ter_fin', title: "Agachamento Livre (Finalizador)", desc: "Ritmo contÃ­nuo", time: "5 min diretos" },
-            { id: 'ter_al', title: "Alongamento Inferior", desc: "Volta Ã  calma", time: "5 min" },
+            { id: 'ter_1', title: "Agachamento com Barra", desc: "Principal: Base forte", time: "4 x 10-12 reps" },
+            { id: 'ter_2', title: "Agachamento Frontal", desc: "Principal: Foco quadríceps", time: "3 x 10 reps" },
+            { id: 'ter_3', title: "Avanço com Barra", desc: "Principal: Unilateral", time: "3 x 10 cada perna" },
+            { id: 'ter_4', title: "Isometria na Parede", desc: "Resistência (Wall sit)", time: "3 x 40 seg" },
+            { id: 'ter_fin', title: "Agachamento Livre (Finalizador)", desc: "Ritmo contínuo", time: "5 min diretos" },
+            { id: 'ter_al', title: "Alongamento Inferior", desc: "Volta à calma", time: "5 min" },
         ]
     },
     {
         id: 'qua',
         day: 'Quarta',
-        title: "Costas + BÃ­ceps",
+        title: "Costas + Bíceps",
         rank: "D",
-        type: "ForÃ§a de Puxada",
+        type: "Força de Puxada",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'qua_aq', title: "RotaÃ§Ã£o + EscÃ¡pulas", desc: "Aquecimento", time: "10 min" },
-            { id: 'qua_1', title: "Remada Curvada com Barra", desc: "Principal: Dorsal", time: "4 x 8â€“12 reps" },
+            { id: 'qua_aq', title: "Rotação + Escápulas", desc: "Aquecimento", time: "10 min" },
+            { id: 'qua_1', title: "Remada Curvada com Barra", desc: "Principal: Dorsal", time: "4 x 8-12 reps" },
             { id: 'qua_2', title: "Levantamento Terra", desc: "Principal: Cadeia posterior pesada", time: "4 x 8 reps" },
-            { id: 'qua_3', title: "Rosca Direta com Barra", desc: "Principal: BÃ­ceps", time: "3 x 10â€“12 reps" },
+            { id: 'qua_3', title: "Rosca Direta com Barra", desc: "Principal: Biceps", time: "3 x 10-12 reps" },
             { id: 'qua_4', title: "Remada Unilateral", desc: "Usar barra curta (halter)", time: "3 x 10 cada lado" },
-            { id: 'qua_al', title: "Alongamento Costas", desc: "Volta Ã  calma", time: "5 min" },
+            { id: 'qua_al', title: "Alongamento Costas", desc: "Volta à calma", time: "5 min" },
         ]
     },
     {
@@ -121,49 +121,49 @@ const WEEKLY_DUNGEONS = [
         type: "Peso Corporal e Core",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'qui_aq1', title: "Polichinelos + RotaÃ§Ã£o", desc: "Aquecimento", time: "2 min" },
-            { id: 'qui_aq2', title: "Barras Leves + FlexÃµes", desc: "Aquecimento (2x5 barras, 2x10 flexÃµes)", time: "8 min" },
-            { id: 'qui_1', title: "Barra Fixa (Pronada)", desc: "ForÃ§a: Se falhar, faÃ§a negativas de 3-5s", time: "4 x 6â€“10 reps" },
-            { id: 'qui_2', title: "Barra Fixa (Supinada)", desc: "ForÃ§a: Chin-up para bÃ­ceps/dorsal", time: "3 x 6â€“10 reps" },
-            { id: 'qui_3', title: "FlexÃ£o de BraÃ§o", desc: "ForÃ§a: Peito e TrÃ­ceps", time: "3 x 12â€“15 reps" },
-            { id: 'qui_4', title: "Australian Pull-up", desc: "ForÃ§a: Em barra baixa ou mesa", time: "3 x 10â€“12 reps" },
-            { id: 'qui_5', title: "ElevaÃ§Ã£o de Pernas (Barra)", desc: "Core: Meta final de 15 reps limpas", time: "3 x 8â€“12 reps" },
-            { id: 'qui_6', title: "Prancha + Abd. Bicicleta", desc: "Core: 40-60s prancha e 20 bicicletas", time: "3 sÃ©ries" },
-            { id: 'qui_fin', title: "Finalizador Hardcore", desc: "3x: 5 barras, 10 flexÃµes, 15 agachamentos", time: "Sem descanso" },
+            { id: 'qui_aq1', title: "Polichinelos + Rotação", desc: "Aquecimento", time: "2 min" },
+            { id: 'qui_aq2', title: "Barras Leves + Flexões", desc: "Aquecimento (2x5 barras, 2x10 flexões)", time: "8 min" },
+            { id: 'qui_1', title: "Barra Fixa (Pronada)", desc: "Forca: Se falhar, faca negativas de 3-5s", time: "4 x 6-10 reps" },
+            { id: 'qui_2', title: "Barra Fixa (Supinada)", desc: "Forca: Chin-up para biceps/dorsal", time: "3 x 6-10 reps" },
+            { id: 'qui_3', title: "Flexao de Braco", desc: "Forca: Peito e Triceps", time: "3 x 12-15 reps" },
+            { id: 'qui_4', title: "Australian Pull-up", desc: "Forca: Em barra baixa ou mesa", time: "3 x 10-12 reps" },
+            { id: 'qui_5', title: "Elevacao de Pernas (Barra)", desc: "Core: Meta final de 15 reps limpas", time: "3 x 8-12 reps" },
+            { id: 'qui_6', title: "Prancha + Abd. Bicicleta", desc: "Core: 40-60s prancha e 20 bicicletas", time: "3 séries" },
+            { id: 'qui_fin', title: "Finalizador Hardcore", desc: "3x: 5 barras, 10 flexões, 15 agachamentos", time: "Sem descanso" },
         ]
     },
     {
         id: 'sex',
         day: 'Sexta',
-        title: "Ombro + AbdÃ´men",
+        title: "Ombro + Abdômen",
         rank: "C",
-        type: "ForÃ§a e Core",
+        type: "Força e Core",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'sex_aq', title: "RotaÃ§Ã£o Manguito + Core", desc: "Aquecimento", time: "10 min" },
-            { id: 'sex_1', title: "Desenvolvimento com Barra", desc: "Principal: Ombros completos", time: "4 x 8â€“12 reps" },
-            { id: 'sex_2', title: "ElevaÃ§Ã£o Frontal", desc: "Principal: Deltoide anterior", time: "3 x 12 reps" },
-            { id: 'sex_3', title: "Remada Alta", desc: "Principal: TrapÃ©zio e ombro", time: "3 x 10 reps" },
-            { id: 'sex_4', title: "Prancha Abdominal", desc: "Core: Isometria", time: "3 x 40â€“60 seg" },
+            { id: 'sex_aq', title: "Rotação Manguito + Core", desc: "Aquecimento", time: "10 min" },
+            { id: 'sex_1', title: "Desenvolvimento com Barra", desc: "Principal: Ombros completos", time: "4 x 8-12 reps" },
+            { id: 'sex_2', title: "Elevação Frontal", desc: "Principal: Deltoide anterior", time: "3 x 12 reps" },
+            { id: 'sex_3', title: "Remada Alta", desc: "Principal: Trapézio e ombro", time: "3 x 10 reps" },
+            { id: 'sex_4', title: "Prancha Abdominal", desc: "Core: Isometria", time: "3 x 40-60 seg" },
             { id: 'sex_5', title: "Abdominal com Peso", desc: "Core: Usar anilha", time: "3 x 15 reps" },
-            { id: 'sex_al', title: "Alongamento Geral", desc: "Volta Ã  calma", time: "5 min" },
+            { id: 'sex_al', title: "Alongamento Geral", desc: "Volta à calma", time: "5 min" },
         ]
     },
     {
         id: 'sab',
-        day: 'SÃ¡bado',
-        title: "BOSS RAID: Full Body MetabÃ³lico",
+        day: 'Sábado',
+        title: "BOSS RAID: Full Body Metabólico",
         rank: "B",
         type: "Condicionamento Extremo",
         estimatedMinutes: 60,
         blocks: [
-            { id: 'sab_aq', title: "Aquecimento DinÃ¢mico", desc: "Preparo cardÃ­aco", time: "10 min" },
+            { id: 'sab_aq', title: "Aquecimento Dinâmico", desc: "Preparo cardíaco", time: "10 min" },
             { id: 'sab_1', title: "Thruster com Barra", desc: "Circuito: Voltas 1 a 4", time: "12 reps" },
             { id: 'sab_2', title: "Terra + Remada", desc: "Circuito: Voltas 1 a 4", time: "10 reps" },
             { id: 'sab_3', title: "Burpee", desc: "Circuito: Voltas 1 a 4", time: "10 reps" },
             { id: 'sab_4', title: "Mountain Climber", desc: "Circuito: Voltas 1 a 4", time: "30 seg" },
-            { id: 'sab_desc', title: "Descanso do Circuito", desc: "RecuperaÃ§Ã£o", time: "1 min por volta" },
-            { id: 'sab_al', title: "Alongamento Completo", desc: "Volta Ã  calma", time: "10 min" },
+            { id: 'sab_desc', title: "Descanso do Circuito", desc: "Recuperação", time: "1 min por volta" },
+            { id: 'sab_al', title: "Alongamento Completo", desc: "Volta à calma", time: "10 min" },
         ]
     }
 ];
@@ -479,7 +479,7 @@ export function SystemPage() {
         setScreen('dashboard');
     };
 
-    // --- ECRÃƒS ---
+    // --- ECRAS ---
 
     const renderOnboarding = () => (
         <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden">
@@ -489,7 +489,7 @@ export function SystemPage() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
                         <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float" />
                         <h1 className="text-2xl font-black tracking-widest text-slate-900 uppercase">
-                            SincronizaÃ§Ã£o
+                            Sincronização
                         </h1>
                         <p className="mt-2 text-xs text-cyan-400/60 font-mono tracking-widest">NOVO ARSENAL DETETADO</p>
                     </div>
@@ -869,7 +869,7 @@ export function SystemPage() {
 
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-mono text-cyan-600 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
-                            <Icon name="pulse" className="text-sm" /> PrÃ³xima missao
+                            <Icon name="pulse" className="text-sm" /> Próxima missao
                         </h3>
                         <button
                             type="button"
@@ -952,7 +952,7 @@ export function SystemPage() {
 
                 <div className="mb-8 relative">
                     <span className="inline-block text-[10px] font-mono text-purple-600 border border-purple-500/30 liquid-glass-inner px-2 py-1 rounded-md uppercase tracking-widest mb-3">
-                        Rank {activeDungeon?.rank} â€¢ {activeDungeon?.day}
+                        Rank {activeDungeon?.rank} - {activeDungeon?.day}
                     </span>
                     <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3">
                         {activeDungeon?.title}
@@ -986,7 +986,7 @@ export function SystemPage() {
                     onClick={() => { setWorkoutTimer(0); setCompletedBlocks([]); setScreen('workout'); }}
                     className="btn-danger w-full py-5 text-white font-black font-mono tracking-[0.2em] uppercase rounded-xl flex items-center justify-center gap-3"
                 >
-                    <Icon name="sword" className="text-xl" /> Iniciar IncursÃ£o
+                    <Icon name="sword" className="text-xl" /> Iniciar Incursão
                 </button>
             </div>
         </div>
@@ -1032,7 +1032,7 @@ export function SystemPage() {
                                         : 'liquid-glass-inner border-white/20 hover:border-cyan-400'
                                         }`}
                                     aria-pressed={isChecked}
-                                    aria-label={`Marcar bloco ${block.title} como ${isChecked ? "nÃ£o concluÃ­do" : "concluÃ­do"}`}
+                                    aria-label={`Marcar bloco ${block.title} como ${isChecked ? "não concluído" : "concluído"}`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -1071,9 +1071,9 @@ export function SystemPage() {
                 {showSystemAlert && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">
                         <div className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl">
-                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">AnÃ¡lise TÃ¡tica</h3>
+                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
                             <p className="text-slate-700 text-sm leading-relaxed mb-8">
-                                O Sistema recomenda perÃ­odos de descanso de 60-90s entre as sÃ©ries para maximizar o ganho de XP e regeneraÃ§Ã£o de vigor.
+                                O Sistema recomenda períodos de descanso de 60-90s entre as séries para maximizar o ganho de XP e regeneração de vigor.
                             </p>
                             <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 btn-primary text-white font-black font-mono uppercase rounded-xl">
                                 Entendido
@@ -1090,13 +1090,13 @@ export function SystemPage() {
             <div className="animate-screen max-w-sm w-full relative z-10">
                 <div className="text-center mb-10">
                     <Icon name="trophy" className="text-[64px] text-yellow-500 mb-4" />
-                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">ConcluÃ­do</h2>
+                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">Concluído</h2>
                 </div>
 
                 <SystemWindow title="Recompensas Adquiridas">
                     <div className="space-y-4">
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
-                            <span className="text-slate-600 font-bold uppercase text-xs">AÃ§Ãµes</span>
+                            <span className="text-slate-600 font-bold uppercase text-xs">Ações</span>
                             <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.blocks} XP</span>
                         </div>
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
@@ -1140,6 +1140,8 @@ export function SystemPage() {
         </>
     );
 }
+
+
 
 
 

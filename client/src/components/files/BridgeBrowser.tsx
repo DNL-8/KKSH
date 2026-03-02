@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useLocalBridge, type BridgeItem } from "../../hooks/useLocalBridge";
 import { Icon } from "../common/Icon";
@@ -78,12 +78,12 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
     }, [currentPath, scanFolder]);
 
     return (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass/80 backdrop-blur-sm"}`} role="dialog" aria-modal="true">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass backdrop-blur-sm"}`} role="dialog" aria-modal="true">
             <div className={`flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl ${isIosTheme ? "ios26-section-hero" : "border border-slate-800 bg-[#090b10]"}`}>
-                <div className={`flex items-center justify-between border-b p-4 ${isIosTheme ? "ios26-divider" : "border-slate-800 liquid-glass/50"}`}>
+                <div className={`flex items-center justify-between border-b p-4 ${isIosTheme ? "ios26-divider" : "border-slate-800 liquid-glass"}`}>
                     <div className="flex items-center gap-3">
                         <button
-                            className={`rounded-lg p-2 disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:liquid-glass-inner"}`}
+                            className={`rounded-lg p-2 disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:bg-white/[0.10]"}`}
                             disabled={!currentPath}
                             onClick={goBack}
                             type="button"
@@ -126,7 +126,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                             {drives.map((drive) => (
                                 <button
                                     key={drive}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-700 liquid-glass-inner/50 p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-700 liquid-glass-inner p-6 transition-all hover:border-cyan-500/50 hover:bg-cyan-900/20"
                                     onClick={() => void browse(drive)}
                                     type="button"
                                 >
@@ -141,7 +141,7 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                                 <div
                                     key={`${item.path}::${item.name}`}
                                     className={`cursor-pointer rounded-lg border border-transparent p-3 transition-colors ${item.is_dir
-                                        ? "text-blue-200 hover:liquid-glass-inner/80"
+                                        ? "text-blue-200 hover:bg-white/[0.10]"
                                         : isVideo(item.name)
                                             ? "text-emerald-100 hover:border-emerald-500/30 hover:bg-emerald-900/20"
                                             : "cursor-not-allowed text-slate-500 opacity-50"
@@ -178,3 +178,4 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
         </div>
     );
 }
+

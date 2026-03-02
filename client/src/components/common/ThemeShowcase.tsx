@@ -249,7 +249,7 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
             </div>
 
             {/* Card body */}
-            <div className={`relative p-4 transition-colors duration-500 ${isActive ? "liquid-glass/80" : "bg-[#080a10]/90"
+            <div className={`relative p-4 transition-colors duration-500 ${isActive ? "liquid-glass" : "bg-[#080a10]/90"
                 }`}>
                 {/* Name + subtitle */}
                 <div className="flex items-center gap-2.5 mb-1.5">
@@ -389,3 +389,4 @@ export const ThemeShowcase = memo(function ThemeShowcase() {
         </div>
     );
 });
+

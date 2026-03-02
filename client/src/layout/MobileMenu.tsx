@@ -109,7 +109,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             aria-label="Menu de navegacao"
         >
             <button
-                className={`absolute inset-0 transition-all duration-300 ${isIosTheme ? "ios26-panel-strong" : "liquid-glass/60 backdrop-blur-md"}`}
+                className={`absolute inset-0 transition-all duration-300 ${isIosTheme ? "ios26-panel-strong" : "liquid-glass backdrop-blur-md"}`}
                 data-testid="mobile-menu-overlay"
                 onClick={() => { sfx("toggle"); onClose(); }}
                 type="button"
@@ -144,7 +144,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                         onClick={() => { sfx("toggle"); onClose(); }}
                         className={`rounded-2xl p-2 transition-all active:scale-90 ${isIosTheme
                             ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900"
-                            : `border border-slate-800/20 liquid-glass/50 hover:liquid-glass-inner hover:border-[hsl(var(--accent)/0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"}`
+                            : `border border-slate-800/20 liquid-glass hover:bg-white/[0.10] hover:border-[hsl(var(--accent)/0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${isLightTheme ? "text-slate-600 hover:text-slate-900" : "text-slate-300 hover:text-slate-100"}`
                             }`}
                         data-testid="mobile-menu-close"
                         aria-label="Fechar menu de navegacao"
@@ -168,8 +168,8 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                     : isIosTheme
                                         ? "ios26-nav-item ios26-focusable text-slate-700"
                                         : isLightTheme
-                                        ? "border border-transparent text-slate-500 hover:liquid-glass/40 hover:text-slate-900"
-                                        : "border border-transparent text-slate-300 hover:liquid-glass/40 hover:text-slate-100"
+                                        ? "border border-transparent text-slate-500 hover:bg-white/[0.08] hover:text-slate-900"
+                                        : "border border-transparent text-slate-300 hover:bg-white/[0.08] hover:text-slate-100"
                                 }`
                             }
                             style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
@@ -197,7 +197,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <div className={`group flex items-center gap-4 rounded-[24px] border p-4 transition-all ${isIosTheme
                         ? "ios26-card ios26-sheen"
                         : isLightTheme
-                        ? "border-slate-800/20 liquid-glass/30 hover:liquid-glass/60 hover:border-slate-800/20"
+                        ? "border-slate-800/20 liquid-glass hover:bg-white/[0.08] hover:border-slate-800/20"
                         : "border-white/15 bg-white/5 hover:bg-white/10"
                         }`}>
                         <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--accent))] to-violet-600 text-sm font-black shadow-[0_0_15px_rgba(var(--glow),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--glow),0.5)] transition-all ${isLightTheme ? "text-slate-900" : "text-black"
@@ -216,3 +216,4 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         </div>
     );
 }
+

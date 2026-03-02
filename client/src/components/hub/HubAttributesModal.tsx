@@ -13,7 +13,7 @@ interface HubAttributesModalProps {
 export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onClose }: HubAttributesModalProps) {
     const { isIosTheme } = useTheme();
     return (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass/80"}`}>
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isIosTheme ? "ios26-section" : "liquid-glass"}`}>
             <div
                 data-testid="hub-attributes-modal"
                 role="dialog"
@@ -22,7 +22,7 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
             >
                 <div className={`mb-5 flex items-center justify-between border-b pb-3 ${isIosTheme ? "ios26-divider" : "border-slate-300/50"}`}>
                     <h3 className="text-lg font-black uppercase italic text-slate-900">Configuracao de Status</h3>
-                    <button type="button" onClick={onClose} className={`rounded-full p-2 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:liquid-glass-inner"}`}>
+                    <button type="button" onClick={onClose} className={`rounded-full p-2 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:bg-white/[0.10]"}`}>
                         <Icon name="cross" className="text-slate-600 text-lg" />
                     </button>
                 </div>
@@ -63,3 +63,4 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
         </div>
     );
 }
+

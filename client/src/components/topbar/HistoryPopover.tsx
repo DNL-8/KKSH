@@ -158,7 +158,7 @@ export function HistoryPopover({
           </p>
         </div>
         <button
-          className="rounded-lg border border-slate-600 liquid-glass/60 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:liquid-glass-inner hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          className="rounded-lg border border-slate-600 liquid-glass px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-200 transition-colors hover:bg-white/[0.10] hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
           onClick={onClose}
           type="button"
         >
@@ -173,7 +173,7 @@ export function HistoryPopover({
             aria-controls="history-panel-changes"
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "changes"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "liquid-glass/70 text-slate-300 hover:text-slate-100"
+              : "liquid-glass text-slate-300 hover:text-slate-100"
               }`}
             data-testid="history-tab-changes"
             id="history-tab-changes"
@@ -188,7 +188,7 @@ export function HistoryPopover({
             aria-controls="history-panel-activity"
             className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === "activity"
               ? "bg-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent-light))]"
-              : "liquid-glass/70 text-slate-300 hover:text-slate-100"
+              : "liquid-glass text-slate-300 hover:text-slate-100"
               }`}
             data-testid="history-tab-activity"
             id="history-tab-activity"
@@ -318,3 +318,4 @@ export function HistoryPopover({
     </div>
   );
 }
+

@@ -91,7 +91,7 @@ function CompactNavItem({ item, sfx, isIos }: { item: NavItem; sfx: ReturnType<t
             className={({ isActive }) =>
                 `group relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${isActive
                     ? "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))] shadow-[0_0_18px_rgba(var(--glow),0.35)]"
-                    : "text-slate-600 hover:liquid-glass/70 hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
+                    : "text-slate-600 hover:bg-white/[0.08] hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
                 }`
             }
         >
@@ -152,7 +152,7 @@ function ExpandedNavItem({ item, index, sfx, isIos }: { item: NavItem; index: nu
                 animate-in fade-in slide-in-from-left-4
                 ${isActive
                     ? "bg-gradient-to-r from-[hsl(var(--accent)/0.15)] to-transparent text-[hsl(var(--accent-light))] border-r-2 border-[hsl(var(--accent))]"
-                    : "text-slate-500 hover:liquid-glass/40 hover:text-slate-200"
+                    : "text-slate-500 hover:bg-white/[0.08] hover:text-slate-200"
                 }`
             }
             style={{ animationDelay: `${index * 40}ms`, animationFillMode: "both" }}
@@ -348,3 +348,4 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
         </aside>
     );
 }
+

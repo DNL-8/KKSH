@@ -30,7 +30,7 @@ export function ThemeBackground() {
                         className="ios26-sheen absolute inset-0 bg-[radial-gradient(circle_at_16%_-8%,rgba(255,255,255,0.46),transparent_46%),radial-gradient(circle_at_86%_14%,rgba(122,181,255,0.20),transparent_48%),radial-gradient(circle_at_48%_100%,rgba(255,220,244,0.14),transparent_55%)]"
                     />
                 ) : (
-                    <div aria-hidden="true" className="absolute inset-0 animate-pulse-slow liquid-glass/10" />
+                    <div aria-hidden="true" className="absolute inset-0 animate-pulse-slow liquid-glass" />
                 )}
             </div>
 
@@ -82,3 +82,4 @@ export function ThemeBackground() {
         </div>
     );
 }
+

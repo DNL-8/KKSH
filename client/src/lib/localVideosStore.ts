@@ -1,4 +1,4 @@
-﻿// Client-side wrapper for storage.worker.ts
+// Client-side wrapper for storage.worker.ts
 
 export const LOCAL_MEDIA_DB_NAME = "cmd8_local_media";
 export const LOCAL_MEDIA_DB_VERSION = 4;

@@ -25,7 +25,7 @@ export function StatBar({ label, percent, gradientClass, sub, valueTestId }: Sta
                 </div>
                 <span data-testid={valueTestId} className="text-xs font-mono font-bold" style={{ color: shadowColor, textShadow: `0 0 10px ${shadowColor}` }}>{percent}%</span>
             </div>
-            <div className={`h-2 overflow-hidden rounded-full relative ${isIosTheme ? "ios26-kpi" : "border border-slate-300/50 liquid-glass/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"}`}>
+            <div className={`h-2 overflow-hidden rounded-full relative ${isIosTheme ? "ios26-kpi" : "border border-slate-300/50 liquid-glass shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"}`}>
                 <div
                     className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-700 ease-out`}
                     style={{
@@ -37,3 +37,4 @@ export function StatBar({ label, percent, gradientClass, sub, valueTestId }: Sta
         </div>
     );
 }
+

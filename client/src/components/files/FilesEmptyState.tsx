@@ -23,7 +23,7 @@ export function FilesEmptyState({
 }: FilesEmptyStateProps) {
     if (loading) {
         return (
-            <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-300/50 liquid-glass/40 backdrop-blur-md">
+            <div className="flex min-h-[280px] items-center justify-center rounded-[30px] border border-slate-300/50 liquid-glass backdrop-blur-md">
                 <div className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-slate-600">
                     <Icon name="spinner" className="animate-spin text-[hsl(var(--accent))] text-[20px]" />
                     Carregando biblioteca local...
@@ -44,7 +44,7 @@ export function FilesEmptyState({
             </div>
             <h3 className="text-3xl font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-300">Terminal Inativo</h3>
             <p className="mt-3 max-w-lg text-[13px] text-cyan-200/60 uppercase tracking-widest font-semibold leading-relaxed">
-                Arraste e solte vídeos na zona, ou utilize os comandos de importação abaixo para iniciar o Uplink.
+                Arraste e solte videos na zona, ou use os comandos de importacao abaixo para iniciar o uplink.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center">
                 <button
@@ -53,7 +53,7 @@ export function FilesEmptyState({
                     type="button"
                 >
                     <Icon name="upload" className="text-[16px]" />
-                    Selecionar vídeos
+                    Selecionar videos
                 </button>
                 <button
                     className="flex items-center justify-center gap-3 w-full sm:w-auto rounded-2xl border border-indigo-400/50 bg-indigo-500/10 px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] text-indigo-200 shadow-[0_0_20px_rgba(99,102,241,0.15)] backdrop-blur-md transition-all hover:bg-indigo-500/30 hover:text-slate-900 hover:border-indigo-400 active:scale-95"
@@ -72,9 +72,10 @@ export function FilesEmptyState({
                     type="button"
                 >
                     <Icon name="server" className="text-[16px]" />
-                    Conexão Contínua (Volumes Grandes)
+                    Conexao Continua (Volumes Grandes)
                 </button>
             )}
         </div>
     );
 }
+

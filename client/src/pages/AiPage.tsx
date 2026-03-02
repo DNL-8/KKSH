@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "../components/common/Icon";
+import { useTheme } from "../contexts/ThemeContext";
 import { ApiRequestError, postHunterMessage } from "../lib/api";
 
 interface TerminalMessage {
@@ -10,11 +11,12 @@ interface TerminalMessage {
 }
 
 export function AiPage() {
+  const { isLightTheme } = useTheme();
   const [input, setInput] = useState("");
   const [logs, setLogs] = useState<TerminalMessage[]>([
     {
       id: 1,
-      text: "SISTEMA: Ligação estabelecida. O que pretendes processar, Caçador?",
+      text: "SISTEMA: Ligacao estabelecida. O que deseja processar, Cacador?",
       type: "system",
     },
   ]);
@@ -32,7 +34,7 @@ export function AiPage() {
 
     const message = input.trim();
     setInput("");
-    setLogs((prev) => [...prev, { id: Date.now(), text: `CAÇADOR: ${message}`, type: "user" }]);
+    setLogs((prev) => [...prev, { id: Date.now(), text: `CACADOR: ${message}`, type: "user" }]);
     setLoading(true);
 
     try {
@@ -40,7 +42,7 @@ export function AiPage() {
       const systemText = [response.resposta_texto, `[STATUS] ${response.status_mensagem}`].join("\n");
       setLogs((prev) => [...prev, { id: Date.now() + 1, text: `SISTEMA: ${systemText}`, type: "system" }]);
     } catch (error) {
-      let messageText = "ERRO: Falha de uplink com o núcleo IA.";
+      let messageText = "ERRO: Falha de uplink com o nucleo IA.";
       if (error instanceof ApiRequestError) {
         const retryAfter = String(error.details.retryAfterSec ?? "").trim();
         if (error.code === "ai_quota_exceeded" && retryAfter) {
@@ -56,10 +58,20 @@ export function AiPage() {
   };
 
   return (
-    <div className="animate-in zoom-in relative flex h-[calc(100vh-10rem)] min-h-[500px] flex-col overflow-hidden rounded-[48px] border border-[hsl(var(--accent)/0.15)] bg-[#020204] shadow-2xl duration-700">
+    <div
+      className={`animate-in zoom-in relative flex h-[calc(100vh-10rem)] min-h-[500px] flex-col overflow-hidden rounded-[48px] duration-700 ${isLightTheme
+        ? "border border-slate-300/70 bg-white/75 shadow-[0_20px_60px_rgba(15,23,42,0.12)]"
+        : "border border-[hsl(var(--accent)/0.15)] bg-[#020204] shadow-2xl"
+        }`}
+    >
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] opacity-20" />
 
-      <div className="z-10 flex items-center justify-between border-b border-[hsl(var(--accent)/0.15)] bg-[#0c0e12]/90 p-8 shadow-xl backdrop-blur-md">
+      <div
+        className={`z-10 flex items-center justify-between border-b p-8 shadow-xl backdrop-blur-md ${isLightTheme
+          ? "border-slate-300/60 bg-white/70"
+          : "border-[hsl(var(--accent)/0.15)] bg-[#0c0e12]/90"
+          }`}
+      >
         <div className="flex items-center gap-5">
           <div className="rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.1)] p-3 shadow-[0_0_15px_rgba(var(--glow),0.1)]">
             <Icon name="microchip" className="animate-pulse text-[hsl(var(--accent))] text-[28px]" />
@@ -97,7 +109,7 @@ export function AiPage() {
           >
             <div
               className={`relative max-w-[85%] rounded-3xl border px-6 py-4 shadow-2xl ${log.type === "user"
-                ? "rounded-br-none border-slate-700 bg-[#12141c] text-slate-900"
+                ? "rounded-br-none border-slate-700 bg-[#12141c] text-slate-100"
                 : log.type === "error"
                   ? "rounded-bl-none border-red-900/40 bg-red-950/20 text-red-200"
                   : "rounded-bl-none border-[hsl(var(--accent)/0.15)] bg-[hsl(var(--accent)/0.05)] text-[hsl(var(--accent-light))]"
@@ -120,13 +132,18 @@ export function AiPage() {
         {loading && (
           <div className="ml-2 flex items-center gap-4 animate-pulse text-[hsl(var(--accent)/0.3)]">
             <Icon name="spinner" className="animate-spin text-[18px]" />
-            <span className="text-xs font-black uppercase tracking-[0.5em]">Processando diretrizes táticas...</span>
+            <span className="text-xs font-black uppercase tracking-[0.5em]">Processando diretrizes taticas...</span>
           </div>
         )}
         <div ref={endRef} />
       </div>
 
-      <div className="z-10 border-t border-[hsl(var(--accent)/0.15)] bg-[#0a0c10]/95 p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+      <div
+        className={`z-10 border-t p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl ${isLightTheme
+          ? "border-slate-300/60 bg-white/70"
+          : "border-[hsl(var(--accent)/0.15)] bg-[#0a0c10]/95"
+          }`}
+      >
         <div className="relative mx-auto flex max-w-4xl items-center">
           <div className="pointer-events-none absolute left-6 font-mono text-lg font-bold tracking-widest text-[hsl(var(--accent)/0.5)] opacity-80 drop-shadow-[0_0_5px_rgba(var(--glow),0.4)]">
             {">"}
@@ -139,8 +156,11 @@ export function AiPage() {
                 void sendCommand();
               }
             }}
-            placeholder="Introduza diretriz para o Sistema..."
-            className="w-full rounded-[32px] border border-[hsl(var(--accent)/0.4)] bg-[#050508]/80 py-5 pl-14 pr-20 font-mono text-sm text-slate-900 shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.15)] transition-all placeholder:text-[hsl(var(--accent)/0.3)] focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent)/0.3)] backdrop-blur-md"
+            placeholder="Insira diretriz para o sistema..."
+            className={`w-full rounded-[32px] border border-[hsl(var(--accent)/0.4)] py-5 pl-14 pr-20 font-mono text-sm shadow-[inset_0_5px_15px_rgba(0,0,0,0.8),0_0_15px_rgba(var(--glow),0.15)] transition-all focus:border-[hsl(var(--accent))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent)/0.3)] backdrop-blur-md ${isLightTheme
+              ? "bg-white/85 text-slate-900 placeholder:text-slate-500"
+              : "bg-[#050508]/80 text-slate-100 placeholder:text-[hsl(var(--accent)/0.4)]"
+              }`}
           />
           <button
             onClick={() => {

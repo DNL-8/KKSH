@@ -123,7 +123,7 @@ export function SettingsPage() {
             </h1>
             <p className="flex items-center gap-2 font-mono text-sm text-slate-600">
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-              CONFIGURACAO DO TERMINAL DO USUARIO
+              CONFIGURACOES DO TERMINAL DO USUARIO
             </p>
           </div>
           <div className="flex gap-3">
@@ -131,12 +131,12 @@ export function SettingsPage() {
               onClick={handleSave}
               className={`flex items-center gap-3 rounded-[20px] px-8 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${isIosTheme
                 ? "ios26-control ios26-focusable text-slate-800"
-                : "liquid-glass-inner/80 text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 backdrop-blur-md border border-slate-300/50"
+                : "liquid-glass-inner text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] hover:bg-slate-700 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 backdrop-blur-md border border-slate-300/50"
                 }`}
               type="button"
             >
               <Icon name="disk" className="text-[16px]" />
-              Aplicar Agora
+              Aplicar Configuracoes
             </button>
           </div>
         </div>

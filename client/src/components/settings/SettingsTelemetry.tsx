@@ -204,7 +204,7 @@ export function SettingsTelemetry() {
                                 aria-pressed={isActive}
                                 className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${isActive
                                     ? isIosTheme ? "ios26-chip-active" : "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
-                                    : isIosTheme ? "ios26-chip" : "border-slate-700 liquid-glass/70 text-slate-800 hover:liquid-glass-inner"
+                                    : isIosTheme ? "ios26-chip" : "border-slate-700 liquid-glass text-slate-800 hover:bg-white/[0.10]"
                                     }`}
                             >
                                 {filterOption.label} ({count})
@@ -229,9 +229,9 @@ export function SettingsTelemetry() {
                                     <span className="text-[10px] font-mono text-slate-500">{new Date(event.at).toLocaleString("pt-BR")}</span>
                                 </div>
                                 <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
-                                    <span className="rounded border border-slate-700 liquid-glass/60 px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
+                                    <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
                                     {typeof event.payload.durationMs === "number" && (
-                                        <span className="rounded border border-slate-700 liquid-glass/60 px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
+                                        <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
                                     )}
                                     {event.payload.error && (
                                         <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-red-300">erro: {String(event.payload.error)}</span>
@@ -245,3 +245,4 @@ export function SettingsTelemetry() {
         </section>
     );
 }
+
