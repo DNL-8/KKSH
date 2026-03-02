@@ -37,23 +37,10 @@ import { useVideoSelection } from "../hooks/useVideoSelection";
 import { FilesToolbar } from "../components/files/FilesToolbar";
 import { FilesEmptyState } from "../components/files/FilesEmptyState";
 import { FilesAlerts } from "../components/files/FilesAlerts";
-import { trackFilesTelemetry } from "../lib/filesTelemetry";
 import { useTheme } from "../contexts/ThemeContext";
+import { useFilesBridgePlayer } from "../hooks/useFilesBridgePlayer";
 
 const PLAYER_WAVEFORM_PATTERN = Array.from({ length: 60 }, (_, index) => 30 + ((index * 37) % 65));
-
-function deriveBridgeRelativePath(path: string): string {
-  const normalized = path.replace(/\\/g, "/").replace(/\/+/g, "/").trim();
-  if (!normalized) {
-    return "Bridge";
-  }
-  const lastSlash = normalized.lastIndexOf("/");
-  if (lastSlash <= 0) {
-    return "Bridge";
-  }
-  const parent = normalized.slice(0, lastSlash).replace(/^\/+|\/+$/g, "");
-  return parent || "Bridge";
-}
 
 
 
@@ -65,46 +52,14 @@ export function FilesPage() {
   const { isIosTheme } = useTheme();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  // Bridge Browser Logic
-  const [showBridgeBrowser, setShowBridgeBrowser] = useState(false);
-  const [bridgeVideo, setBridgeVideo] = useState<{ video: StoredVideo, url: string } | null>(null);
-
-  const handleBridgePlay = (url: string, name: string, path: string) => {
-    const now = Date.now();
-
-    if (!url) {
-      trackFilesTelemetry("files.bridge.play.error", {
-        source: "bridge",
-        name,
-        path,
-        error: "empty_stream_url",
-      });
-      return;
-    }
-
-    const mockVideo: StoredVideo = {
-      id: `bridge::${path || name}`,
-      name,
-      relativePath: deriveBridgeRelativePath(path),
-      size: 0,
-      type: "video/mp4",
-      lastModified: now,
-      createdAt: now,
-      sourceKind: "file",
-      storageKind: "bridge",
-      importSource: "input_file",
-      bridgePath: path,
-    };
-    setBridgeVideo({ video: mockVideo, url });
-    setShowBridgeBrowser(false);
-
-    trackFilesTelemetry("files.bridge.play.success", {
-      source: "bridge",
-      name,
-      path,
-      trigger: "bridge_browser",
-    });
-  };
+  const {
+    showBridgeBrowser,
+    bridgeVideo,
+    handleBridgePlay,
+    openBridgeBrowser,
+    closeBridgeBrowser,
+    clearBridgeVideo,
+  } = useFilesBridgePlayer();
 
   const invalidateProgressCaches = useCallback(async () => {
     await Promise.all([
@@ -350,7 +305,7 @@ export function FilesPage() {
     const candidate = visibleVideos.find((video) => video.id === lessonId) ?? null;
     const finalizeSelection = () => {
       setSelectedLessonId(lessonId);
-      setBridgeVideo(null);
+      clearBridgeVideo();
       setIsSidebarMobileOpen(false);
     };
 
@@ -571,7 +526,7 @@ export function FilesPage() {
                   : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
                   }`}
                 aria-label="Abrir navegador Bridge"
-                onClick={() => setShowBridgeBrowser(true)}
+                onClick={openBridgeBrowser}
                 type="button"
               >
                 <Icon name="folder-search" className="text-[12px]" />
@@ -804,7 +759,7 @@ export function FilesPage() {
       {
         showBridgeBrowser && (
           <BridgeBrowser
-            onClose={() => setShowBridgeBrowser(false)}
+            onClose={closeBridgeBrowser}
             onPlayVideo={handleBridgePlay}
           />
         )

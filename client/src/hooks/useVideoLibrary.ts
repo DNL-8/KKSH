@@ -14,6 +14,7 @@ import { toErrorMessage } from "../components/files/utils";
 import { useFileImporter } from "./useFileImporter";
 import { trackFilesTelemetry } from "../lib/filesTelemetry";
 import { useLocalBridge } from "./useLocalBridge";
+import { deriveBridgeName, deriveBridgeRelativePath } from "../lib/bridgePath";
 
 interface BridgeLibraryVideo {
     id?: unknown;
@@ -41,34 +42,6 @@ function normalizeBridgeTimestamp(value: unknown): number {
         return numeric;
     }
     return numeric * 1000;
-}
-
-function normalizePath(path: string): string {
-    return path.replace(/\\/g, "/").replace(/\/+/g, "/").trim();
-}
-
-function deriveBridgeName(path: string, fallback = "video-bridge.mp4"): string {
-    const normalized = normalizePath(path);
-    if (!normalized) {
-        return fallback;
-    }
-    const parts = normalized.split("/").filter(Boolean);
-    return parts[parts.length - 1] || fallback;
-}
-
-function deriveBridgeRelativePath(path: string): string {
-    const normalized = normalizePath(path);
-    if (!normalized) {
-        return "Biblioteca Local";
-    }
-
-    const parts = normalized.split("/").filter(Boolean);
-    if (parts.length <= 1) {
-        return "Biblioteca Local";
-    }
-
-    parts.pop();
-    return parts.join("/") || "Biblioteca Local";
 }
 
 function summarizeImportResult(result: SaveResult): string {
@@ -185,7 +158,7 @@ export function useVideoLibrary() {
                         size,
                         lastModified,
                         createdAt,
-                        relativePath: deriveBridgeRelativePath(bridgePath),
+                        relativePath: deriveBridgeRelativePath(bridgePath, "Biblioteca Local"),
                         sourceKind: "file",
                         storageKind: "bridge",
                         importSource: "input_file",

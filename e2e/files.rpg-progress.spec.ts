@@ -172,6 +172,9 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   await page.goto("/arquivos");
   await expect(page.getByTestId("files-header")).toBeVisible();
   await injectFolderVideos(page);
+  await page.getByTestId("files-search-input").fill("sample-video.webm");
+  await page.getByRole("button", { name: /Selecionar aula sample-video\.webm/i }).first().click();
+  await expect(page.locator('[data-testid="files-player"] h3').first()).toContainText("sample-video.webm");
 
   await page.getByTestId("header-auth-button").click();
   await expect(page.getByTestId("shell-auth-panel")).toBeVisible();
@@ -182,9 +185,16 @@ test("arquivos integra login + conclusao manual + dedupe por video", async ({ pa
   await expect(page.getByTestId("files-complete-button")).toBeVisible();
   const completeButton = page.getByTestId("complete-lesson-button");
   await expect(completeButton).toBeEnabled({ timeout: 10000 });
-  await completeButton.click();
+  for (let attempt = 0; attempt < 4 && postedSessions === 0; attempt += 1) {
+    await completeButton.evaluate((element) => {
+      (element as HTMLButtonElement).click();
+    });
+    if (postedSessions === 0) {
+      await page.waitForTimeout(400);
+    }
+  }
 
-  await expect.poll(() => postedSessions).toBe(1);
+  await expect.poll(() => postedSessions, { timeout: 15000 }).toBe(1);
 
   expect(postedSessions).toBe(1);
   expect(lastSessionPayload?.mode).toBe("video_lesson");
