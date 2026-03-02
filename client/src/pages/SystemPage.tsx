@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "../components/common/Icon";
 import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 import { useTheme } from "../contexts/ThemeContext";
@@ -56,6 +56,20 @@ const globalStyles = `
   .btn-danger:active {
     transform: translateY(4px);
     box-shadow: 0 0px 0 #991b1b, 0 5px 10px rgba(239, 68, 68, 0.3);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-pulse-glow,
+    .animate-screen {
+      animation: none !important;
+    }
+
+    .card-3d-element,
+    .btn-primary,
+    .btn-danger {
+      transition: none !important;
+    }
   }
 `;
 
@@ -240,6 +254,9 @@ const parseStoredInventoryLoadout = (raw: string | null): InventoryLoadoutItem[]
         if (!Array.isArray(parsed)) {
             return DEFAULT_INVENTORY_LOADOUT;
         }
+        if (parsed.length === 0) {
+            return [];
+        }
         const sanitized: InventoryLoadoutItem[] = parsed
             .map((item: unknown) => {
                 if (!item || typeof item !== "object") {
@@ -302,7 +319,7 @@ const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA",
 
 export function SystemPage() {
     const { isIosTheme } = useTheme();
-    const [screen, setScreen] = useState('onboarding');
+    const [screen, setScreen] = useState<"onboarding" | "dashboard" | "preview" | "workout" | "summary">("onboarding");
 
     const [user, setUser, isLoading] = useSystemRPG();
     const [activeDungeon, setActiveDungeon] = useState<any>(null);
@@ -310,6 +327,8 @@ export function SystemPage() {
     const [completedBlocks, setCompletedBlocks] = useState<any[]>([]);
     const [xpGainedInfo, setXpGainedInfo] = useState<any>(null);
     const [showSystemAlert, setShowSystemAlert] = useState(false);
+    const alertDialogRef = useRef<HTMLDivElement | null>(null);
+    const tacticalHintButtonRef = useRef<HTMLButtonElement | null>(null);
     const [inventoryLoadout, setInventoryLoadout] = useState<InventoryLoadoutItem[]>(() => {
         if (typeof window === "undefined") {
             return DEFAULT_INVENTORY_LOADOUT;
@@ -432,11 +451,11 @@ export function SystemPage() {
     }, [screen]);
 
     const toggleBlock = (blockId: string) => {
-        if (completedBlocks.includes(blockId)) {
-            setCompletedBlocks(completedBlocks.filter((id: string = "") => id !== blockId));
-        } else {
-            setCompletedBlocks([...completedBlocks, blockId]);
-        }
+        setCompletedBlocks((previous) =>
+            previous.includes(blockId)
+                ? previous.filter((id: string = "") => id !== blockId)
+                : [...previous, blockId],
+        );
     };
 
     const startDungeon = (dungeon: any) => {
@@ -470,6 +489,54 @@ export function SystemPage() {
 
         setScreen('summary');
     };
+
+    useEffect(() => {
+        if (!showSystemAlert) {
+            return;
+        }
+
+        const dialog = alertDialogRef.current;
+        if (!dialog) {
+            return;
+        }
+
+        const focusable = Array.from(
+            dialog.querySelectorAll<HTMLElement>(
+                "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+            ),
+        ).filter((element) => !element.hasAttribute("disabled"));
+
+        const firstFocusable = focusable[0];
+        const lastFocusable = focusable[focusable.length - 1];
+        const focusReturnTarget = tacticalHintButtonRef.current;
+        firstFocusable?.focus();
+
+        const handleDialogKeydown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                setShowSystemAlert(false);
+                return;
+            }
+            if (event.key !== "Tab" || focusable.length === 0) {
+                return;
+            }
+            if (event.shiftKey && document.activeElement === firstFocusable) {
+                event.preventDefault();
+                lastFocusable?.focus();
+                return;
+            }
+            if (!event.shiftKey && document.activeElement === lastFocusable) {
+                event.preventDefault();
+                firstFocusable?.focus();
+            }
+        };
+
+        document.addEventListener("keydown", handleDialogKeydown);
+        return () => {
+            document.removeEventListener("keydown", handleDialogKeydown);
+            focusReturnTarget?.focus();
+        };
+    }, [showSystemAlert]);
 
     const resetToDashboard = () => {
         setWorkoutTimer(0);
@@ -662,288 +729,295 @@ export function SystemPage() {
         </div>
     );
 
-    const renderDashboard = () => {
-        const rankObj = getRank(user.xp || 0);
-        const nextRank = getNextRank(user.xp || 0);
-        const progressToNext = Math.min(100, Math.max(0, (((user.xp || 0) - rankObj.minXp) / (nextRank.minXp - rankObj.minXp)) * 100));
+        const renderDashboard = () => {
+        const currentXp = Number(user.xp || 0);
+        const rankObj = getRank(currentXp);
+        const nextRank = getNextRank(currentXp);
+        const xpRangeToNextRank = nextRank.minXp - rankObj.minXp;
+        const progressToNext = xpRangeToNextRank <= 0
+            ? 100
+            : Math.min(100, Math.max(0, ((currentXp - rankObj.minXp) / xpRangeToNextRank) * 100));
 
         const featuredDungeon = WEEKLY_DUNGEONS[0];
         const upcomingDungeons = WEEKLY_DUNGEONS.slice(1);
+        const xpDisplayMax = Math.max(nextRank.minXp, currentXp);
 
         return (
             <div
                 data-testid="system-dashboard-panel"
-                className={`min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 font-sans relative ${isIosTheme ? "ios26-section ios26-text-secondary" : ""}`}
+                className={`min-h-[calc(100vh-10rem)] px-4 py-6 text-slate-900 md:px-8 ${isIosTheme ? "ios26-section ios26-text-secondary" : ""}`}
             >
-                <div className="animate-screen max-w-4xl mx-auto space-y-8 relative z-10 pb-10">
-                    <SystemWindow title="STATUS DO JOGADOR" icon="shield">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 uppercase tracking-widest">
-                                    {user.name || "Jogador"}
-                                </h2>
-                                <div className="flex items-center gap-2 mt-2 liquid-glass-inner px-3 py-1.5 rounded-md border border-white/10 w-max">
-                                    <span className="text-[10px] font-mono text-cyan-500/80 uppercase">Classe:</span>
-                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Solo Leveler</span>
-                                </div>
-                            </div>
-                            <div className="relative group shrink-0">
-                                <div className={`w-20 h-20 flex items-center justify-center bg-gradient-to-br ${rankObj.bg} border border-white/20 rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105`}>
-                                    <span className={`text-4xl font-black ${rankObj.color}`}>
-                                        {rankObj.name}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                <div className="mx-auto max-w-6xl animate-screen">
+                    <div className="relative overflow-hidden rounded-[34px] border border-white/45 bg-[linear-gradient(130deg,rgba(208,194,238,0.55)_0%,rgba(190,219,238,0.6)_42%,rgba(234,201,223,0.52)_100%)] p-4 shadow-[0_18px_55px_rgba(86,95,122,0.22)] sm:p-6 lg:p-8">
+                        <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-violet-300/30 blur-3xl" />
+                        <div className="pointer-events-none absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-sky-300/30 blur-3xl" />
 
-                        <div className="mt-8">
-                            <div className="flex justify-between text-[10px] font-mono mb-2 uppercase tracking-widest">
-                                <span className="text-slate-500">Energia Vital</span>
-                                <span className="text-cyan-600 font-bold">{user.xp || 0} <span className="text-slate-400">/ {nextRank.minXp} XP</span></span>
-                            </div>
-                            <div className="w-full liquid-glass-inner h-2 rounded-full border border-white/10 overflow-hidden">
-                                <div
-                                    className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)] transition-all duration-1000 ease-out"
-                                    style={{ width: `${progressToNext}%` }}
-                                />
-                            </div>
-                        </div>
-                    </SystemWindow>
-
-                    <SystemWindow
-                        title="ITENS NO INVENTARIO"
-                        icon="target"
-                        headerAction={(
-                            <button
-                                type="button"
-                                data-testid="system-dashboard-inventory-gear-button"
-                                onClick={() => setIsInventoryConfigOpen((current) => !current)}
-                                aria-controls="system-dashboard-inventory-config-panel"
-                                aria-expanded={isInventoryConfigOpen}
-                                aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
-                                className={`h-8 w-8 rounded-lg border transition-all duration-200 flex items-center justify-center ${isInventoryConfigOpen
-                                    ? "border-cyan-400 bg-cyan-500/20 text-cyan-600 shadow-[0_0_10px_rgba(6,182,212,0.35)]"
-                                    : "border-slate-300 text-slate-500 hover:border-cyan-500 hover:text-cyan-600"
-                                    }`}
-                            >
-                                <Icon name="settings" className="text-sm" />
-                            </button>
-                        )}
-                    >
-                        {isInventoryConfigOpen ? (
-                            <div
-                                id="system-dashboard-inventory-config-panel"
-                                data-testid="system-dashboard-inventory-editor"
-                                className="space-y-3 transition-all duration-200 ease-out"
-                            >
-                                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-                                    Configuracao manual de item e raridade
-                                </p>
-                                <ul data-testid="system-dashboard-inventory-items-list" className="text-sm text-slate-600 space-y-3">
-                                    {inventoryLoadout.map((item) => (
-                                        <li key={`dashboard-${item.id}`} className="rounded-lg border border-white/10 p-2" data-testid={`system-dashboard-inventory-item-${item.id}`}>
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        data-testid={`system-dashboard-inventory-toggle-${item.id}`}
-                                                        onClick={() => toggleInventoryItemOwned(item.id)}
-                                                        className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
-                                                            ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
-                                                            : "border-slate-300 text-slate-400"
-                                                            }`}
-                                                        aria-pressed={item.owned}
-                                                        aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
-                                                    >
-                                                        {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
-                                                    </button>
-                                                    <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
-                                                    <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
-                                                        {item.name}
-                                                    </span>
-                                                    <select
-                                                        data-testid={`system-dashboard-inventory-rarity-${item.id}`}
-                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
-                                                        value={item.rarity}
-                                                        onChange={(event) =>
-                                                            updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
-                                                        }
-                                                        aria-label={`Raridade de ${item.name}`}
-                                                    >
-                                                        {INVENTORY_RARITY_OPTIONS.map((option) => (
-                                                            <option key={option.value} value={option.value}>
-                                                                {option.label}
-                                                            </option>
-                                                            ))}
-                                                    </select>
-                                                    <button
-                                                        type="button"
-                                                        data-testid={`system-dashboard-inventory-remove-${item.id}`}
-                                                        onClick={() => removeInventoryItem(item.id)}
-                                                        className="rounded-md border border-red-300/70 bg-red-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-600 transition-colors hover:border-red-400 hover:text-red-700"
-                                                        aria-label={`Remover ${item.name}`}
-                                                    >
-                                                        Remover
-                                                    </button>
-                                                </div>
-                                                <div className="grid gap-2 sm:grid-cols-2">
-                                                    <input
-                                                        type="text"
-                                                        data-testid={`system-dashboard-inventory-name-${item.id}`}
-                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
-                                                        value={item.name}
-                                                        onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
-                                                        placeholder="Nome do equipamento"
-                                                        aria-label={`Nome do equipamento ${item.id}`}
-                                                    />
-                                                    <select
-                                                        data-testid={`system-dashboard-inventory-type-${item.id}`}
-                                                        className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
-                                                        value={item.equipmentType}
-                                                        onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
-                                                        aria-label={`Tipo do equipamento ${item.id}`}
-                                                    >
-                                                        {INVENTORY_EQUIPMENT_TYPE_OPTIONS.map((option) => (
-                                                            <option key={option.value} value={option.value}>
-                                                                {option.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500">
-                                        Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        data-testid="system-dashboard-inventory-add-item"
-                                        onClick={addInventoryItem}
-                                        disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
-                                        className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
-                                            ? "border-slate-300/60 text-slate-400 cursor-not-allowed"
-                                            : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500 hover:text-cyan-800"
-                                            }`}
-                                        aria-label="Adicionar equipamento"
-                                    >
-                                        + Adicionar equipamento
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div
-                                id="system-dashboard-inventory-config-panel"
-                                data-testid="system-dashboard-inventory-summary"
-                                className="space-y-2 rounded-lg border border-white/10 bg-white/30 px-3 py-2 transition-all duration-200 ease-out"
-                            >
-                                <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-                                    Resumo rapido
-                                </p>
-                                {activeInventoryItems.length > 0 ? (
-                                    <ul className="space-y-2">
-                                        {activeInventoryItems.map((item) => (
-                                            <li key={`dashboard-summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
-                                                <div className="min-w-0">
-                                                    <p className="truncate font-semibold text-slate-700">{item.name}</p>
-                                                    <p className="truncate text-[10px] font-mono uppercase tracking-[0.12em] text-slate-500">
-                                                        {item.equipmentType || "Sem tipo"}
-                                                    </p>
-                                                </div>
-                                                <span className={`rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
-                                                    {getRarityLabel(item.rarity)}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-[12px] font-semibold text-slate-500">
-                                        Nenhum item ativo selecionado.
+                        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)]">
+                            <div className="space-y-6">
+                                <section className="rounded-[26px] border border-white/45 bg-white/34 p-5 backdrop-blur-xl sm:p-6">
+                                    <p className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                                        <Icon name="shield" className="text-[11px]" /> Estatuto do jogador
                                     </p>
-                                )}
-                            </div>
-                        )}
-                    </SystemWindow>
 
-                    <div className="space-y-3">
-                        <h3 className="text-[10px] font-mono text-cyan-600 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2">
-                            <Icon name="pulse" className="text-sm" /> Próxima missao
-                        </h3>
-                        <button
-                            type="button"
-                            onClick={() => startDungeon(featuredDungeon)}
-                            className={`group p-8 rounded-3xl transition-all relative overflow-hidden text-left w-full ${isIosTheme
-                                ? "ios26-section ios26-focusable"
-                                : "liquid-glass-inner shadow-lg hover:border-cyan-400"
-                                }`}
-                            aria-label={`Abrir missao ${featuredDungeon.title}`}
-                        >
-                            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="text-[10px] font-black font-mono text-white bg-cyan-600 px-2 py-1 rounded uppercase tracking-widest">
-                                            {featuredDungeon.day}
-                                        </span>
-                                        <span className="text-[10px] font-mono text-cyan-600 border border-cyan-500/30 px-2 py-1 rounded uppercase tracking-widest">
-                                            Rank {featuredDungeon.rank}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-3xl font-bold text-slate-900 uppercase tracking-wide">
-                                        {featuredDungeon.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-600 mt-1">{featuredDungeon.type}</p>
-                                </div>
-                                <div className="flex items-center gap-4 liquid-glass-inner px-4 py-3 rounded-2xl w-max">
-                                    <div className="flex items-center gap-2 text-slate-800 text-sm font-bold">
-                                        <Icon name="clock" className="text-sm text-cyan-600" /> ~{featuredDungeon.estimatedMinutes}m
-                                    </div>
-                                    <Icon name="angle-right" className="text-2xl text-cyan-600 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div className="space-y-4">
-                        <h3 className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-bold px-1 flex items-center gap-2 mt-8">
-                            <Icon name="calendar" className="text-sm" /> Agenda Semanal
-                        </h3>
-                        <div data-testid="system-action-list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {upcomingDungeons.map((dungeon) => (
-                                <button
-                                    type="button"
-                                    key={dungeon.id}
-                                    onClick={() => startDungeon(dungeon)}
-                                    className={`group p-5 rounded-2xl transition-all flex flex-col justify-between min-h-[120px] text-left w-full ${isIosTheme
-                                        ? "ios26-section ios26-focusable"
-                                        : "liquid-glass-inner hover:border-cyan-400"
-                                        }`}
-                                    aria-label={`Abrir missao ${dungeon.title}`}
-                                >
-                                    <div>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-black font-mono text-white bg-blue-500 px-2 py-1 rounded uppercase tracking-widest">
-                                                {dungeon.day}
-                                            </span>
-                                            <span className="text-[10px] font-mono text-cyan-600">
-                                                R-{dungeon.rank}
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <h2 className="max-w-[15ch] text-[40px] font-black uppercase leading-[0.9] tracking-tight text-slate-900 sm:text-[46px]">
+                                                {user.name || "Jogador"}
+                                            </h2>
+                                            <span className="mt-4 inline-flex rounded-full border border-white/55 bg-white/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.17em] text-slate-500">
+                                                Classe: Solo Leveler
                                             </span>
                                         </div>
-                                        <h4 className="font-bold text-sm text-slate-800 uppercase tracking-wide group-hover:text-cyan-600 transition-colors line-clamp-2">
-                                            {dungeon.title}
-                                        </h4>
+
+                                        <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/35 bg-[#10131d] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_8px_20px_rgba(12,16,29,0.4)] sm:h-16 sm:w-16">
+                                            <span className="text-3xl font-black uppercase text-white">{rankObj.name}</span>
+                                        </div>
                                     </div>
-                                </button>
-                            ))}
+
+                                    <div className="mt-8">
+                                        <div className="mb-2 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                            <span>Energia vital</span>
+                                            <span className="font-mono tracking-[0.08em] text-slate-700">
+                                                {currentXp} / {xpDisplayMax} XP
+                                            </span>
+                                        </div>
+                                        <div className="h-2.5 overflow-hidden rounded-full border border-white/50 bg-white/45">
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-cyan-400 to-emerald-300 transition-all duration-1000 ease-out"
+                                                style={{ width: `${progressToNext}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="rounded-[26px] border border-white/45 bg-white/34 p-5 backdrop-blur-xl sm:p-6">
+                                    <div className="mb-4 flex items-center justify-between gap-2">
+                                        <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                                            <Icon name="target" className="text-[11px]" /> Itens no inventario
+                                        </p>
+                                        <button
+                                            type="button"
+                                            data-testid="system-dashboard-inventory-gear-button"
+                                            onClick={() => setIsInventoryConfigOpen((current) => !current)}
+                                            aria-controls="system-dashboard-inventory-config-panel"
+                                            aria-expanded={isInventoryConfigOpen}
+                                            aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
+                                            className={`h-8 w-8 rounded-lg border transition-colors ${isInventoryConfigOpen
+                                                ? "border-slate-400 bg-white/55 text-slate-700"
+                                                : "border-white/55 bg-white/35 text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                                                }`}
+                                        >
+                                            <Icon name="bolt" className="mx-auto text-xs" />
+                                        </button>
+                                    </div>
+
+                                    {isInventoryConfigOpen ? (
+                                        <div
+                                            id="system-dashboard-inventory-config-panel"
+                                            data-testid="system-dashboard-inventory-editor"
+                                            className="space-y-3"
+                                        >
+                                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                                Configuracao manual de item e raridade
+                                            </p>
+                                            <ul data-testid="system-dashboard-inventory-items-list" className="space-y-2.5">
+                                                {inventoryLoadout.map((item) => (
+                                                    <li key={`dashboard-${item.id}`} className="rounded-xl border border-white/45 bg-white/40 p-2.5" data-testid={`system-dashboard-inventory-item-${item.id}`}>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    data-testid={`system-dashboard-inventory-toggle-${item.id}`}
+                                                                    onClick={() => toggleInventoryItemOwned(item.id)}
+                                                                    className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
+                                                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-700"
+                                                                        : "border-slate-300 text-slate-400"
+                                                                        }`}
+                                                                    aria-pressed={item.owned}
+                                                                    aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
+                                                                >
+                                                                    {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
+                                                                </button>
+                                                                <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
+                                                                <span className={`min-w-0 flex-1 truncate text-[13px] font-bold tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                                    {item.name}
+                                                                </span>
+                                                                <select
+                                                                    data-testid={`system-dashboard-inventory-rarity-${item.id}`}
+                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700 outline-none focus:border-cyan-500"
+                                                                    value={item.rarity}
+                                                                    onChange={(event) =>
+                                                                        updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
+                                                                    }
+                                                                    aria-label={`Raridade de ${item.name}`}
+                                                                >
+                                                                    {INVENTORY_RARITY_OPTIONS.map((option) => (
+                                                                        <option key={option.value} value={option.value}>
+                                                                            {option.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                <button
+                                                                    type="button"
+                                                                    data-testid={`system-dashboard-inventory-remove-${item.id}`}
+                                                                    onClick={() => removeInventoryItem(item.id)}
+                                                                    className="rounded-md border border-rose-300/80 bg-rose-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-rose-700 transition-colors hover:border-rose-400"
+                                                                    aria-label={`Remover ${item.name}`}
+                                                                >
+                                                                    Remover
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid gap-2 sm:grid-cols-2">
+                                                                <input
+                                                                    type="text"
+                                                                    data-testid={`system-dashboard-inventory-name-${item.id}`}
+                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                                    value={item.name}
+                                                                    onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
+                                                                    placeholder="Nome do equipamento"
+                                                                    aria-label={`Nome do equipamento ${item.id}`}
+                                                                />
+                                                                <select
+                                                                    data-testid={`system-dashboard-inventory-type-${item.id}`}
+                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                                    value={item.equipmentType}
+                                                                    onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
+                                                                    aria-label={`Tipo do equipamento ${item.id}`}
+                                                                >
+                                                                    {INVENTORY_EQUIPMENT_TYPE_OPTIONS.map((option) => (
+                                                                        <option key={option.value} value={option.value}>
+                                                                            {option.label}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                                    Itens ativos: {activeInventoryItems.length}/{inventoryLoadout.length}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    data-testid="system-dashboard-inventory-add-item"
+                                                    onClick={addInventoryItem}
+                                                    disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
+                                                    className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
+                                                        ? "cursor-not-allowed border-slate-300/60 text-slate-400"
+                                                        : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500"
+                                                        }`}
+                                                    aria-label="Adicionar equipamento"
+                                                >
+                                                    + Adicionar equipamento
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            id="system-dashboard-inventory-config-panel"
+                                            data-testid="system-dashboard-inventory-summary"
+                                            className="space-y-2 rounded-xl border border-white/45 bg-white/40 px-3 py-3"
+                                        >
+                                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                                Resumo rapido
+                                            </p>
+                                            {activeInventoryItems.length > 0 ? (
+                                                <ul className="space-y-2">
+                                                    {activeInventoryItems.map((item) => (
+                                                        <li key={`dashboard-summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
+                                                            <div className="min-w-0">
+                                                                <p className="truncate font-bold text-slate-700">{item.name}</p>
+                                                                <p className="truncate text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
+                                                                    {item.equipmentType || "Sem tipo"}
+                                                                </p>
+                                                            </div>
+                                                            <span className={`rounded-full border border-white/60 bg-white/55 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
+                                                                {getRarityLabel(item.rarity)}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-[12px] font-semibold text-slate-500">
+                                                    Nenhum item ativo selecionado.
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </section>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                                        <Icon name="target" className="text-[11px]" /> Proxima missao
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => startDungeon(featuredDungeon)}
+                                        className="w-full rounded-[26px] border border-white/50 bg-[linear-gradient(130deg,rgba(245,248,255,0.72)_0%,rgba(184,214,236,0.64)_100%)] p-6 text-left shadow-[0_12px_35px_rgba(104,127,156,0.22)] transition-transform duration-200 hover:-translate-y-0.5"
+                                        aria-label={`Abrir missao ${featuredDungeon.title}`}
+                                    >
+                                        <div className="flex flex-wrap items-center gap-2 text-[9px] font-black uppercase tracking-[0.14em]">
+                                            <span className="rounded-full border border-slate-300/70 bg-slate-800 px-3 py-1 text-white">
+                                                {featuredDungeon.day}
+                                            </span>
+                                            <span className="rounded-full border border-slate-200/80 bg-white/70 px-3 py-1 text-slate-500">
+                                                Rank {featuredDungeon.rank}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <h3 className="text-[38px] font-black uppercase leading-[0.95] tracking-tight text-slate-900 sm:text-[42px]">
+                                                    {featuredDungeon.title}
+                                                </h3>
+                                                <p className="mt-1 text-sm font-semibold text-slate-500">{featuredDungeon.type}</p>
+                                            </div>
+                                            <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-slate-700">
+                                                <Icon name="clock" className="text-[13px]" /> ~{featuredDungeon.estimatedMinutes}m
+                                                <Icon name="angle-right" className="text-sm text-slate-500" />
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h3 className="mt-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                                        <Icon name="calendar" className="text-[11px]" /> Agenda semanal
+                                    </h3>
+                                    <div data-testid="system-action-list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                        {upcomingDungeons.map((dungeon) => (
+                                            <button
+                                                type="button"
+                                                key={dungeon.id}
+                                                onClick={() => startDungeon(dungeon)}
+                                                className={`group min-h-[128px] rounded-[22px] border border-white/45 bg-white/30 p-4 text-left backdrop-blur-md transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/70 ${dungeon.id === "sab" ? "bg-[linear-gradient(145deg,rgba(233,220,255,0.52)_0%,rgba(176,196,236,0.52)_100%)]" : ""}`}
+                                                aria-label={`Abrir missao ${dungeon.title}`}
+                                            >
+                                                <div className="mb-3 flex items-center justify-between gap-2 text-[9px] font-black uppercase tracking-[0.13em]">
+                                                    <span className="rounded-full border border-white/60 bg-white/70 px-2.5 py-1 text-slate-600">
+                                                        {dungeon.day}
+                                                    </span>
+                                                    <span className="text-slate-400">Rank {dungeon.rank}</span>
+                                                </div>
+                                                <p className={`line-clamp-2 text-[19px] font-black uppercase leading-tight tracking-tight ${dungeon.id === "sab" ? "text-violet-600" : "text-slate-800"}`}>
+                                                    {dungeon.title}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         );
     };
-
-    const renderPreview = () => (
+const renderPreview = () => (
         <div className="min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 flex flex-col font-sans relative">
             <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10 pb-6">
                 <button onClick={() => setScreen('dashboard')} className="self-start text-[10px] font-mono text-cyan-600 hover:text-cyan-500 mb-8 flex items-center uppercase tracking-[0.2em] transition-transform hover:-translate-x-1 liquid-glass-inner px-3 py-2 rounded-lg">
@@ -1005,15 +1079,17 @@ export function SystemPage() {
                     <div className="liquid-glass-inner backdrop-blur-xl border border-red-500/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
                         <div>
                             <p className="text-[11px] font-bold font-mono text-red-600 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" /> Em Combate
+                                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" aria-hidden /> Em Combate
                             </p>
                             <p className="text-5xl md:text-6xl font-mono font-black text-slate-900 tracking-widest">
                                 {formatTime(workoutTimer)}
                             </p>
                         </div>
                         <button
+                            ref={tacticalHintButtonRef}
                             onClick={() => setShowSystemAlert(true)}
                             className="group w-16 h-16 liquid-glass-inner rounded-full border border-cyan-500/30 flex items-center justify-center hover:scale-105 transition-transform"
+                            aria-label="Abrir analise tatica"
                         >
                             <Icon name="brain" className="text-3xl text-cyan-600" />
                         </button>
@@ -1070,8 +1146,14 @@ export function SystemPage() {
 
                 {showSystemAlert && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">
-                        <div className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl">
-                            <h3 className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
+                        <div
+                            ref={alertDialogRef}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="system-tactical-analysis-title"
+                            className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl"
+                        >
+                            <h3 id="system-tactical-analysis-title" className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
                             <p className="text-slate-700 text-sm leading-relaxed mb-8">
                                 O Sistema recomenda períodos de descanso de 60-90s entre as séries para maximizar o ganho de XP e regeneração de vigor.
                             </p>
@@ -1140,6 +1222,7 @@ export function SystemPage() {
         </>
     );
 }
+
 
 
 

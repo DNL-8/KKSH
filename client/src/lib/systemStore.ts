@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSystemRpgStats, patchSystemRpgStats, type SystemRPGStatsOut, type SystemRPGStatsUpdate } from "./api";
 import { useAuth } from "../contexts/AuthContext";
 
-const SYSTEM_RPG_QUERY_KEY = ["system_rpg_stats"];
+const SYSTEM_RPG_QUERY_KEY_PREFIX = ["system_rpg_stats"] as const;
+
+const systemRpgQueryKey = (userId: string | null | undefined) =>
+    [...SYSTEM_RPG_QUERY_KEY_PREFIX, userId ?? "guest"] as const;
 
 export const RANKS = [
     { name: 'F', minXp: 0, color: 'text-slate-600', glow: 'shadow-[0_0_15px_rgba(161,161,170,0.4)]', border: 'border-zinc-600', bg: 'from-zinc-800 to-zinc-950' },
@@ -45,12 +48,14 @@ const DEFAULT_STATE: SystemRPGStatsOut = {
 export function useSystemRPG() {
     const { authUser } = useAuth();
     const queryClient = useQueryClient();
+    const queryKey = systemRpgQueryKey(authUser?.id);
 
     const { data: state = DEFAULT_STATE, isLoading } = useQuery({
-        queryKey: SYSTEM_RPG_QUERY_KEY,
+        queryKey,
         queryFn: getSystemRpgStats,
         enabled: Boolean(authUser),
         staleTime: 5 * 60 * 1000, // Keep fresh for 5 mins
+        initialData: () => queryClient.getQueryData<SystemRPGStatsOut>(queryKey) ?? DEFAULT_STATE,
         select: (data) => ({
             ...data,
             level: Math.max(
@@ -64,10 +69,10 @@ export function useSystemRPG() {
         mutationFn: (updates: SystemRPGStatsUpdate) => patchSystemRpgStats(updates),
         onMutate: async (newUpdates) => {
             // Optimistic update
-            await queryClient.cancelQueries({ queryKey: SYSTEM_RPG_QUERY_KEY });
-            const previousState = queryClient.getQueryData<SystemRPGStatsOut>(SYSTEM_RPG_QUERY_KEY);
+            await queryClient.cancelQueries({ queryKey });
+            const previousState = queryClient.getQueryData<SystemRPGStatsOut>(queryKey);
 
-            queryClient.setQueryData<SystemRPGStatsOut>(SYSTEM_RPG_QUERY_KEY, (old) => {
+            queryClient.setQueryData<SystemRPGStatsOut>(queryKey, (old) => {
                 if (!old) {
                     const merged = { ...DEFAULT_STATE, ...newUpdates } as SystemRPGStatsOut;
                     const resolvedXp = Number(merged.xp ?? 0);
@@ -89,12 +94,12 @@ export function useSystemRPG() {
         onError: (_err, _newUpdates, context) => {
             // Revert changes if error occurs
             if (context?.previousState) {
-                queryClient.setQueryData(SYSTEM_RPG_QUERY_KEY, context.previousState);
+                queryClient.setQueryData(queryKey, context.previousState);
             }
         },
         onSettled: () => {
             // Ensure consistency in the background
-            queryClient.invalidateQueries({ queryKey: SYSTEM_RPG_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey });
         },
     });
 
@@ -102,6 +107,19 @@ export function useSystemRPG() {
     // whilst doing optimistic patching out of the box!
     const setState = (newState: Partial<SystemRPGStatsOut> | ((prev: SystemRPGStatsOut) => Partial<SystemRPGStatsOut>)) => {
         const resolvingState = typeof newState === "function" ? newState(state) : newState;
+
+        if (!authUser) {
+            queryClient.setQueryData<SystemRPGStatsOut>(queryKey, (old) => {
+                const merged = { ...(old ?? DEFAULT_STATE), ...resolvingState } as SystemRPGStatsOut;
+                const resolvedXp = Number(merged.xp ?? 0);
+                return {
+                    ...merged,
+                    level: Math.max(Number(merged.level ?? 1), getSystemLevelFromXp(resolvedXp)),
+                } as SystemRPGStatsOut;
+            });
+            return;
+        }
+
         mutation.mutate(resolvingState);
     };
 
