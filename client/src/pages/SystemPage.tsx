@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Icon } from "../components/common/Icon";
 import { useSystemRPG, getRank, getNextRank } from "../lib/systemStore";
 import { useTheme } from "../contexts/ThemeContext";

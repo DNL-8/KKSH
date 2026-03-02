@@ -285,7 +285,7 @@ export function useVideoLibrary() {
             setRuntimeVideos([]);
             await clearVideos();
             await loadVideos();
-            setStatusMessage("Cache do navegador limpo.");
+            setStatusMessage("Biblioteca vazia");
         } catch (clearError) {
             setError(toErrorMessage(clearError, "Falha ao limpar cache."));
         }

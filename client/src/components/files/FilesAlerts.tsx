@@ -54,7 +54,10 @@ export function FilesAlerts({
             )}
 
             {highVolumeHint && directoryHandleSupported && (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] px-4 py-3 backdrop-blur-sm">
+                <div
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] px-4 py-3 backdrop-blur-sm"
+                    data-testid="high-volume-banner"
+                >
                     <div className="flex items-center gap-3">
                         <Icon name="info-circle" className="text-[16px] text-[hsl(var(--accent))]" />
                         <span className="text-xs font-medium text-[hsl(var(--accent-light))]">{highVolumeHint}</span>
@@ -62,6 +65,7 @@ export function FilesAlerts({
                     <div className="flex items-center gap-2">
                         <button
                             className="rounded-xl border border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.1)] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[hsl(var(--accent-light))] transition-colors hover:bg-[hsl(var(--accent)/0.15)] active:scale-95 shadow-[0_0_15px_rgba(var(--glow),0.1)]"
+                            data-testid="switch-to-directory-handle"
                             onClick={onTriggerDirectoryConnect}
                             type="button"
                         >

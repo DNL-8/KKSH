@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Icon } from "../common/Icon";
 import type { OrderMode } from "./types";
 import { ORDER_LABELS } from "./constants";
@@ -17,6 +17,8 @@ interface FilesToolbarProps {
     onSearchChange: (term: string) => void;
     completedLessonCount: number;
     completionRate: number;
+    filteredVideosCount: number;
+    filteredCompletionRate: number;
     onOpenPicker: () => void;
     onOpenFolderPicker: () => void;
     onOpenDirectoryPicker: () => void;
@@ -46,6 +48,8 @@ export function FilesToolbar({
     onSearchChange,
     completedLessonCount,
     completionRate,
+    filteredVideosCount,
+    filteredCompletionRate,
     onOpenPicker,
     onOpenFolderPicker,
     onOpenDirectoryPicker,
@@ -58,6 +62,7 @@ export function FilesToolbar({
     const { isIosTheme } = useTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const menuPanelRef = useRef<HTMLDivElement>(null);
     const advancedMenuId = "files-toolbar-advanced-menu";
 
     let progressText = " Carregando...";
@@ -96,6 +101,54 @@ export function FilesToolbar({
         window.addEventListener("keydown", handleEscape);
         return () => window.removeEventListener("keydown", handleEscape);
     }, [isMenuOpen]);
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            return;
+        }
+        const menu = menuPanelRef.current;
+        if (!menu) {
+            return;
+        }
+        const firstItem = menu.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)');
+        firstItem?.focus();
+    }, [isMenuOpen]);
+
+    const handleMenuKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+        const menu = menuPanelRef.current;
+        if (!menu) {
+            return;
+        }
+        const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)'));
+        if (items.length === 0) {
+            return;
+        }
+
+        const activeIndex = items.findIndex((item) => item === document.activeElement);
+        const focusAt = (index: number) => {
+            const safe = (index + items.length) % items.length;
+            items[safe]?.focus();
+        };
+
+        switch (event.key) {
+            case "ArrowDown":
+                event.preventDefault();
+                focusAt(activeIndex >= 0 ? activeIndex + 1 : 0);
+                break;
+            case "ArrowUp":
+                event.preventDefault();
+                focusAt(activeIndex >= 0 ? activeIndex - 1 : items.length - 1);
+                break;
+            case "Home":
+                event.preventDefault();
+                focusAt(0);
+                break;
+            case "End":
+                event.preventDefault();
+                focusAt(items.length - 1);
+                break;
+        }
+    }, []);
 
     return (
         <div className={`flex flex-col gap-4 mb-4 ${isIosTheme ? "ios26-text-secondary" : ""}`} data-testid="files-toolbar">
@@ -201,6 +254,8 @@ export function FilesToolbar({
                                 id={advancedMenuId}
                                 role="menu"
                                 aria-label="Menu avancado da biblioteca"
+                                ref={menuPanelRef}
+                                onKeyDown={handleMenuKeyDown}
                             >
                                 <div className={`px-2 py-1.5 mb-1 text-[9px] font-black uppercase tracking-widest border-b ${isIosTheme ? "text-slate-500 border-slate-300/50" : "text-slate-400 border-cyan-500/20"}`}>
                                     Biblioteca
@@ -210,6 +265,8 @@ export function FilesToolbar({
                                     disabled={loading || saving || visibleVideosCount === 0}
                                     onClick={() => { onExportMetadata(); setIsMenuOpen(false); }}
                                     type="button"
+                                    role="menuitem"
+                                    tabIndex={-1}
                                 >
                                     {exporting ? <Icon name="spinner" className="animate-spin text-[14px] text-[hsl(var(--accent))]" /> : <Icon name="download" className="text-[14px] text-[hsl(var(--accent))]" />}
                                     Fazer Backup (Exportar)
@@ -219,6 +276,8 @@ export function FilesToolbar({
                                     disabled={loading || saving}
                                     onClick={() => { onImportMetadataClick(); setIsMenuOpen(false); }}
                                     type="button"
+                                    role="menuitem"
+                                    tabIndex={-1}
                                 >
                                     <Icon name="upload" className="text-[14px] text-[hsl(var(--accent))]" />
                                     Restaurar Biblioteca
@@ -234,6 +293,8 @@ export function FilesToolbar({
                                             disabled={saving}
                                             onClick={() => { onOpenDirectoryPicker(); setIsMenuOpen(false); }}
                                             type="button"
+                                            role="menuitem"
+                                            tabIndex={-1}
                                         >
                                             <Icon name="link" className="text-[14px]" />
                                             Conectar Pasta (Alto Volume)
@@ -247,6 +308,8 @@ export function FilesToolbar({
                                     disabled={visibleVideosCount === 0 || loading || saving}
                                     onClick={() => { onClearLibrary(); setIsMenuOpen(false); }}
                                     type="button"
+                                    role="menuitem"
+                                    tabIndex={-1}
                                 >
                                     <Icon name="trash" className="text-[14px]" />
                                     Limpar Tudo
@@ -260,13 +323,14 @@ export function FilesToolbar({
             {/* Bottom Row: Minimal view toggles */}
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`} data-testid="files-sort-select">
                         <Icon name="sort-alt" className="text-[12px]" /> Ordenacao
                     </span>
                     <div className="relative">
                         <select
                             className={`appearance-none bg-transparent text-xs font-bold outline-none cursor-pointer pr-4 transition-colors disabled:opacity-50 ${isIosTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-200 hover:text-slate-50"}`}
                             aria-label="Ordenacao da biblioteca"
+                            data-testid="toggle-order"
                             disabled={visibleVideosCount === 0 || loading}
                             onChange={(event) => onOrderModeChange(event.target.value as OrderMode)}
                             value={orderMode}
@@ -287,11 +351,34 @@ export function FilesToolbar({
                     <button
                         className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.08] text-slate-300 hover:text-slate-100"}`}
                         aria-label="Abrir lista de videos"
+                        data-testid="sidebar-mobile-toggle"
                         onClick={onToggleMobileSidebar}
                         type="button"
                         title="Ver lista de videos"
                     >
                         <Icon name="list" className="text-[14px]" />
+                    </button>
+                    {directoryHandleSupported && (
+                        <button
+                            className={`flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-emerald-500/35 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-100"}`}
+                            data-testid="connect-directory-handle"
+                            disabled={saving}
+                            onClick={onOpenDirectoryPicker}
+                            type="button"
+                        >
+                            <Icon name="link" className="mr-1 text-[12px]" />
+                            Conectar
+                        </button>
+                    )}
+                    <button
+                        className={`flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-black uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-red-500/35 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:text-red-100"}`}
+                        data-testid="clear-library"
+                        disabled={visibleVideosCount === 0 || loading || saving}
+                        onClick={onClearLibrary}
+                        type="button"
+                    >
+                        <Icon name="trash" className="mr-1 text-[12px]" />
+                        Limpar
                     </button>
                     <button
                         className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-300 hover:text-[hsl(var(--accent))]"}`}
@@ -304,6 +391,9 @@ export function FilesToolbar({
                     </button>
                 </div>
             </div>
+            <p className={`text-[10px] font-black uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
+                ({filteredVideosCount} visiveis, {filteredCompletionRate}%)
+            </p>
             {/* Very subtle divider to separate from content below */}
             <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mt-2"></div>
         </div>

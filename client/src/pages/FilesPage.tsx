@@ -397,8 +397,33 @@ export function FilesPage() {
     () => visibleVideos.reduce((acc, video) => (isVideoCompleted(video) ? acc + 1 : acc), 0),
     [isVideoCompleted, visibleVideos],
   );
+  const filteredVideosCount = useMemo(
+    () =>
+      filteredFolderSections.reduce(
+        (acc, section) => acc + section.lessons.reduce((inner, lesson) => inner + (lesson.storageKind === "bridge" ? 0 : 1), 0),
+        0,
+      ),
+    [filteredFolderSections],
+  );
+  const filteredCompletedCount = useMemo(
+    () =>
+      filteredFolderSections.reduce(
+        (acc, section) =>
+          acc + section.lessons.reduce((inner, lesson) => {
+            if (lesson.storageKind === "bridge") {
+              return inner;
+            }
+            return inner + (isVideoCompleted(lesson) ? 1 : 0);
+          }, 0),
+        0,
+      ),
+    [filteredFolderSections, isVideoCompleted],
+  );
   const completionRate = visibleVideos.length > 0
     ? Math.round((completedLessonCount / visibleVideos.length) * 100)
+    : 0;
+  const filteredCompletionRate = filteredVideosCount > 0
+    ? Math.round((filteredCompletedCount / filteredVideosCount) * 100)
     : 0;
 
 
@@ -524,6 +549,8 @@ export function FilesPage() {
               onSearchChange={setSearchTerm}
               completedLessonCount={completedLessonCount}
               completionRate={completionRate}
+              filteredVideosCount={filteredVideosCount}
+              filteredCompletionRate={filteredCompletionRate}
               onOpenPicker={handleOpenPicker}
               onOpenFolderPicker={handleOpenFolderPicker}
               onOpenDirectoryPicker={handleOpenDirectoryPicker}

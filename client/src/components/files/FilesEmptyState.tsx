@@ -42,6 +42,7 @@ export function FilesEmptyState({
                 <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl group-hover:bg-cyan-400/30 transition-colors animate-pulse" />
                 <Icon name="cloud-upload" className="text-[hsl(var(--accent))] text-[48px] relative z-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
             </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300/70">Biblioteca vazia</p>
             <h3 className="text-3xl font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-300">Terminal Inativo</h3>
             <p className="mt-3 max-w-lg text-[13px] text-cyan-200/60 uppercase tracking-widest font-semibold leading-relaxed">
                 Arraste e solte videos na zona, ou use os comandos de importacao abaixo para iniciar o uplink.

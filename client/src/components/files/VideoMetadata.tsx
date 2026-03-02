@@ -28,10 +28,44 @@ export function VideoMetadata({
     const metadataTabId = "files-tab-metadata";
     const overviewPanelId = "files-panel-overview";
     const metadataPanelId = "files-panel-metadata";
+    const orderedTabs: TabMode[] = ["overview", "metadata"];
+    const handleTabListKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        let nextTab: TabMode | null = null;
+        const currentIndex = orderedTabs.indexOf(activeTab);
+        switch (event.key) {
+            case "ArrowRight":
+                nextTab = orderedTabs[(currentIndex + 1) % orderedTabs.length];
+                break;
+            case "ArrowLeft":
+                nextTab = orderedTabs[(currentIndex - 1 + orderedTabs.length) % orderedTabs.length];
+                break;
+            case "Home":
+                nextTab = orderedTabs[0];
+                break;
+            case "End":
+                nextTab = orderedTabs[orderedTabs.length - 1];
+                break;
+        }
+        if (!nextTab) {
+            return;
+        }
+        event.preventDefault();
+        onTabChange(nextTab);
+        const targetId = nextTab === "overview" ? overviewTabId : metadataTabId;
+        window.requestAnimationFrame(() => {
+            document.getElementById(targetId)?.focus();
+        });
+    };
 
     return (
         <div className={`rounded-3xl p-4 md:p-6 mt-4 ${isIosTheme ? "ios26-section" : "border border-cyan-500/20 liquid-glass"}`}>
-            <div className={`mb-6 flex flex-wrap items-center gap-2 border-b pb-4 ${isIosTheme ? "ios26-divider" : "border-cyan-500/20"}`} role="tablist" aria-label="Abas de detalhes do video">
+            <div
+                className={`mb-6 flex flex-wrap items-center gap-2 border-b pb-4 ${isIosTheme ? "ios26-divider" : "border-cyan-500/20"}`}
+                role="tablist"
+                aria-label="Abas de detalhes do video"
+                aria-orientation="horizontal"
+                onKeyDown={handleTabListKeyDown}
+            >
                 <button
                     className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "overview"
                         ? isIosTheme ? "ios26-chip-active" : "bg-[hsl(var(--accent)/0.15)] text-[hsl(var(--accent-light))] shadow-[0_0_15px_rgba(var(--glow),0.1)]"
@@ -42,6 +76,7 @@ export function VideoMetadata({
                     role="tab"
                     aria-selected={activeTab === "overview"}
                     aria-controls={overviewPanelId}
+                    tabIndex={activeTab === "overview" ? 0 : -1}
                     onClick={() => onTabChange("overview")}
                     type="button"
                 >
@@ -57,6 +92,7 @@ export function VideoMetadata({
                     role="tab"
                     aria-selected={activeTab === "metadata"}
                     aria-controls={metadataPanelId}
+                    tabIndex={activeTab === "metadata" ? 0 : -1}
                     onClick={() => onTabChange("metadata")}
                     type="button"
                 >
@@ -81,7 +117,7 @@ export function VideoMetadata({
                     <div className={`flex flex-col sm:flex-row items-stretch rounded-2xl overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/5 ${isIosTheme ? "ios26-section" : "border border-cyan-500/25 liquid-glass"}`}>
                         <div className="flex-1 p-5 relative overflow-hidden group">
                             <div className="absolute -right-4 -top-4 text-slate-800 transition-transform group-hover:scale-110 group-hover:text-[hsl(var(--accent)/0.05)]"><svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v12H4z" /></svg></div>
-                            <p className={`text-[9px] uppercase font-black tracking-widest relative z-10 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Total de Videos</p>
+                            <p className={`text-[9px] uppercase font-black tracking-widest relative z-10 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Total de videos</p>
                             <p className={`mt-2 text-3xl font-black relative z-10 ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{videoCount}</p>
                         </div>
                         <div className="flex-1 p-5 relative overflow-hidden group">
@@ -113,6 +149,7 @@ export function VideoMetadata({
                             {/* Nome do arquivo - Header do Card */}
                             <div className={`p-5 border-b bg-white/[0.02] relative overflow-hidden ${isIosTheme ? "border-slate-300/50" : "border-cyan-500/20"}`}>
                                 <div className="absolute right-0 top-0 w-32 h-32 bg-[hsl(var(--accent)/0.05)] rounded-full blur-[40px]" />
+                                <p className={`text-[9px] uppercase font-black tracking-widest mb-1 relative z-10 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Nome do arquivo</p>
                                 <p className="text-[9px] uppercase font-black tracking-widest text-[hsl(var(--accent))] mb-1 relative z-10">Arquivo Ativo</p>
                                 <p className={`text-xl font-black leading-tight break-words relative z-10 ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{selectedVideo.name}</p>
                             </div>
