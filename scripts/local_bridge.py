@@ -1,5 +1,6 @@
 
 import os
+import shutil
 import sqlite3
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
@@ -64,6 +65,11 @@ class VideoUpdate(BaseModel):
 class ScanRequest(BaseModel):
     path: str
 
+
+class DeleteRequest(BaseModel):
+    path: str
+    recursive: bool = False
+
 # Helper Functions
 def scan_folder_recursive(path: Path):
     logger.info(f"Scanning {path}")
@@ -121,6 +127,35 @@ def get_library_videos():
     videos = conn.execute("SELECT * FROM videos ORDER BY name").fetchall()
     conn.close()
     return {"videos": [dict(v) for v in videos]}
+
+
+@app.delete("/delete")
+def delete_path(request: DeleteRequest):
+    target = Path(request.path)
+    if not target.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+
+    resolved = target.resolve()
+    if resolved == resolved.anchor:
+        raise HTTPException(status_code=400, detail="Cannot delete root path")
+
+    try:
+        if target.is_file():
+            target.unlink()
+            return {"status": "deleted", "path": str(target), "is_dir": False}
+
+        if target.is_dir():
+            if request.recursive:
+                shutil.rmtree(target)
+            else:
+                target.rmdir()
+            return {"status": "deleted", "path": str(target), "is_dir": True}
+
+        raise HTTPException(status_code=400, detail="Unsupported path type")
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except OSError as exc:
+        raise HTTPException(status_code=400, detail=f"Delete failed: {exc}")
 
 @app.patch("/library/videos/{video_id}")
 def update_video(video_id: str, update: VideoUpdate):

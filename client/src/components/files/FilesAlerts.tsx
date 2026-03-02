@@ -1,6 +1,7 @@
 import { Icon } from "../common/Icon";
 import { ErrorBanner } from "../common/ErrorBanner";
 import { summarizeNames } from "./utils";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface FilesAlertsProps {
     error: string | null;
@@ -14,7 +15,10 @@ interface FilesAlertsProps {
     maxLibraryVideos: number;
     rejectedFiles: string[];
     statusMessage: string | null;
+    lastBackupAt: number | null;
 }
+
+const BACKUP_RECENCY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function FilesAlerts({
     error,
@@ -28,7 +32,14 @@ export function FilesAlerts({
     maxLibraryVideos,
     rejectedFiles,
     statusMessage,
+    lastBackupAt,
 }: FilesAlertsProps) {
+    const { isIosTheme } = useTheme();
+    const normalizedStatusMessage = statusMessage?.trim().toLowerCase() === "biblioteca vazia"
+        ? "Biblioteca limpa"
+        : statusMessage;
+    const backupIsRecent = typeof lastBackupAt === "number" && Date.now() - lastBackupAt <= BACKUP_RECENCY_WINDOW_MS;
+
     return (
         <div className="mt-4 space-y-3 z-10 relative">
             <ErrorBanner message={error} onClose={onClearError} />
@@ -112,27 +123,29 @@ export function FilesAlerts({
                 </div>
             )}
 
-            {statusMessage && (
+            {normalizedStatusMessage && (
                 <div className="files-alert files-alert-success flex items-start gap-3">
                     <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15">
                         <Icon name="check-circle" className="text-[14px] text-emerald-400" />
                     </div>
                     <div className="min-w-0">
                         <p className="mb-0.5 text-[10px] uppercase text-emerald-300 font-black tracking-widest">Status do Operador</p>
-                        <p className="text-xs text-emerald-100/80 leading-relaxed">{statusMessage}</p>
+                        <p className="text-xs text-emerald-100/80 leading-relaxed">{normalizedStatusMessage}</p>
                     </div>
                 </div>
             )}
 
-            <div className="files-alert files-alert-info flex items-start gap-3 opacity-70 hover:opacity-100 transition-opacity">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/15">
-                    <Icon name="device-hdd" className="text-[14px] text-blue-300" />
+            {!backupIsRecent && (
+                <div className={`files-alert files-alert-info inline-flex w-fit max-w-full items-start gap-2.5 px-3.5 py-2.5 ${isIosTheme ? "" : "opacity-70 hover:opacity-100 transition-opacity"}`}>
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-500/15">
+                        <Icon name="device-hdd" className="text-[12px] text-blue-300" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[9px] uppercase text-blue-200 font-black tracking-widest">Persistencia de dados</p>
+                        <p className="text-[11px] text-blue-100/80 leading-relaxed">A biblioteca fica no <strong>cache do navegador</strong>. Se limpar dados do site, ela e apagada.</p>
+                    </div>
                 </div>
-                <div className="min-w-0">
-                    <p className="mb-0.5 text-[10px] uppercase text-blue-200 font-black tracking-widest">Persistencia de dados</p>
-                    <p className="text-xs text-blue-100/80 leading-relaxed">A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site, a biblioteca sera apagada. Use <strong>Backup</strong> regularmente.</p>
-                </div>
-            </div>
+            )}
         </div>
     );
 }

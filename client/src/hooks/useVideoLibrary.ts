@@ -16,6 +16,8 @@ import { trackFilesTelemetry } from "../lib/filesTelemetry";
 import { useLocalBridge } from "./useLocalBridge";
 import { deriveBridgeName, deriveBridgeRelativePath } from "../lib/bridgePath";
 
+const LAST_BACKUP_AT_KEY = "cmd8_files_last_backup_at";
+
 interface BridgeLibraryVideo {
     id?: unknown;
     name?: unknown;
@@ -85,8 +87,37 @@ export function useVideoLibrary() {
     const [storageUnavailable, setStorageUnavailable] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [isPersisted, setIsPersisted] = useState(false);
+    const [lastBackupAt, setLastBackupAt] = useState<number | null>(null);
 
     const { isConnected: isBridgeConnected, getLibrary: getBridgeLibrary, checkConnection } = useLocalBridge();
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const rawValue = window.localStorage.getItem(LAST_BACKUP_AT_KEY);
+        if (!rawValue) {
+            return;
+        }
+
+        const parsed = Number(rawValue);
+        if (Number.isFinite(parsed) && parsed > 0) {
+            setLastBackupAt(parsed);
+        }
+    }, []);
+
+    const markBackupAsFresh = useCallback((timestamp = Date.now()) => {
+        setLastBackupAt(timestamp);
+        if (typeof window === "undefined") {
+            return;
+        }
+        try {
+            window.localStorage.setItem(LAST_BACKUP_AT_KEY, String(timestamp));
+        } catch {
+            // no-op
+        }
+    }, []);
 
     const visibleVideos = useMemo(() => {
         const dedup = new Map<string, StoredVideo>();
@@ -250,7 +281,9 @@ export function useVideoLibrary() {
     });
 
     const handleClearAll = async () => {
-        if (!confirm("Tem certeza? Isso apagara apenas o cache do navegador. A biblioteca da Bridge (SQLite) deve ser limpa manualmente.")) {
+        const localVisibleCount = visibleVideos.filter((video) => video.storageKind !== "bridge").length;
+
+        if (!confirm("Tem certeza? Isso limpa apenas os arquivos locais do navegador. Itens da Bridge continuam visiveis.")) {
             return;
         }
 
@@ -258,6 +291,17 @@ export function useVideoLibrary() {
             setRuntimeVideos([]);
             await clearVideos();
             await loadVideos();
+
+            if (localVisibleCount === 0 && isBridgeConnected) {
+                setStatusMessage("Biblioteca vazia no cache local. Itens da Bridge continuam visiveis.");
+                return;
+            }
+
+            if (isBridgeConnected) {
+                setStatusMessage("Biblioteca vazia no cache local. Itens da Bridge continuam visiveis.");
+                return;
+            }
+
             setStatusMessage("Biblioteca vazia");
         } catch (clearError) {
             setError(toErrorMessage(clearError, "Falha ao limpar cache."));
@@ -279,6 +323,7 @@ export function useVideoLibrary() {
             const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
             const fileName = `cmd8-files-metadata-${timestamp}.json`;
             downloadJsonBackup(payload, fileName);
+            markBackupAsFresh();
             setStatusMessage("Backup exportado com sucesso (metadados locais). A Bridge nao esta incluida.");
             trackFilesTelemetry("files.metadata.export.success", {
                 source: "local",
@@ -358,6 +403,7 @@ export function useVideoLibrary() {
         storageUnavailable,
         exporting,
         isPersisted,
+        lastBackupAt,
         isBridgeConnected,
         handleClearAll,
         handleExportMetadata,

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocalBridge, type BridgeItem } from "../../hooks/useLocalBridge";
 import { Icon } from "../common/Icon";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useToast } from "../common/Toast";
 
 interface BridgeBrowserProps {
     onPlayVideo: (url: string, name: string, path: string) => void;
@@ -11,11 +12,13 @@ interface BridgeBrowserProps {
 
 export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
     const { isIosTheme } = useTheme();
-    const { listDrives, listPath, getStreamUrl, scanFolder, drives } = useLocalBridge();
+    const { showToast } = useToast();
+    const { listDrives, listPath, getStreamUrl, scanFolder, deletePath, drives } = useLocalBridge();
     const [currentPath, setCurrentPath] = useState<string>("");
     const [items, setItems] = useState<BridgeItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [scanning, setScanning] = useState(false);
+    const [deletingPath, setDeletingPath] = useState<string | null>(null);
 
     const loadDrives = useCallback(async () => {
         setLoading(true);
@@ -76,6 +79,25 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
             setScanning(false);
         }
     }, [currentPath, scanFolder]);
+
+    const handleDelete = useCallback(async (item: BridgeItem) => {
+        setDeletingPath(item.path);
+        try {
+            const deleted = await deletePath(item.path, item.is_dir);
+            if (!deleted) {
+                showToast("Nao foi possivel excluir o item no Bridge.", "error");
+                return;
+            }
+
+            showToast(`${item.is_dir ? "Pasta" : "Arquivo"} excluido com sucesso.`, "success");
+
+            if (currentPath) {
+                await browse(currentPath);
+            }
+        } finally {
+            setDeletingPath(null);
+        }
+    }, [browse, currentPath, deletePath, showToast]);
 
     useEffect(() => {
         const handleEscape = (event: KeyboardEvent) => {
@@ -154,38 +176,64 @@ export function BridgeBrowser({ onPlayVideo, onClose }: BridgeBrowserProps) {
                                 const actionable = item.is_dir || itemIsVideo;
 
                                 return (
-                                    <button
+                                    <div
                                         key={`${item.path}::${item.name}`}
-                                        className={`w-full rounded-lg border border-transparent p-3 text-left transition-colors ${item.is_dir
-                                            ? "text-blue-200 hover:bg-white/[0.10]"
+                                        className={`flex w-full items-center gap-2 rounded-lg border border-transparent p-1 transition-colors ${item.is_dir
+                                            ? "hover:bg-white/[0.10]"
                                             : itemIsVideo
-                                                ? "text-emerald-100 hover:border-emerald-500/30 hover:bg-emerald-900/20"
-                                                : "cursor-not-allowed text-slate-400 opacity-50"
+                                                ? "hover:border-emerald-500/30 hover:bg-emerald-900/20"
+                                                : "opacity-80"
                                             }`}
-                                        disabled={!actionable}
-                                        onClick={() => {
-                                            if (item.is_dir) {
-                                                void browse(item.path);
-                                                return;
-                                            }
-                                            if (itemIsVideo) {
-                                                onPlayVideo(getStreamUrl(item.path), item.name, item.path);
-                                            }
-                                        }}
-                                        type="button"
-                                        aria-label={item.is_dir ? `Abrir pasta ${item.name}` : itemIsVideo ? `Reproduzir video ${item.name}` : `Arquivo nao suportado ${item.name}`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <Icon
-                                                name={item.is_dir ? "folder" : itemIsVideo ? "file-video" : "file"}
-                                                className={item.is_dir ? "text-blue-400" : itemIsVideo ? "text-emerald-400" : "text-slate-400"}
-                                            />
-                                            <span className="flex-1 truncate">{item.name}</span>
-                                            <span className="text-xs font-mono opacity-50">
-                                                {item.is_dir ? "-" : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
-                                            </span>
-                                        </div>
-                                    </button>
+                                        <button
+                                            className={`min-w-0 flex-1 rounded-md p-2 text-left ${item.is_dir
+                                                ? "text-blue-200"
+                                                : itemIsVideo
+                                                    ? "text-emerald-100"
+                                                    : "cursor-not-allowed text-slate-400 opacity-50"
+                                                }`}
+                                            disabled={!actionable}
+                                            onClick={() => {
+                                                if (item.is_dir) {
+                                                    void browse(item.path);
+                                                    return;
+                                                }
+                                                if (itemIsVideo) {
+                                                    onPlayVideo(getStreamUrl(item.path), item.name, item.path);
+                                                }
+                                            }}
+                                            type="button"
+                                            aria-label={item.is_dir ? `Abrir pasta ${item.name}` : itemIsVideo ? `Reproduzir video ${item.name}` : `Arquivo nao suportado ${item.name}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Icon
+                                                    name={item.is_dir ? "folder" : itemIsVideo ? "file-video" : "file"}
+                                                    className={item.is_dir ? "text-blue-400" : itemIsVideo ? "text-emerald-400" : "text-slate-400"}
+                                                />
+                                                <span className="flex-1 truncate">{item.name}</span>
+                                                <span className="text-xs font-mono opacity-50">
+                                                    {item.is_dir ? "-" : `${(item.size / 1024 / 1024).toFixed(2)} MB`}
+                                                </span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            className={`shrink-0 rounded-md p-2 transition-colors disabled:opacity-50 ${isIosTheme ? "ios26-control ios26-focusable text-red-600 hover:text-red-700" : "text-red-300 hover:bg-red-900/20 hover:text-red-200"}`}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                void handleDelete(item);
+                                            }}
+                                            type="button"
+                                            disabled={deletingPath === item.path}
+                                            aria-label={`Excluir ${item.name}`}
+                                            title={`Excluir ${item.name}`}
+                                        >
+                                            {deletingPath === item.path ? (
+                                                <Icon name="spinner" className="animate-spin" />
+                                            ) : (
+                                                <Icon name="trash" />
+                                            )}
+                                        </button>
+                                    </div>
                                 );
                             })}
                             {items.length === 0 && (

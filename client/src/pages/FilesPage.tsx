@@ -116,6 +116,7 @@ export function FilesPage() {
     setError: setLibraryError,
     isPersisted,
     isBridgeConnected,
+    lastBackupAt,
   } = useVideoLibrary();
 
   const folderSections = useMemo<FolderSection[]>(() => {
@@ -436,7 +437,7 @@ export function FilesPage() {
 
   return (
     <div
-      className={`files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700 ${isIosTheme ? "ios26-text-secondary" : ""}`}
+      className="files-page animate-in slide-in-from-right-10 relative space-y-6 pb-20 duration-700"
       data-page="files"
       data-testid="files-main-panel"
       onDragEnter={handleDragEnter}
@@ -485,12 +486,15 @@ export function FilesPage() {
         type="file"
       />
 
-      <div className="relative overflow-hidden pt-4 pb-2" data-testid="files-header">
+      <div className="relative overflow-x-hidden overflow-y-visible pt-4 pb-2" data-testid="files-header">
         <div className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[hsl(var(--accent)/0.03)] blur-[120px] mix-blend-screen" />
         <div className="pointer-events-none absolute bottom-0 right-20 h-64 w-64 rounded-full bg-indigo-500/5 blur-[100px] mix-blend-screen" />
 
-        <div className="relative z-10 space-y-4">
-          <div data-testid="files-toolbar-panel" className={isIosTheme ? "ios26-section" : ""}>
+        <div className="relative z-10 space-y-3">
+          <div
+            data-testid="files-toolbar-panel"
+            className={isIosTheme ? "ios26-section p-3 sm:p-4" : "files-panel rounded-[26px] p-3 sm:p-4"}
+          >
             <FilesToolbar
               saving={saving}
               importProgress={importProgress}
@@ -518,10 +522,15 @@ export function FilesPage() {
           </div>
 
           {/* Badges de Status do Sistema */}
-          <div className="flex flex-wrap items-center gap-2.5 px-1 pt-2">
+          <div
+            className={`inline-flex w-fit max-w-full flex-wrap items-center gap-2 px-1.5 py-1.5 ${isIosTheme
+              ? "ios26-section"
+              : "liquid-glass-inner rounded-2xl border border-cyan-500/20"
+              }`}
+          >
             {isBridgeConnected && (
               <button
-                className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${isIosTheme
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wide transition-all active:scale-95 ${isIosTheme
                   ? "ios26-chip ios26-focusable"
                   : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-400/40 shadow-[0_2px_12px_rgba(99,102,241,0.1)]"
                   }`}
@@ -535,7 +544,7 @@ export function FilesPage() {
             )}
 
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all ${isIosTheme
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wide transition-all ${isIosTheme
               ? isBridgeConnected ? "ios26-chip ios26-status-success" : "ios26-chip"
               : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 files-badge-online" : "border-slate-700/60 bg-slate-800/30 text-slate-400"
               }`}>
@@ -544,7 +553,7 @@ export function FilesPage() {
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all cursor-help ${isIosTheme
+            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wide transition-all cursor-help ${isIosTheme
               ? isPersisted ? "ios26-chip ios26-chip-active" : "ios26-chip ios26-status-warning"
               : isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"
               }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (pode ser limpo pelo navegador)"}>
@@ -567,6 +576,7 @@ export function FilesPage() {
           maxLibraryVideos={MAX_LIBRARY_VIDEOS}
           rejectedFiles={rejectedFiles}
           statusMessage={statusMessage}
+          lastBackupAt={lastBackupAt}
         />
       </div >
 

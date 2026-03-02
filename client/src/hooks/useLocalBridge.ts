@@ -116,6 +116,19 @@ export function useLocalBridge() {
         }
     }, []);
 
+    const deletePath = useCallback(async (path: string, recursive = false) => {
+        try {
+            const res = await fetch(`${LOCAL_BRIDGE_URL}/delete`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ path, recursive }),
+            });
+            return res.ok;
+        } catch {
+            return false;
+        }
+    }, []);
+
     const getLibrary = useCallback(async () => {
         try {
             const res = await fetch(`${LOCAL_BRIDGE_URL}/library/videos`);
@@ -137,6 +150,7 @@ export function useLocalBridge() {
         listPath,
         getStreamUrl,
         scanFolder,
+        deletePath,
         getLibrary,
         bridgeUrl: LOCAL_BRIDGE_URL,
     };
