@@ -115,7 +115,7 @@ export function TopBar({ onMobileMenuOpen }: TopBarProps) {
     const animMana = useAnimatedNumber(manaPercent, 600);
     const animStamina = useAnimatedNumber(staminaPercent, 600);
     const animXp = useAnimatedNumber(xpPercent, 600);
-    const presenceLabel = preferences.stealthMode ? "Stealth" : "Online";
+    const presenceLabel = preferences.stealthMode ? "Furtivo" : "Online";
 
     useEffect(() => {
         if (typeof window === "undefined") {

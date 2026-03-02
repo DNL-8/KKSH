@@ -21,14 +21,14 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
                 className={`w-full max-w-md rounded-3xl p-6 ${isIosTheme ? "ios26-section-hero ios26-sheen" : "border border-blue-500/30 bg-[#0a0b10]"}`}
             >
                 <div className={`mb-5 flex items-center justify-between border-b pb-3 ${isIosTheme ? "ios26-divider" : "border-slate-300/50"}`}>
-                    <h3 className="text-lg font-black uppercase italic text-slate-900">Configuracao de Status</h3>
-                    <button type="button" onClick={onClose} className={`rounded-full p-2 ${isIosTheme ? "ios26-control ios26-focusable" : "hover:bg-white/[0.10]"}`}>
-                        <Icon name="cross" className="text-slate-600 text-lg" />
+                    <h3 className={`text-lg font-black uppercase italic ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Configuracao de Status</h3>
+                    <button type="button" onClick={onClose} aria-label="Fechar modal de atributos" className={`rounded-full p-2 ${isIosTheme ? "ios26-control ios26-focusable" : "text-slate-300 hover:bg-white/[0.10] hover:text-slate-100"}`}>
+                        <Icon name="cross" className="text-lg" />
                     </button>
                 </div>
                 {(["python", "sql", "excel", "etl"] as AttributeKey[]).map((key) => (
                     <div key={key} className="mb-4 space-y-1.5">
-                        <label htmlFor={`hub-attr-${key}`} className="text-[10px] font-black uppercase tracking-wider text-slate-800">
+                        <label htmlFor={`hub-attr-${key}`} className={`text-[10px] font-black uppercase tracking-wider ${isIosTheme ? "text-slate-800" : "text-slate-300"}`}>
                             {key.toUpperCase()}
                         </label>
                         <div className="flex items-center gap-3">

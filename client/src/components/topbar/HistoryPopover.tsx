@@ -53,7 +53,7 @@ function toSessionItem(session: SessionOut): HistoryActivityItem {
     id: `session-${session.id}`,
     kind: "session",
     title: `${subject} (${session.minutes} min)`,
-    meta: `XP ${session.xpEarned} | Gold ${session.goldEarned}`,
+    meta: `XP ${session.xpEarned} | Creditos ${session.goldEarned}`,
     createdAt: session.createdAt,
     sortTime: Number.isNaN(new Date(session.createdAt).getTime())
       ? 0
@@ -66,7 +66,7 @@ function toXpItem(event: XpHistoryEventOut): HistoryActivityItem {
     id: `xp-${event.id}`,
     kind: "xp",
     title: normalizeEventLabel(event.eventType),
-    meta: `XP +${event.xpDelta} | Gold +${event.goldDelta}`,
+    meta: `XP +${event.xpDelta} | Creditos +${event.goldDelta}`,
     createdAt: event.createdAt,
     sortTime: Number.isNaN(new Date(event.createdAt).getTime())
       ? 0

@@ -17,7 +17,7 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                     <div className="rounded-xl border border-orange-500/30 bg-orange-950/40 p-3 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
                         <Icon name="bolt" className="text-[24px]" />
                     </div>
-                    <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Dificuldade</h2>
+                    <h2 className={`text-lg font-black uppercase tracking-widest drop-shadow-sm ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Dificuldade</h2>
                 </div>
 
                 <div className="flex flex-col gap-3">
@@ -29,13 +29,13 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                             }`}
                     >
                         <div className="flex justify-between items-center mb-2">
-                            <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "casual" ? "text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" : "text-slate-900"
+                            <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "casual" ? "text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" : isIosTheme ? "text-slate-900" : "text-slate-300"
                                 }`}>Casual</span>
                             {preferences.difficulty === "casual" && (
                                 <Icon name="check-circle" className="text-emerald-500 text-[20px] drop-shadow-sm" />
                             )}
                         </div>
-                        <p className="text-[11px] font-medium text-slate-500">Modo historia sem desafios punitivos.</p>
+                        <p className={`text-[11px] font-medium ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>Modo historia sem desafios punitivos.</p>
                     </button>
 
                     <button
@@ -54,7 +54,7 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                             </div>
                         )}
                         <div className="flex justify-between items-center mb-2">
-                            <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "hardcore" ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "text-red-400"
+                            <span className={`text-[13px] font-black uppercase tracking-[0.2em] ${preferences.difficulty === "hardcore" ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" : "text-red-300"
                                 }`}>Hardcore</span>
                         </div>
                         <p className="text-[11px] font-medium text-red-200/60 relative z-10">Dano permanente. Boot loops reais.</p>
@@ -64,7 +64,7 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
 
             <div data-testid="settings-theme-section" className={`rounded-[40px] p-8 ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Tema</h2>
+                    <h2 className={`text-lg font-black uppercase tracking-widest drop-shadow-sm ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Tema</h2>
                     <Icon name="refresh" className="text-[hsl(var(--accent)/0.6)] animate-spin-slow text-[20px]" />
                 </div>
 
@@ -75,8 +75,8 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                 <div className="mb-6 rounded-full border border-red-500/20 bg-red-950/40 p-6 text-red-500 shadow-[inset_0_2px_10px_rgba(220,38,38,0.2),0_0_30px_rgba(220,38,38,0.1)] inline-block transition-transform duration-700 group-hover:scale-110">
                     <Icon name="skull" className="text-[48px] drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 drop-shadow-sm">Build v0.9.4</h3>
-                <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500">COMPILADO: 2024-05-20</p>
+                <h3 className={`text-xl font-black uppercase italic tracking-tighter mb-2 drop-shadow-sm ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Build v0.9.4</h3>
+                <p className={`text-[10px] font-mono font-bold uppercase tracking-[0.2em] ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>COMPILADO: 2024-05-20</p>
                 <div className="mt-8 flex justify-center gap-3">
                     <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />
                     <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />

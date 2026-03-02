@@ -404,11 +404,12 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 [role="button"]:focus-visible,
+[role="slider"]:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
   box-shadow:
-    0 0 0 2px #020203,
-    0 0 0 4px rgba(6, 182, 212, 0.6);
+    0 0 0 2px rgba(2, 2, 3, 0.95),
+    0 0 0 5px rgba(var(--glow), 0.72);
   border-radius: inherit;
 }
 

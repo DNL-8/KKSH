@@ -81,8 +81,8 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                                 <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-cyan-100" : "text-[#3b82f6]"}`}>
                                     {drill.subject}
                                 </span>
-                                <span title="Dificuldade / Facilidade Atual" className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${isIosTheme ? "ios26-glass-intense-soft text-slate-100" : "border-slate-300/50 bg-white/[0.03] text-slate-600"}`}>
-                                    <Icon name="brain" className="text-purple-400" /> Nível {Math.round(drill.ease * 10)}
+                                <span title="Dificuldade / Facilidade Atual" className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${isIosTheme ? "ios26-glass-intense-soft text-slate-100" : "border-slate-300/50 bg-white/[0.03] text-slate-300"}`}>
+                                    <Icon name="brain" className="text-purple-400" /> Nivel {Math.round(drill.ease * 10)}
                                 </span>
                             </div>
 
@@ -93,7 +93,7 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                             </div>
 
                             <div className="mt-8 text-center animate-pulse">
-                                <span className={`text-[10px] font-bold uppercase tracking-[0.3em] ${isIosTheme ? "text-slate-200/75" : "text-slate-600"}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-[0.3em] ${isIosTheme ? "text-slate-200/75" : "text-slate-400"}`}>
                                     Toque para revelar
                                 </span>
                             </div>
@@ -108,7 +108,7 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                                 <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-emerald-200" : "text-emerald-400"}`}>
                                     Resposta
                                 </span>
-                                <button type="button" onClick={onSkip} className={`rounded-full p-2 transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-100 hover:text-white" : "text-slate-500 hover:text-slate-900"}`}>
+                                <button type="button" onClick={onSkip} className={`rounded-full p-2 transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-100 hover:text-white" : "text-slate-400 hover:text-slate-100"}`}>
                                     <Icon name="ellipsis-h" />
                                 </button>
                             </div>
@@ -155,3 +155,4 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
         </div>
     );
 }
+

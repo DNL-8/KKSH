@@ -136,20 +136,20 @@ export function SettingsTelemetry() {
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                     <Icon name="database" className="text-[24px]" />
                 </div>
-                <h2 className="text-lg font-black uppercase tracking-widest text-slate-900 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                <h2 className={`text-lg font-black uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>
                     Telemetria de Arquivos
                 </h2>
             </div>
 
             <div className={`rounded-[40px] p-8 transition-all ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <p className="text-[13px] text-slate-600 max-w-lg leading-relaxed font-medium">
+                    <p className={`text-[13px] max-w-lg leading-relaxed font-medium ${isIosTheme ? "text-slate-600" : "text-slate-300"}`}>
                         Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={refreshFilesTelemetry}
-                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-300/50 bg-white/[0.03] text-slate-800 hover:bg-white/[0.08] hover:text-slate-900"}`}
+                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-300/50 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08] hover:text-slate-50"}`}
                             type="button"
                         >
                             Atualizar
@@ -175,8 +175,8 @@ export function SettingsTelemetry() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</p>
-                        <p className="mt-1 text-xl font-black text-slate-900">{filesTelemetryStats.total}</p>
+                        <p className={`text-[10px] font-bold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Total</p>
+                        <p className={`mt-1 text-xl font-black ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{filesTelemetryStats.total}</p>
                     </div>
                     <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-red-300/70">Erros</p>
@@ -204,7 +204,7 @@ export function SettingsTelemetry() {
                                 aria-pressed={isActive}
                                 className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${isActive
                                     ? isIosTheme ? "ios26-chip-active" : "border-cyan-400/60 bg-cyan-500/20 text-cyan-200"
-                                    : isIosTheme ? "ios26-chip" : "border-slate-700 liquid-glass text-slate-800 hover:bg-white/[0.10]"
+                                    : isIosTheme ? "ios26-chip" : "border-slate-700 liquid-glass text-slate-300 hover:bg-white/[0.10] hover:text-slate-100"
                                     }`}
                             >
                                 {filterOption.label} ({count})
@@ -213,11 +213,11 @@ export function SettingsTelemetry() {
                     })}
                 </div>
                 {filesTelemetryEvents.length === 0 ? (
-                    <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
+                    <div className={`mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>
                         Sem eventos de telemetria no momento.
                     </div>
                 ) : filteredFilesTelemetryEvents.length === 0 ? (
-                    <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
+                    <div className={`mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>
                         Sem eventos para o filtro selecionado.
                     </div>
                 ) : (
@@ -226,9 +226,9 @@ export function SettingsTelemetry() {
                             <div key={`${event.at}-${event.name}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <code className="text-[10px] font-black uppercase tracking-wider text-cyan-300">{event.name}</code>
-                                    <span className="text-[10px] font-mono text-slate-500">{new Date(event.at).toLocaleString("pt-BR")}</span>
+                                    <span className={`text-[10px] font-mono ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>{new Date(event.at).toLocaleString("pt-BR")}</span>
                                 </div>
-                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
+                                <div className={`mt-2 flex flex-wrap items-center gap-2 text-[10px] ${isIosTheme ? "text-slate-600" : "text-slate-300"}`}>
                                     <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
                                     {typeof event.payload.durationMs === "number" && (
                                         <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>

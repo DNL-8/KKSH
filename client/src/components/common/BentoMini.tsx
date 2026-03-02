@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { Icon } from "./Icon";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface BentoMiniProps {
   icon: string;
@@ -13,6 +14,7 @@ interface BentoMiniProps {
 
 export function BentoMini({ icon, title, val, sub, color, onClick, children }: BentoMiniProps) {
   const glowRef = useRef<HTMLDivElement>(null);
+  const { isIosTheme } = useTheme();
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (!glowRef.current) return;
@@ -33,7 +35,10 @@ export function BentoMini({ icon, title, val, sub, color, onClick, children }: B
       onClick={onClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="animated-border group relative overflow-hidden rounded-[32px] border border-slate-800 bg-[#0a0a0b]/60 p-6 text-left shadow-lg backdrop-blur-md transition-all duration-500 hover:border-slate-600 hover:bg-[#0e0e10]"
+      className={`animated-border group relative overflow-hidden rounded-[32px] p-6 text-left shadow-lg backdrop-blur-md transition-all duration-500 ${isIosTheme
+        ? "ios26-section ios26-focusable"
+        : "border border-slate-700 bg-[#0a0a0b]/60 hover:border-slate-500 hover:bg-[#0e0e10]"
+        }`}
       type="button"
     >
       {/* Mouse-tracking glow */}
@@ -46,15 +51,15 @@ export function BentoMini({ icon, title, val, sub, color, onClick, children }: B
             <Icon name={icon} className="text-[20px]" />
           </div>
           <div className="opacity-0 transition-opacity group-hover:opacity-100">
-            <Icon name="arrow-up-right" className="text-slate-600 text-[14px]" />
+            <Icon name="arrow-up-right" className={`text-[14px] ${isIosTheme ? "text-slate-600" : "text-slate-300"}`} />
           </div>
         </div>
         <div className="space-y-1">
-          <h4 className="mb-1 text-[10px] font-black uppercase leading-none tracking-[0.2em] text-slate-600 group-hover:text-slate-800">
+          <h4 className={`mb-1 text-[10px] font-black uppercase leading-none tracking-[0.2em] ${isIosTheme ? "text-slate-600 group-hover:text-slate-800" : "text-slate-400 group-hover:text-slate-200"}`}>
             {title}
           </h4>
-          <div className="truncate text-xl font-black tracking-tight text-slate-900">{val}</div>
-          <div className="text-[10px] font-bold uppercase tracking-tighter text-slate-600">{sub}</div>
+          <div className={`truncate text-xl font-black tracking-tight ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{val}</div>
+          <div className={`text-[10px] font-bold uppercase tracking-tighter ${isIosTheme ? "text-slate-600" : "text-slate-400"}`}>{sub}</div>
         </div>
         {children}
       </div>
