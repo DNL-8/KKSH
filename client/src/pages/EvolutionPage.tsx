@@ -69,7 +69,7 @@ function StatBadge({ icon, value, label, tone = "cyan" }: StatBadgeProps) {
         <Icon name={icon} className="text-[16px] drop-shadow-md" />
       </div>
       <div className="leading-none">
-        <div className="text-[15px] font-black tracking-wide text-slate-900 drop-shadow-sm">{value}</div>
+        <div className="text-[15px] font-black tracking-wide text-slate-100 drop-shadow-sm">{value}</div>
         <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</div>
       </div>
     </div>
@@ -85,7 +85,7 @@ function StatBox({ label, value, sub, highlight = false }: StatBoxProps) {
         }`}
     >
       <div className={`text-[10px] font-bold uppercase tracking-wider ${highlight ? "text-cyan-400" : "text-slate-500"}`}>{label}</div>
-      <div className={`mt-2 text-2xl font-black ${highlight ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-500 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" : "text-slate-900"}`}>{value}</div>
+      <div className={`mt-2 text-2xl font-black ${highlight ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-500 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" : "text-slate-100"}`}>{value}</div>
       <div className="mt-1.5 text-[11px] font-mono text-slate-500/80">{sub}</div>
     </article>
   );
@@ -181,7 +181,7 @@ export function EvolutionPage() {
     return (
       <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
         <section className="rounded-2xl border border-slate-800/15 liquid-glass p-8">
-          <h2 className="text-3xl font-black uppercase italic tracking-tight text-slate-900">Status de Evolucao</h2>
+          <h2 className="text-3xl font-black uppercase italic tracking-tight text-slate-100">Status de Evolucao</h2>
           <p className="mt-3 text-sm text-slate-600">
             Faca login para carregar evolucao real, sequencia, minutos estudados e conquistas.
           </p>
@@ -228,14 +228,14 @@ export function EvolutionPage() {
 
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end relative z-10">
           <div>
-            <h1 className="text-5xl font-black italic tracking-tighter text-slate-900 drop-shadow-md md:text-7xl">
+            <h1 className="text-5xl font-black italic tracking-tighter text-slate-100 drop-shadow-md md:text-7xl">
               REVI<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">SOES</span>
             </h1>
             <p className="mt-3 flex items-center gap-3 text-xs font-mono uppercase tracking-[0.3em] text-cyan-400/80">
               <span className="h-px w-10 bg-gradient-to-r from-cyan-500 to-transparent" />
               Sincronizacao mental necessaria
             </p>
-            <p className="mt-4 text-[13px] font-bold uppercase tracking-wider text-slate-600 liquid-glass-inner px-3 py-1.5 rounded-lg border border-slate-300/50 w-fit backdrop-blur-sm">{weeklyLine}</p>
+            <p className="mt-4 text-[13px] font-bold uppercase tracking-wider text-slate-600 liquid-glass-inner px-3 py-1.5 rounded-lg border border-slate-700/40 w-fit backdrop-blur-sm">{weeklyLine}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -272,22 +272,22 @@ export function EvolutionPage() {
                       "Uma masmorra focada em evolucao geral."}
                   </p>
                 </div>
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-300/50 bg-gradient-to-br from-black to-slate-900 shadow-[inset_0_5px_15px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)]">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-700/40 bg-gradient-to-br from-black to-slate-900 shadow-[inset_0_5px_15px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)]">
                   <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500">{activeQuest?.rank ?? "F"}</span>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-8 text-[13px] font-bold text-slate-800">
-                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-300/50">
+                <div className="flex flex-wrap items-center gap-8 text-[13px] font-bold text-slate-300">
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-700/40">
                     <Icon name="clock" className="text-cyan-400 text-[18px] drop-shadow-[0_0_5px_rgba(34,211,238,0.6)]" />
                     {Math.max(5, activeQuest?.targetMinutes ?? 15)} min est.
                   </span>
-                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-300/50">
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-700/40">
                     <Icon name="brain" className="text-purple-400 text-[18px] drop-shadow-[0_0_5px_rgba(168,85,247,0.6)]" />
                     {Math.max(4, quests.length)} missoes
                   </span>
-                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-300/50">
+                  <span className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 border border-slate-700/40">
                     <Icon name="sparkles" className="text-yellow-400 text-[18px] drop-shadow-[0_0_5px_rgba(250,204,21,0.6)]" />
                     {activeQuest?.rewardLabel ?? "+0 XP / +0 G"}
                   </span>
@@ -313,7 +313,7 @@ export function EvolutionPage() {
                   <Icon name="bolt" className="text-cyan-400 text-[22px] drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Frequencia de Raids</h3>
+                  <h3 className="text-[15px] font-black uppercase tracking-widest text-slate-100 drop-shadow-sm">Frequencia de Raids</h3>
                   <p className="text-[11px] font-mono uppercase text-slate-500/80">Sincronizacao dos ultimos 28 dias</p>
                 </div>
               </div>
@@ -326,14 +326,14 @@ export function EvolutionPage() {
               <button
                 type="button"
                 onClick={() => setIsHeatmapExpanded((current) => !current)}
-                className="rounded-xl border border-slate-300/50 bg-white/[0.03] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-800 transition-all hover:bg-white/[0.08] hover:text-slate-900"
+                className="rounded-xl border border-slate-700/40 bg-white/[0.03] px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-all hover:bg-white/[0.08] hover:text-slate-100"
               >
                 {isHeatmapExpanded ? "Ocultar grade" : "Expandir celulas"}
               </button>
             </div>
             <div
               data-testid="evolution-heatmap"
-              className={`grid w-fit rounded-2xl liquid-glass-inner p-5 border border-slate-300/50 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)] ${isHeatmapExpanded
+              className={`grid w-fit rounded-2xl liquid-glass-inner p-5 border border-slate-700/40 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)] ${isHeatmapExpanded
                 ? "grid-cols-[repeat(14,1.2rem)] gap-2 sm:grid-cols-[repeat(14,1.4rem)]"
                 : "grid-cols-[repeat(7,1rem)] gap-1.5 sm:grid-cols-[repeat(7,1.2rem)]"
                 }`}
@@ -368,7 +368,7 @@ export function EvolutionPage() {
                   <h4 className="text-2xl font-bold leading-relaxed text-slate-200 drop-shadow-md">
                     {showArenaAnswer ? arenaPrompt.answer : arenaPrompt.question}
                   </h4>
-                  <p className="inline-block rounded-md liquid-glass-inner px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 border border-slate-300/50">
+                  <p className="inline-block rounded-md liquid-glass-inner px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 border border-slate-700/40">
                     STATUS: <span className={arenaStatus === "revealed" ? "text-cyan-400" : arenaStatus === "skipped" ? "text-red-400" : "text-yellow-400 animate-pulse"}>{arenaStatus === "revealed" ? "RESPOSTA EXIBIDA" : arenaStatus === "skipped" ? "PULADA" : "ATIVO"}</span>
                   </p>
                 </div>
@@ -389,7 +389,7 @@ export function EvolutionPage() {
                       setShowArenaAnswer(false);
                       setArenaStatus("skipped");
                     }}
-                    className="rounded-xl border border-slate-300/50 bg-white/[0.02] px-8 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 transition-all hover:bg-white/[0.1] hover:text-slate-900 active:scale-95"
+                    className="rounded-xl border border-slate-700/40 bg-white/[0.02] px-8 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 transition-all hover:bg-white/[0.1] hover:text-slate-100 active:scale-95"
                   >
                     Pular
                   </button>
@@ -402,7 +402,7 @@ export function EvolutionPage() {
         <aside className="space-y-6 lg:col-span-4">
           <section className="evo-slide-up overflow-hidden rounded-[32px] border border-slate-800/10 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="border-b border-white/20 liquid-glass-inner p-6">
-              <h3 className="flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">
+              <h3 className="flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-100 drop-shadow-sm">
                 <Icon name="exclamation" className="text-orange-400 text-[18px] drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
                 Missoes Ativas
               </h3>
@@ -423,17 +423,17 @@ export function EvolutionPage() {
                       </span>
                       {quest.completed ? <Icon name="check-circle" className="text-green-500 text-[18px] drop-shadow-sm" /> : <Icon name="angle-right" className="text-slate-500 text-[18px]" />}
                     </div>
-                    <h4 className={`text-[13px] font-bold leading-snug ${quest.completed ? "text-slate-500" : "text-slate-900"}`}>{quest.title}</h4>
+                    <h4 className={`text-[13px] font-bold leading-snug ${quest.completed ? "text-slate-500" : "text-slate-200"}`}>{quest.title}</h4>
                     <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Progresso: <span className="text-slate-800">{quest.progressLabel}</span> - Nv. <span className="text-orange-300">{quest.difficulty}</span>
+                      Progresso: <span className="text-slate-300">{quest.progressLabel}</span> - Nv. <span className="text-orange-300">{quest.difficulty}</span>
                     </p>
-                    <div className="mt-4 rounded-xl border border-slate-300/50 liquid-glass-inner p-3 text-[10px] font-mono text-slate-600 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                    <div className="mt-4 rounded-xl border border-slate-700/40 liquid-glass-inner p-3 text-[10px] font-mono text-slate-600 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                       Recompensa: <span className="font-bold text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]">{quest.rewardLabel}</span>
                     </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300/50 liquid-glass-inner p-6 text-center text-xs font-medium text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-700/40 liquid-glass-inner p-6 text-center text-xs font-medium text-slate-500">
                   Nenhuma missao ativa no momento.
                 </div>
               )}
@@ -441,7 +441,7 @@ export function EvolutionPage() {
           </section>
 
           <section className="evo-slide-up rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-8 flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">
+            <h3 className="mb-8 flex items-center gap-3 text-[13px] font-black uppercase tracking-widest text-slate-100 drop-shadow-sm">
               <Icon name="trophy" className="text-yellow-400 text-[18px] drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
               Performance Global
             </h3>
@@ -455,7 +455,7 @@ export function EvolutionPage() {
 
           <section data-testid="evolution-achievements" className="evo-slide-up rounded-[32px] border border-slate-800/10 backdrop-blur-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-[13px] font-black uppercase tracking-widest text-slate-900 drop-shadow-sm">Conquistas</h3>
+              <h3 className="text-[13px] font-black uppercase tracking-widest text-slate-100 drop-shadow-sm">Conquistas</h3>
               <span className="rounded-lg border border-yellow-500/40 bg-yellow-950/40 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.15)]">
                 {achievementsLabel}
               </span>
@@ -467,7 +467,7 @@ export function EvolutionPage() {
                     key={achievement.key}
                     className={`rounded-2xl border p-4 transition-all duration-300 ${achievement.unlocked
                       ? "border-cyan-500/40 bg-cyan-950/20 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.1)] hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                      : "border-slate-300/50 bg-white/[0.02] text-slate-500 hover:bg-white/[0.04]"
+                      : "border-slate-700/40 bg-white/[0.02] text-slate-500 hover:bg-white/[0.04]"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -482,7 +482,7 @@ export function EvolutionPage() {
                   </article>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300/50 liquid-glass-inner p-6 text-center text-xs font-medium text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-700/40 liquid-glass-inner p-6 text-center text-xs font-medium text-slate-500">
                   Nenhuma conquista registrada.
                 </div>
               )}

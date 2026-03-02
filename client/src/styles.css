@@ -20,7 +20,7 @@ body {
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   background: #020203;
   /* Fallback */
-  color: #1e293b;
+  color: #e2e8f0;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -826,19 +826,19 @@ select:focus-visible,
 }
 
 .liquid-glass {
-  background: rgba(15, 23, 42, 0.15) !important;
-  backdrop-filter: blur(24px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(120%) !important;
-  border: 1px solid rgba(15, 23, 42, 0.25) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+  background: rgba(15, 23, 42, 0.15);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  border: 1px solid rgba(15, 23, 42, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .liquid-glass-inner {
-  background: rgba(15, 23, 42, 0.1) !important;
-  backdrop-filter: blur(12px) saturate(100%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(100%) !important;
-  border: 1px solid rgba(15, 23, 42, 0.2) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important;
+  background: rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(12px) saturate(100%);
+  -webkit-backdrop-filter: blur(12px) saturate(100%);
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 

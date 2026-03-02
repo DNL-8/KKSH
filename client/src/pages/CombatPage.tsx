@@ -329,7 +329,7 @@ export function CombatPage() {
                 </div>
               </div>
 
-              <div className="h-4 w-full liquid-glass rounded-full overflow-hidden border border-slate-300/50 relative">
+              <div className="h-4 w-full liquid-glass rounded-full overflow-hidden border border-slate-700/40 relative">
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)] w-[50%] animate-[scan_2s_ease-in-out_infinite]" />
                 <div className="h-full bg-gradient-to-r from-red-600 to-orange-500 w-[100%] rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]" />
               </div>
@@ -363,8 +363,8 @@ export function CombatPage() {
                 key={mod.id}
                 onClick={() => setSelectedModuleId(mod.id)}
                 className={`text-left group relative overflow-hidden rounded-[32px] p-6 transition-all duration-300 ${selectedModuleId === mod.id
-                  ? "liquid-glass-inner border-slate-300/50 shadow-[0_10px_40px_rgba(255,255,255,0.05)] ring-2 ring-white/30"
-                  : "liquid-glass-inner border-slate-300/50 hover:bg-white/[0.10] hover:border-slate-300/50"
+                  ? "liquid-glass-inner border-slate-700/40 shadow-[0_10px_40px_rgba(255,255,255,0.05)] ring-2 ring-white/30"
+                  : "liquid-glass-inner border-slate-700/40 hover:bg-white/[0.10] hover:border-slate-700/40"
                   } border backdrop-blur-md`}
               >
                 <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-30 ${mod.color} group-hover:opacity-60 transition-opacity`} />
@@ -374,7 +374,7 @@ export function CombatPage() {
                     <h5 className="text-lg font-black uppercase tracking-tight text-slate-100 mb-1">{mod.title}</h5>
                     <p className="text-xs text-slate-300 line-clamp-2">{mod.description}</p>
                   </div>
-                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-slate-300/50">
+                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-slate-700/40">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${mod.color}`}>
                       {mod.difficulty}
                     </span>
@@ -440,7 +440,7 @@ export function CombatPage() {
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">HP do World Boss</span>
             <span className="text-sm font-black text-slate-100">{enemyHp.toLocaleString()} / {enemyMaxHp.toLocaleString()}</span>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full liquid-glass border border-slate-300/50 relative">
+          <div className="h-3 w-full overflow-hidden rounded-full liquid-glass border border-slate-700/40 relative">
             <div className={`h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-1000 ${widthPercentClass(hpPercent)}`} />
           </div>
         </div>
@@ -469,7 +469,7 @@ export function CombatPage() {
         {/* Floating Combat Logs */}
         <div className="absolute right-8 top-1/4 w-64 space-y-2 pointer-events-none fade-in mask-linear-fade h-64 overflow-hidden flex flex-col justify-end">
           {combatLogs.map((log, i) => (
-            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-slate-100 font-bold text-xs" : "text-slate-300"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
+            <div key={i} className={`text-right text-[10px] font-mono leading-tight ${i === 0 ? "text-slate-100 font-bold text-xs" : "text-slate-400"} transition-all duration-500 ease-out translate-y-4 animate-[slideUpFade_0.5s_ease-out_forwards]`}>
               {log}
             </div>
           ))}
@@ -477,7 +477,7 @@ export function CombatPage() {
       </main>
 
       {/* BOTTOM HUD: Player Stats & Actions JRPG Style */}
-      <footer className="relative z-20 w-full border-t border-slate-300/50 liquid-glass backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
+      <footer className="relative z-20 w-full border-t border-slate-700/40 liquid-glass backdrop-blur-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center justify-between">
         {/* Vitals Panel */}
         <div className="w-full md:w-1/3 flex flex-col gap-4">
           <h3 className="text-xl font-black italic text-slate-100 tracking-tighter uppercase mb-2">Suas metricas</h3>
@@ -487,7 +487,7 @@ export function CombatPage() {
                 <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">HP Vital</span>
                 <span className="text-sm font-black text-slate-100">{playerHp} <span className="text-slate-400">/ {playerMaxHp}</span></span>
               </div>
-              <div className="h-4 w-full liquid-glass rounded-sm overflow-hidden box-border border-b-2 border-slate-300/50">
+              <div className="h-4 w-full liquid-glass rounded-sm overflow-hidden box-border border-b-2 border-slate-700/40">
                 <div className={`h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-500 ${widthPercentClass(playerHpPercent)}`} />
               </div>
             </div>
@@ -499,7 +499,7 @@ export function CombatPage() {
           <button
             disabled={actionLocked || turnState !== "PLAYER_IDLE"}
             onClick={startPlayerAttack}
-            className="flex-1 md:flex-none relative overflow-hidden liquid-glass-inner border border-slate-300/50 hover:bg-white/20 hover:border-white/30 text-slate-100 rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex-1 md:flex-none relative overflow-hidden liquid-glass-inner border border-slate-700/40 hover:bg-white/20 hover:border-white/30 text-slate-100 rounded-2xl px-12 py-6 font-black tracking-widest uppercase transition-all shadow-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             <span className="flex items-center justify-center gap-3">
@@ -538,7 +538,7 @@ export function CombatPage() {
             </h2>
 
             {extractedData && (
-              <div className="liquid-glass-inner rounded-3xl p-8 border border-slate-300/50 space-y-6">
+              <div className="liquid-glass-inner rounded-3xl p-8 border border-slate-700/40 space-y-6">
                 <p className="text-slate-300 text-sm font-medium">Balanco da extracao</p>
 
                 <div className="flex justify-center gap-8">
@@ -559,7 +559,7 @@ export function CombatPage() {
             )}
 
             <div className="flex justify-center gap-4 pt-10">
-              <button onClick={returnToLobby} className="bg-white text-black hover:bg-slate-200 px-10 py-4 rounded-full font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+              <button onClick={returnToLobby} className="border border-slate-700/40 bg-white/[0.08] text-slate-100 hover:bg-white/[0.15] hover:border-slate-600 px-10 py-4 rounded-full font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] backdrop-blur-md">
                 Retornar ao Hub
               </button>
             </div>

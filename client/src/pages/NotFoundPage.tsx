@@ -20,7 +20,7 @@ export function NotFoundPage() {
                     className="text-[hsl(var(--accent))] opacity-10 animate-pulse text-[140px] drop-shadow-[0_0_20px_rgba(var(--glow),0.8)] filter blur-[2px]"
                     aria-hidden="true"
                 />
-                <div className="absolute inset-0 flex items-center justify-center mix-blend-screen mix-blend-overlay">
+                <div className="absolute inset-0 flex items-center justify-center mix-blend-overlay">
                     <span className={`text-[120px] font-black drop-shadow-[0_20px_50px_rgba(var(--glow),0.3)] tracking-tighter mix-blend-overlay ${isLightTheme ? "text-slate-900/10" : "text-slate-100/10"}`}>
                         404
                     </span>
@@ -52,7 +52,7 @@ export function NotFoundPage() {
                 </Link>
                 <Link
                     to="/combate"
-                    className={`flex items-center gap-3 rounded-2xl border border-slate-300/50 bg-white/[0.03] px-8 py-4 text-xs font-bold uppercase tracking-widest shadow-xl transition-all hover:border-slate-300/50 hover:bg-white/[0.08] hover:-translate-y-1 active:scale-95 backdrop-blur-md ${isLightTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-100 hover:text-white"
+                    className={`flex items-center gap-3 rounded-2xl border border-slate-700/40 bg-white/[0.03] px-8 py-4 text-xs font-bold uppercase tracking-widest shadow-xl transition-all hover:border-slate-700/40 hover:bg-white/[0.08] hover:-translate-y-1 active:scale-95 backdrop-blur-md ${isLightTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-100 hover:text-white"
                         }`}
                 >
                     <Icon name="compass" className="text-[18px]" />

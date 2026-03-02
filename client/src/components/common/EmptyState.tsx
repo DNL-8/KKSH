@@ -17,7 +17,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
                 <Icon name={icon} className="text-slate-500 text-[40px]" />
             </div>
             <div className="space-y-2">
-                <h3 className="text-lg font-black uppercase tracking-widest text-slate-800">{title}</h3>
+                <h3 className="text-lg font-black uppercase tracking-widest text-slate-300">{title}</h3>
                 <p className="max-w-sm text-sm font-medium text-slate-500">{description}</p>
             </div>
             {action && (

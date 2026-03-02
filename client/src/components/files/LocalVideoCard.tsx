@@ -58,11 +58,11 @@ export function LocalVideoCard({ video, src, onDelete }: LocalVideoCardProps) {
         <div className="grid grid-cols-2 gap-3 text-[10px] uppercase tracking-wider text-slate-500">
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
             <p className="font-black text-slate-600">Tamanho</p>
-            <p className="mt-1 font-mono text-slate-800">{formatBytes(video.size)}</p>
+            <p className="mt-1 font-mono text-slate-400">{formatBytes(video.size)}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3">
             <p className="font-black text-slate-600">Adicionado</p>
-            <p className="mt-1 font-mono text-slate-800">{formatCreatedAt(video.createdAt)}</p>
+            <p className="mt-1 font-mono text-slate-400">{formatCreatedAt(video.createdAt)}</p>
           </div>
         </div>
 

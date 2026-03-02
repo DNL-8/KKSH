@@ -40,7 +40,7 @@ export function AuthPanel() {
             <section
                 className={`relative z-10 w-full max-w-sm overflow-hidden rounded-[32px] border p-0 shadow-2xl backdrop-blur-xl transition-all duration-500 animate-in zoom-in-95 slide-in-from-bottom-4 ${isLightTheme
                     ? "border-slate-300/60 bg-white/85"
-                    : "border-slate-300/50 bg-[#0a0c12]/85"
+                    : "border-slate-700/40 bg-[#0a0c12]/85"
                     }`}
             >
                 {/* Header Gradient */}
@@ -103,7 +103,7 @@ export function AuthPanel() {
                                     <input
                                         id="auth-email"
                                         autoComplete="email"
-                                        className={`w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
+                                        className={`w-full rounded-xl border border-slate-700/40 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
                                             }`}
                                         data-testid="shell-auth-email"
                                         onChange={(event) => setAuthEmail(event.target.value)}
@@ -125,7 +125,7 @@ export function AuthPanel() {
                                     <input
                                         id="auth-password"
                                         autoComplete="current-password"
-                                        className={`w-full rounded-xl border border-slate-300/50 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
+                                        className={`w-full rounded-xl border border-slate-700/40 liquid-glass-inner py-3 pl-10 pr-4 text-sm font-medium focus:border-[hsl(var(--accent)/0.5)] focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--accent)/0.5)] transition-all ${isLightTheme ? "text-slate-900 placeholder:text-slate-600" : "text-slate-100 placeholder:text-slate-400"
                                             }`}
                                         data-testid="shell-auth-password"
                                         onChange={(event) => setAuthPassword(event.target.value)}
@@ -176,7 +176,7 @@ export function AuthPanel() {
                     </div>
 
                     <button
-                        className={`flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300/50 liquid-glass-inner px-4 py-3 text-[10px] font-black uppercase tracking-wider transition-all hover:border-slate-300/50 hover:bg-white/[0.10] active:scale-95 ${isLightTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-100 hover:text-white"
+                        className={`flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700/40 liquid-glass-inner px-4 py-3 text-[10px] font-black uppercase tracking-wider transition-all hover:border-slate-700/40 hover:bg-white/[0.10] active:scale-95 ${isLightTheme ? "text-slate-800 hover:text-slate-900" : "text-slate-100 hover:text-white"
                             }`}
                         data-testid="shell-open-core-settings"
                         onClick={() => {

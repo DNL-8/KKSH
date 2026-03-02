@@ -20,7 +20,7 @@ export function HubAttributesModal({ draftAttributes, onDraftChange, onSave, onC
                 aria-modal="true"
                 className={`w-full max-w-md rounded-3xl p-6 ${isIosTheme ? "ios26-section-hero ios26-sheen" : "border border-blue-500/30 bg-[#0a0b10]"}`}
             >
-                <div className={`mb-5 flex items-center justify-between border-b pb-3 ${isIosTheme ? "ios26-divider" : "border-slate-300/50"}`}>
+                <div className={`mb-5 flex items-center justify-between border-b pb-3 ${isIosTheme ? "ios26-divider" : "border-slate-700/40"}`}>
                     <h3 className={`text-lg font-black uppercase italic ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Configuracao de Status</h3>
                     <button type="button" onClick={onClose} aria-label="Fechar modal de atributos" className={`rounded-full p-2 ${isIosTheme ? "ios26-control ios26-focusable" : "text-slate-300 hover:bg-white/[0.10] hover:text-slate-100"}`}>
                         <Icon name="cross" className="text-lg" />

@@ -91,7 +91,7 @@ function CompactNavItem({ item, sfx, isIos }: { item: NavItem; sfx: ReturnType<t
             className={({ isActive }) =>
                 `group relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${isActive
                     ? "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent-light))] shadow-[0_0_18px_rgba(var(--glow),0.35)]"
-                    : "text-slate-600 hover:bg-white/[0.08] hover:text-slate-800 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
+                    : "text-slate-500 hover:bg-white/[0.08] hover:text-slate-200 hover:shadow-[0_0_12px_rgba(var(--glow),0.1)]"
                 }`
             }
         >
@@ -200,7 +200,7 @@ export function Sidebar({ isSidebarOpen, onToggle }: SidebarProps) {
     return (
         <aside
             data-testid="shell-sidebar"
-            className={`hidden flex-col border-r border-white/20 liquid-glass transition-all duration-500 lg:flex ${isSidebarOpen ? "w-80" : "w-[88px]"
+            className={`hidden flex-col border-r border-slate-800/40 liquid-glass transition-all duration-500 lg:flex ${isSidebarOpen ? "w-80" : "w-[88px]"
                 } ${isIosTheme ? "ios26-panel ios26-sheen" : ""
                 }`}
         >

@@ -121,7 +121,7 @@ export function ReviewsPage() {
       return (
         <div className={`mx-auto flex h-[60vh] w-full max-w-3xl flex-col items-center justify-center space-y-4 rounded-[36px] px-8 ${isIosTheme ? "ios26-glass-intense-soft" : ""}`}>
           <Icon name="check-circle" className="text-6xl text-emerald-500 mb-4" />
-          <p className={`text-xl font-black uppercase tracking-widest ${isIosTheme ? "text-white" : "text-slate-800"}`}>
+          <p className={`text-xl font-black uppercase tracking-widest ${isIosTheme ? "text-white" : "text-slate-200"}`}>
             Não há cartões pendentes!
           </p>
           <button
@@ -149,7 +149,7 @@ export function ReviewsPage() {
               <span className={`text-[10px] font-black uppercase tracking-widest ${isIosTheme ? "text-slate-200/75" : "text-slate-500"}`}>
                 Progresso
               </span>
-              <span className={`text-sm font-bold ${isIosTheme ? "text-white" : "text-slate-800"}`}>
+              <span className={`text-sm font-bold ${isIosTheme ? "text-white" : "text-slate-200"}`}>
                 {currentIndex + 1} / {currentQueue.length}
               </span>
             </div>
@@ -189,7 +189,7 @@ export function ReviewsPage() {
           <div
             className={`group relative overflow-hidden rounded-[40px] p-10 transition-all duration-700 ${isIosTheme
               ? "ios26-glass-intense ios26-sheen hover:shadow-[0_0_45px_rgba(156,199,255,0.28)]"
-              : "border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:border-slate-300/50"
+              : "border border-slate-700/40 bg-gradient-to-br from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:border-slate-700/40"
               }`}
           >
             <div className={`absolute inset-0 ${isIosTheme ? "bg-gradient-to-br from-blue-100/10 via-white/5 to-cyan-100/10 opacity-60 mix-blend-screen" : "bg-gradient-to-br from-black/20 via-black/40 to-blue-900/20 opacity-80 mix-blend-overlay"}`} />
@@ -211,10 +211,10 @@ export function ReviewsPage() {
                   O algoritmo de repetição espaçada analisa automaticamente sua curva de esquecimento. Cartões maduros exigem menos revisões.
                 </p>
 
-                <div className={`mt-6 flex gap-8 border-t pt-6 ${isIosTheme ? "border-white/30" : "border-slate-300/50"}`}>
+                <div className={`mt-6 flex gap-8 border-t pt-6 ${isIosTheme ? "border-white/30" : "border-slate-700/40"}`}>
                   <div className="flex flex-col">
                     <span className={`mb-1 text-[10px] font-bold uppercase tracking-widest ${isIosTheme ? "text-slate-200/75" : "text-slate-500"}`}>Total Respondidos</span>
-                    <span className={`text-2xl font-black ${isIosTheme ? "text-white" : "text-slate-900"}`}>
+                    <span className={`text-2xl font-black ${isIosTheme ? "text-white" : "text-slate-100"}`}>
                       {isPending ? "..." : stats?.totalAnswered || 0}
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export function ReviewsPage() {
               </div>
 
               <div className="flex min-w-[220px] flex-col justify-end gap-4">
-                <div className={`rounded-3xl p-6 text-center ${isIosTheme ? "ios26-glass-intense-soft" : "border border-slate-300/50 liquid-glass-inner"}`}>
+                <div className={`rounded-3xl p-6 text-center ${isIosTheme ? "ios26-glass-intense-soft" : "border border-slate-700/40 liquid-glass-inner"}`}>
                   <div className={`mb-2 text-[10px] font-black uppercase tracking-widest ${isIosTheme ? "text-slate-200/80" : "text-slate-500"}`}>
                     Vencidos Hoje
                   </div>
@@ -291,7 +291,7 @@ export function ReviewsPage() {
                 key={mat.id}
                 className={`group flex flex-col gap-4 rounded-3xl p-6 text-left transition-all duration-300 hover:-translate-y-1 ${isIosTheme
                   ? "ios26-glass-intense-soft"
-                  : "border border-slate-300/50 bg-white/[0.02] backdrop-blur-md hover:border-slate-300/50 hover:bg-white/[0.04]"
+                  : "border border-slate-700/40 bg-white/[0.02] backdrop-blur-md hover:border-slate-700/40 hover:bg-white/[0.04]"
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -300,10 +300,10 @@ export function ReviewsPage() {
                   </div>
                   <div>
                     <div className={`text-[10px] font-black uppercase tracking-widest ${isIosTheme ? "text-slate-200/75" : "text-slate-500/80"}`}>Estágio</div>
-                    <div className={`font-black uppercase italic tracking-wide ${isIosTheme ? "text-slate-100" : "text-slate-800"}`}>{mat.title}</div>
+                    <div className={`font-black uppercase italic tracking-wide ${isIosTheme ? "text-slate-100" : "text-slate-200"}`}>{mat.title}</div>
                   </div>
                 </div>
-                <div className={`mt-2 origin-left text-4xl font-black transition-transform group-hover:scale-105 ${isIosTheme ? "text-white" : "text-slate-900"}`}>
+                <div className={`mt-2 origin-left text-4xl font-black transition-transform group-hover:scale-105 ${isIosTheme ? "text-white" : "text-slate-100"}`}>
                   {isPending ? "..." : mat.value}
                 </div>
                 <div className={`text-xs font-medium ${isIosTheme ? "text-slate-200/75" : "text-slate-500"}`}>{mat.desc}</div>
@@ -315,8 +315,8 @@ export function ReviewsPage() {
 
         {/* Action History / Insights Column */}
         <div className="space-y-8 lg:col-span-4">
-          <div className={`flex h-full flex-col rounded-[40px] p-8 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/80 to-[#050813]/90 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)]"}`}>
-            <h3 className={`mb-6 border-b pb-4 text-xs font-black uppercase tracking-[0.2em] ${isIosTheme ? "border-white/30 text-white" : "border-slate-300/50 text-slate-800"}`}>
+          <div className={`flex h-full flex-col rounded-[40px] p-8 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-700/40 bg-gradient-to-b from-[#0a0f1d]/80 to-[#050813]/90 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)]"}`}>
+            <h3 className={`mb-6 border-b pb-4 text-xs font-black uppercase tracking-[0.2em] ${isIosTheme ? "border-white/30 text-white" : "border-slate-700/40 text-slate-200"}`}>
               Métricas de Retenção
             </h3>
 
@@ -335,9 +335,9 @@ export function ReviewsPage() {
                 </div>
               </div>
 
-              <div className={`flex flex-col gap-2 border-t pt-4 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+              <div className={`flex flex-col gap-2 border-t pt-4 ${isIosTheme ? "border-white/25" : "border-slate-700/40"}`}>
                 <span className={`text-[10px] font-black uppercase tracking-widest ${isIosTheme ? "text-slate-200/75" : "text-slate-500"}`}>Tempo Médio de Resposta</span>
-                <div className={`flex items-baseline gap-2 text-3xl font-light ${isIosTheme ? "text-white" : "text-slate-900"}`}>
+                <div className={`flex items-baseline gap-2 text-3xl font-light ${isIosTheme ? "text-white" : "text-slate-100"}`}>
                   {stats?.avgTimeMs ? (stats.avgTimeMs / 1000).toFixed(1) : "0.0"} <span className={`text-sm font-bold uppercase ${isIosTheme ? "text-slate-200/70" : "text-slate-500"}`}>segundos</span>
                 </div>
               </div>

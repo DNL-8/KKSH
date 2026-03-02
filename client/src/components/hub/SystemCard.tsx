@@ -68,7 +68,7 @@ export function SystemCard({
     return (
         <article className={`group relative overflow-hidden rounded-[30px] p-6 transition-all duration-500 hover:-translate-y-2 ${isIosTheme
             ? "ios26-kpi ios26-sheen"
-            : `border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl hover:border-slate-300/50 ${style.glow}`
+            : `border border-slate-700/40 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/95 backdrop-blur-xl hover:border-slate-700/40 ${style.glow}`
             }`}>
             <div className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full blur-3xl transition-opacity duration-500 opacity-0 group-hover:opacity-100 ${style.bg}`} />
 
@@ -84,7 +84,7 @@ export function SystemCard({
                 <div className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500/80">{sub}</div>
 
                 {showBar && (
-                    <div className="mt-5 h-2 overflow-hidden rounded-full border border-slate-300/50 liquid-glass-inner shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] relative">
+                    <div className="mt-5 h-2 overflow-hidden rounded-full border border-slate-700/40 liquid-glass-inner shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] relative">
                         <div
                             className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r ${style.barGradient} transition-all duration-1000 ease-out`}
                             style={{ width: `${progress}%` }}
@@ -95,7 +95,7 @@ export function SystemCard({
                 {action && <div className="mt-4">{action}</div>}
 
                 {footer && (
-                    <div className="mt-4 border-t border-slate-300/50 pt-4">
+                    <div className="mt-4 border-t border-slate-700/40 pt-4">
                         {footer}
                     </div>
                 )}

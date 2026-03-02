@@ -14,7 +14,7 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
     const xpPercent = Math.max(0, Math.min(100, Math.round((globalStats.xp / Math.max(1, globalStats.maxXp)) * 100)));
     return (
         <>
-            <div className={`rounded-[26px] px-5 py-6 md:px-8 ${isIosTheme ? "ios26-section-hero" : "border border-slate-300/50 bg-slate-950/60 backdrop-blur-2xl shadow-2xl"}`}>
+            <div className={`rounded-[26px] px-5 py-6 md:px-8 ${isIosTheme ? "ios26-section-hero" : "border border-slate-700/40 bg-slate-950/60 backdrop-blur-2xl shadow-2xl"}`}>
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="min-w-0 space-y-2">
                         <div className="files-chip files-pulse-glow w-fit">
@@ -34,7 +34,7 @@ export function FilesHeader({ globalStats }: FilesHeaderProps) {
                         </p>
                     </div>
 
-                    <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-300/50 liquid-glass backdrop-blur-md shadow-inner"}`}>
+                    <div className={`rounded-2xl flex w-full flex-wrap items-center gap-5 px-5 py-4 xl:w-auto ${isIosTheme ? "ios26-section" : "border border-slate-700/40 liquid-glass backdrop-blur-md shadow-inner"}`}>
                         <HudProgressBar
                             value={globalStats.hp}
                             max={100}

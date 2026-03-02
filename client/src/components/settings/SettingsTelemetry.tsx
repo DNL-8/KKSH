@@ -141,7 +141,7 @@ export function SettingsTelemetry() {
                 </h2>
             </div>
 
-            <div className={`rounded-[40px] p-8 transition-all ${isIosTheme ? "ios26-section" : "border border-slate-300/50 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
+            <div className={`rounded-[40px] p-8 transition-all ${isIosTheme ? "ios26-section" : "border border-slate-700/40 bg-gradient-to-b from-[#0a0f1d]/90 to-[#050813]/90 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"}`}>
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                     <p className={`text-[13px] max-w-lg leading-relaxed font-medium ${isIosTheme ? "text-slate-600" : "text-slate-300"}`}>
                         Eventos locais de importacao, backup e reproducao da bridge para diagnostico rapido.
@@ -149,7 +149,7 @@ export function SettingsTelemetry() {
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={refreshFilesTelemetry}
-                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-300/50 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08] hover:text-slate-50"}`}
+                            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-slate-700/40 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08] hover:text-slate-50"}`}
                             type="button"
                         >
                             Atualizar

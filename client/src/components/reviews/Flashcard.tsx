@@ -75,13 +75,13 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                 >
                     {/* FRONTAL FACE (Question) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden]">
-                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-300/50 bg-gradient-to-br from-[#0a0f1d] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
+                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-700/40 bg-gradient-to-br from-[#0a0f1d] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
 
-                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-700/40"}`}>
                                 <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-cyan-100" : "text-[#3b82f6]"}`}>
                                     {drill.subject}
                                 </span>
-                                <span title="Dificuldade / Facilidade Atual" className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${isIosTheme ? "ios26-glass-intense-soft text-slate-100" : "border-slate-300/50 bg-white/[0.03] text-slate-300"}`}>
+                                <span title="Dificuldade / Facilidade Atual" className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold ${isIosTheme ? "ios26-glass-intense-soft text-slate-100" : "border-slate-700/40 bg-white/[0.03] text-slate-300"}`}>
                                     <Icon name="brain" className="text-purple-400" /> Nivel {Math.round(drill.ease * 10)}
                                 </span>
                             </div>
@@ -102,9 +102,9 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
 
                     {/* TRASEIRA FACE (Answer) */}
                     <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-300/50 bg-gradient-to-br from-[#12182c] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
+                        <div className={`flex h-full w-full flex-col rounded-[40px] p-10 ${isIosTheme ? "ios26-glass-intense ios26-sheen" : "border border-slate-700/40 bg-gradient-to-br from-[#12182c] to-[#050813] shadow-[inset_0_0_80px_rgba(255,255,255,0.02)]"}`}>
 
-                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+                            <div className={`mb-6 flex items-center justify-between border-b pb-4 ${isIosTheme ? "border-white/25" : "border-slate-700/40"}`}>
                                 <span className={`text-xs font-black uppercase tracking-widest ${isIosTheme ? "text-emerald-200" : "text-emerald-400"}`}>
                                     Resposta
                                 </span>
@@ -121,7 +121,7 @@ export function Flashcard({ drill, onAnswer, onSkip }: FlashcardProps) {
                             </div>
 
                             {/* Feedback Actions (Good/Again) */}
-                            <div className={`mt-4 grid grid-cols-2 gap-4 border-t pt-6 ${isIosTheme ? "border-white/25" : "border-slate-300/50"}`}>
+                            <div className={`mt-4 grid grid-cols-2 gap-4 border-t pt-6 ${isIosTheme ? "border-white/25" : "border-slate-700/40"}`}>
                                 <button
                                     onClick={() => submitResult("again")}
                                     className={`group relative flex flex-col items-center justify-center gap-1 rounded-2xl border p-4 transition-all hover:-translate-y-1 active:scale-95 ${isIosTheme
