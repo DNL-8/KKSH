@@ -30,36 +30,42 @@ export function FilesAlerts({
     statusMessage,
 }: FilesAlertsProps) {
     return (
-        <div className="mt-3 space-y-2 z-10 relative">
+        <div className="mt-4 space-y-3 z-10 relative">
             <ErrorBanner message={error} onClose={onClearError} />
 
             {storageUnavailable && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
-                    <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-500/80" />
-                    <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-400 font-bold tracking-widest">Aviso de Armazenamento</p>
-                        <p className="text-xs text-amber-200/80 font-medium">Persistencia local indisponivel neste navegador. Os videos ficam salvos apenas nesta sessao.</p>
+                <div className="files-alert files-alert-warning flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
+                        <Icon name="exclamation" className="text-[14px] text-amber-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-300 font-black tracking-widest">Aviso de Armazenamento</p>
+                        <p className="text-xs text-amber-200/80 font-medium leading-relaxed">Persistencia local indisponivel neste navegador. Os videos ficam salvos apenas nesta sessao.</p>
                     </div>
                 </div>
             )}
 
             {!directoryHandleSupported && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
-                    <Icon name="exclamation" className="mt-0.5 text-[16px] text-amber-300" />
-                    <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Compatibilidade limitada (Firefox/Safari)</p>
-                        <p className="text-xs text-amber-100/70 font-medium">Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">Abrir Bridge</span> para navegar sem limitacoes.</p>
+                <div className="files-alert files-alert-warning flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
+                        <Icon name="exclamation" className="text-[14px] text-amber-300" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-black tracking-widest">Compatibilidade limitada (Firefox/Safari)</p>
+                        <p className="text-xs text-amber-100/70 font-medium leading-relaxed">Seu navegador nao suporta conexao direta de pastas. Inicie o backend e use o botao <span className="font-bold text-emerald-300">Abrir Bridge</span> para navegar sem limitacoes.</p>
                     </div>
                 </div>
             )}
 
             {highVolumeHint && directoryHandleSupported && (
                 <div
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[hsl(var(--accent)/0.2)] bg-[hsl(var(--accent)/0.05)] px-4 py-3 backdrop-blur-sm"
+                    className="files-alert files-alert-info flex flex-wrap items-center justify-between gap-3"
                     data-testid="high-volume-banner"
                 >
                     <div className="flex items-center gap-3">
-                        <Icon name="info-circle" className="text-[16px] text-[hsl(var(--accent))]" />
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--accent)/0.15)]">
+                            <Icon name="info-circle" className="text-[14px] text-[hsl(var(--accent))]" />
+                        </div>
                         <span className="text-xs font-medium text-[hsl(var(--accent-light))]">{highVolumeHint}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -83,40 +89,48 @@ export function FilesAlerts({
             )}
 
             {visibleVideosCount >= maxLibraryVideos && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
-                    <Icon name="box-open" className="mt-0.5 text-[16px] text-amber-400" />
-                    <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Capacidade Maxima</p>
-                        <p className="text-xs text-amber-100/70 font-medium">Limite operacional atingido: {maxLibraryVideos} videos. Remova itens para importar novos.</p>
+                <div className="files-alert files-alert-warning flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
+                        <Icon name="box-open" className="text-[14px] text-amber-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-black tracking-widest">Capacidade Maxima</p>
+                        <p className="text-xs text-amber-100/70 font-medium leading-relaxed">Limite operacional atingido: {maxLibraryVideos} videos. Remova itens para importar novos.</p>
                     </div>
                 </div>
             )}
 
             {rejectedFiles.length > 0 && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 backdrop-blur-sm">
-                    <Icon name="trash" className="mt-0.5 text-[16px] text-amber-300" />
-                    <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-bold tracking-widest">Filtro de Arquivos</p>
-                        <p className="text-xs text-amber-100/70">Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}</p>
+                <div className="files-alert files-alert-warning flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/15">
+                        <Icon name="trash" className="text-[14px] text-amber-300" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[10px] uppercase text-amber-200 font-black tracking-widest">Filtro de Arquivos</p>
+                        <p className="text-xs text-amber-100/70 leading-relaxed">Arquivos ignorados (nao sao video): {summarizeNames(rejectedFiles)}</p>
                     </div>
                 </div>
             )}
 
             {statusMessage && (
-                <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 backdrop-blur-sm">
-                    <Icon name="check-circle" className="mt-0.5 text-[16px] text-emerald-400" />
-                    <div>
-                        <p className="mb-0.5 text-[10px] uppercase text-emerald-300 font-bold tracking-widest">Status do Operador</p>
-                        <p className="text-xs text-emerald-100/80">{statusMessage}</p>
+                <div className="files-alert files-alert-success flex items-start gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15">
+                        <Icon name="check-circle" className="text-[14px] text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="mb-0.5 text-[10px] uppercase text-emerald-300 font-black tracking-widest">Status do Operador</p>
+                        <p className="text-xs text-emerald-100/80 leading-relaxed">{statusMessage}</p>
                     </div>
                 </div>
             )}
 
-            <div className="flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 backdrop-blur-sm">
-                <Icon name="device-hdd" className="mt-0.5 text-[16px] text-blue-300" />
-                <div>
-                    <p className="mb-0.5 text-[10px] uppercase text-blue-200 font-bold tracking-widest">Persistencia de dados</p>
-                    <p className="text-xs text-blue-100/80">A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site, a biblioteca sera apagada. Use <strong>Backup</strong> regularmente.</p>
+            <div className="files-alert files-alert-info flex items-start gap-3 opacity-70 hover:opacity-100 transition-opacity">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/15">
+                    <Icon name="device-hdd" className="text-[14px] text-blue-300" />
+                </div>
+                <div className="min-w-0">
+                    <p className="mb-0.5 text-[10px] uppercase text-blue-200 font-black tracking-widest">Persistencia de dados</p>
+                    <p className="text-xs text-blue-100/80 leading-relaxed">A biblioteca e salva no <strong>cache do navegador</strong>. Se voce limpar os dados do site, a biblioteca sera apagada. Use <strong>Backup</strong> regularmente.</p>
                 </div>
             </div>
         </div>

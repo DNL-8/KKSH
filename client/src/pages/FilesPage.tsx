@@ -518,12 +518,12 @@ export function FilesPage() {
           </div>
 
           {/* Badges de Status do Sistema */}
-          <div className="flex flex-wrap items-center gap-2 px-1 pt-1">
+          <div className="flex flex-wrap items-center gap-2.5 px-1 pt-2">
             {isBridgeConnected && (
               <button
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors active:scale-95 ${isIosTheme
+                className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${isIosTheme
                   ? "ios26-chip ios26-focusable"
-                  : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
+                  : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-400/40 shadow-[0_2px_12px_rgba(99,102,241,0.1)]"
                   }`}
                 aria-label="Abrir navegador Bridge"
                 onClick={openBridgeBrowser}
@@ -535,20 +535,20 @@ export function FilesPage() {
             )}
 
             {/* Local Bridge Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme
+            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all ${isIosTheme
               ? isBridgeConnected ? "ios26-chip ios26-status-success" : "ios26-chip"
-              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 liquid-glass-inner text-slate-300"
+              : isBridgeConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 files-badge-online" : "border-slate-700/60 bg-slate-800/30 text-slate-400"
               }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
+              <div className={`w-2 h-2 rounded-full transition-colors ${isBridgeConnected ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
               Bridge {isBridgeConnected ? "Online" : "Offline"}
             </div>
 
             {/* Persistence Indicator */}
-            <div className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-[10px] font-black uppercase tracking-wider transition-colors cursor-help ${isIosTheme
+            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all cursor-help ${isIosTheme
               ? isPersisted ? "ios26-chip ios26-chip-active" : "ios26-chip ios26-status-warning"
               : isPersisted ? "border-blue-500/30 bg-blue-500/10 text-blue-300" : "border-amber-500/30 bg-amber-500/10 text-amber-400"
               }`} title={isPersisted ? "Armazenamento Persistente Ativo" : "Armazenamento Temporario (pode ser limpo pelo navegador)"}>
-              <div className={`w-1.5 h-1.5 rounded-full ${isPersisted ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"}`} />
+              <div className={`w-2 h-2 rounded-full transition-colors ${isPersisted ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"}`} />
               HD {isPersisted ? "Persistente" : "Temporario"}
             </div>
           </div>
@@ -584,11 +584,11 @@ export function FilesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section className="space-y-5" data-testid="files-player">
-            <div className={`group relative overflow-hidden rounded-[30px] ${isIosTheme ? "ios26-section-hero ios26-sheen" : "files-panel-elevated"}`} data-testid="course-player">
-              <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-2 border-t-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-2 border-t-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-2 border-l-2 border-cyan-500/70" />
-              <div className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-2 border-r-2 border-cyan-500/70" />
+            <div className={`group relative overflow-hidden rounded-[30px] files-scanlines ${isIosTheme ? "ios26-section-hero ios26-sheen" : "files-panel-elevated"}`} data-testid="course-player">
+              <span className="files-bracket-corner" data-pos="tl" />
+              <span className="files-bracket-corner" data-pos="tr" />
+              <span className="files-bracket-corner" data-pos="bl" />
+              <span className="files-bracket-corner" data-pos="br" />
               <VideoPlayer
                 onDurationChange={setSelectedDurationSec}
                 onEnded={handleVideoEnded}
@@ -605,26 +605,33 @@ export function FilesPage() {
               </div>
             </div>
 
-            <div className={`rounded-[24px] p-4 ${isIosTheme ? "ios26-section" : "files-panel"}`}>
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-1">
-                  <h3 className={`text-lg font-black tracking-tight ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
-                    Pasta: {selectedVideo?.relativePath ?? "-"}
-                  </p>
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
-                    Armazenamento: {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
-                  </p>
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
-                    Duracao detectada: {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando metadados"}
-                  </p>
+            <div className={`rounded-[24px] p-5 ${isIosTheme ? "ios26-section" : "files-panel"}`}>
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <h3 className={`text-lg font-black tracking-tight leading-snug ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{selectedVideo?.name ?? "Sem aula selecionada"}</h3>
+                  <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
+                    <span className="flex items-center gap-1.5">
+                      <Icon name="folder-open" className="text-[11px] opacity-60" />
+                      {selectedVideo?.relativePath ?? "-"}
+                    </span>
+                    <span className="hidden sm:inline opacity-30">|</span>
+                    <span className="flex items-center gap-1.5">
+                      <Icon name="device-hdd" className="text-[11px] opacity-60" />
+                      {selectedVideo ? formatStorageKind(selectedVideo) : "-"}
+                    </span>
+                    <span className="hidden sm:inline opacity-30">|</span>
+                    <span className="flex items-center gap-1.5">
+                      <Icon name="clock" className="text-[11px] opacity-60" />
+                      {estimatedMinutes ? `${estimatedMinutes} min` : "aguardando"}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2" data-testid="files-complete-button">
+                <div className="flex shrink-0 items-center gap-2" data-testid="files-complete-button">
                   <button
-                    className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase transition-all ${selectedVideoCompleted
-                      ? isIosTheme ? "ios26-control ios26-focusable ios26-status-success" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      : isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border-cyan-500/40 bg-cyan-600 text-slate-900 hover:bg-cyan-500"
+                    className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all ${selectedVideoCompleted
+                      ? isIosTheme ? "ios26-control ios26-focusable ios26-status-success" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.1)]"
+                      : isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border-cyan-400/50 bg-gradient-to-r from-cyan-600 to-cyan-500 text-slate-900 hover:brightness-110 shadow-[0_4px_20px_rgba(34,211,238,0.25)]"
                       } disabled:cursor-not-allowed disabled:opacity-60`}
                     data-testid="complete-lesson-button"
                     disabled={
@@ -693,21 +700,21 @@ export function FilesPage() {
                 onClose={() => setIsSidebarMobileOpen(false)}
               />
               <button
-                className={`w-full rounded-xl p-4 text-left transition-all ${isIosTheme
+                className={`w-full rounded-2xl p-4 text-left transition-all group/upload ${isIosTheme
                   ? "ios26-section ios26-focusable border border-dashed border-[hsl(var(--accent)/0.45)]"
-                  : "files-panel border border-dashed border-cyan-700/35 hover:border-cyan-400/45 hover:bg-[#0a1a31]"
+                  : "files-panel border border-dashed border-cyan-700/30 hover:border-cyan-400/40 hover:shadow-[0_0_30px_rgba(34,211,238,0.04)_inset]"
                   }`}
                 data-testid="files-support-material-upload"
                 onClick={handleOpenFolderPicker}
                 type="button"
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg border border-cyan-700/35 bg-[#071427] p-2 text-cyan-200">
-                    <Icon name="file-video" className="text-[20px]" />
+                  <div className={`rounded-xl p-2.5 transition-colors ${isIosTheme ? "bg-[hsl(var(--accent)/0.1)]" : "border border-cyan-700/30 bg-cyan-950/40 group-hover/upload:bg-cyan-900/50"}`}>
+                    <Icon name="file-video" className="text-[20px] text-cyan-200" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h4 className={`text-sm font-bold ${isIosTheme ? "text-slate-800" : "text-slate-100"}`}>Material de Apoio</h4>
-                    <p className={`text-xs ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
+                    <p className={`text-xs leading-relaxed ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Pastas visiveis: {currentFolderCount}. Use arquivos locais para reforcar a aula atual.</p>
                   </div>
                 </div>
               </button>

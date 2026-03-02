@@ -290,6 +290,7 @@ export function FilesToolbar({
                                         </div>
                                         <button
                                             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+                                            data-testid="connect-directory-handle"
                                             disabled={saving}
                                             onClick={() => { onOpenDirectoryPicker(); setIsMenuOpen(false); }}
                                             type="button"
@@ -305,6 +306,7 @@ export function FilesToolbar({
                                 <div className={`my-1 border-t ${isIosTheme ? "border-slate-300/50" : "border-cyan-500/20"}`} />
                                 <button
                                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                                    data-testid="clear-library"
                                     disabled={visibleVideosCount === 0 || loading || saving}
                                     onClick={() => { onClearLibrary(); setIsMenuOpen(false); }}
                                     type="button"
@@ -321,7 +323,7 @@ export function FilesToolbar({
             </div>
 
             {/* Bottom Row: Minimal view toggles */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isIosTheme ? "text-slate-500" : "text-slate-400"}`} data-testid="files-sort-select">
                         <Icon name="sort-alt" className="text-[12px]" /> Ordenacao
@@ -345,11 +347,15 @@ export function FilesToolbar({
                         </select>
                         <Icon name="angle-down" className={`absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] ${isIosTheme ? "text-slate-500" : "text-slate-400"}`} />
                     </div>
+
+                    <span className={`text-[10px] font-black uppercase tracking-wider tabular-nums ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
+                        ({filteredVideosCount} visiveis, {filteredCompletionRate}%)
+                    </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <button
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.08] text-slate-300 hover:text-slate-100"}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors lg:hidden ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.08] text-slate-300 hover:text-slate-100"}`}
                         aria-label="Abrir lista de videos"
                         data-testid="sidebar-mobile-toggle"
                         onClick={onToggleMobileSidebar}
@@ -360,25 +366,25 @@ export function FilesToolbar({
                     </button>
                     {directoryHandleSupported && (
                         <button
-                            className={`flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-black uppercase tracking-wider transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-emerald-500/35 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-100"}`}
+                            className={`flex h-8 items-center justify-center rounded-lg px-2 text-[10px] font-black uppercase tracking-wider transition-colors opacity-60 hover:opacity-100 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "text-emerald-400 hover:bg-emerald-500/10"}`}
                             data-testid="connect-directory-handle"
                             disabled={saving}
                             onClick={onOpenDirectoryPicker}
                             type="button"
                         >
-                            <Icon name="link" className="mr-1 text-[12px]" />
-                            Conectar
+                            <Icon name="link" className="mr-1 text-[11px]" />
+                            <span className="hidden sm:inline">Conectar</span>
                         </button>
                     )}
                     <button
-                        className={`flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-black uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "border border-red-500/35 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:text-red-100"}`}
+                        className={`flex h-8 items-center justify-center rounded-lg px-2 text-[10px] font-black uppercase tracking-wider transition-colors opacity-60 hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-30 ${isIosTheme ? "ios26-control ios26-focusable text-slate-800" : "text-red-400 hover:bg-red-500/10"}`}
                         data-testid="clear-library"
                         disabled={visibleVideosCount === 0 || loading || saving}
                         onClick={onClearLibrary}
                         type="button"
                     >
-                        <Icon name="trash" className="mr-1 text-[12px]" />
-                        Limpar
+                        <Icon name="trash" className="mr-1 text-[11px]" />
+                        <span className="hidden sm:inline">Limpar</span>
                     </button>
                     <button
                         className={`hidden lg:flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${isIosTheme ? "ios26-control ios26-focusable text-slate-700 hover:text-slate-900" : "hover:bg-white/[0.10] text-slate-300 hover:text-[hsl(var(--accent))]"}`}
@@ -391,11 +397,8 @@ export function FilesToolbar({
                     </button>
                 </div>
             </div>
-            <p className={`text-[10px] font-black uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
-                ({filteredVideosCount} visiveis, {filteredCompletionRate}%)
-            </p>
             {/* Very subtle divider to separate from content below */}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mt-2"></div>
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent mt-1"></div>
         </div>
     );
 }

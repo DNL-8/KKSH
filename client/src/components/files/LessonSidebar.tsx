@@ -60,7 +60,7 @@ export function LessonSidebar({
 
   const wrapperClasses = mobile
     ? `h-full w-[340px] max-w-[92vw] flex flex-col ${isIosTheme ? "ios26-section-hero" : "border-l border-cyan-500/30 bg-[#040914]/95 backdrop-blur-3xl shadow-2xl"}`
-    : `h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] ${isIosTheme ? "ios26-section" : "border border-cyan-500/25 bg-slate-950/40 backdrop-blur-xl shadow-2xl"}`;
+    : `h-[clamp(360px,68vh,760px)] flex flex-col overflow-hidden rounded-[24px] ${isIosTheme ? "ios26-section" : "files-panel-elevated"}`;
 
   const filteredSections = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -261,9 +261,9 @@ export function LessonSidebar({
 
   return (
     <div className={wrapperClasses} data-testid={mobile ? "course-sidebar-mobile" : "course-sidebar"}>
-      <div className="shrink-0 space-y-3 border-b border-cyan-950/60 px-4 py-4">
+      <div className={`shrink-0 space-y-3 border-b px-4 py-4 ${isIosTheme ? "border-slate-200/50" : "border-cyan-500/15 bg-gradient-to-b from-white/[0.02] to-transparent"}`}>
         <div className="flex items-center justify-between gap-3">
-          <h3 className={`files-display text-xl font-extrabold uppercase tracking-[0.12em] md:text-2xl ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>
+          <h3 className={`files-display text-lg font-extrabold uppercase tracking-[0.12em] md:text-xl ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>
             {mobile ? "Conteudo" : "Arquivos avulsos"}
           </h3>
           <span className="files-chip px-2 py-1 text-[10px]">
@@ -320,7 +320,7 @@ export function LessonSidebar({
         </div>
       </div>
 
-      <div className={`flex-1 min-h-0 ${isIosTheme ? "ios26-section" : "bg-[#041022]"}`}>
+      <div className={`flex-1 min-h-0 ${isIosTheme ? "ios26-section" : "bg-[#030b18]/60"}`}>
         {flatItems.length === 0 ? (
           <div className={`py-8 text-center text-xs font-medium ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>
             {searchQuery

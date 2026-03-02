@@ -700,6 +700,102 @@ select:focus-visible,
     0 0 0 4px rgba(var(--files-glow-cyan), 0.55);
 }
 
+/* ── Files Panel Surfaces ── */
+
+[data-page="files"] .files-panel {
+  background: linear-gradient(135deg, rgba(6, 16, 34, 0.65), rgba(4, 10, 25, 0.50));
+  border: 1px solid rgba(var(--files-glow-cyan), 0.14);
+  backdrop-filter: blur(20px) saturate(110%);
+  -webkit-backdrop-filter: blur(20px) saturate(110%);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(var(--files-glow-cyan), 0.06);
+}
+
+[data-page="files"] .files-panel-elevated {
+  background: linear-gradient(160deg, rgba(4, 14, 30, 0.80), rgba(2, 6, 16, 0.90));
+  border: 1px solid rgba(var(--files-glow-cyan), 0.18);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(var(--files-glow-cyan), 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ── Scanline overlay for retro arcade feel ── */
+[data-page="files"] .files-scanlines::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  z-index: 1;
+}
+
+/* ── Corner bracket decoration for player ── */
+[data-page="files"] .files-bracket-corner {
+  --bracket-size: 18px;
+  --bracket-color: rgba(var(--files-glow-cyan), 0.45);
+  --bracket-width: 2px;
+}
+
+[data-page="files"] .files-bracket-corner::before,
+[data-page="files"] .files-bracket-corner::after {
+  content: '';
+  position: absolute;
+  width: var(--bracket-size);
+  height: var(--bracket-size);
+  pointer-events: none;
+  transition: all 0.4s ease;
+}
+
+[data-page="files"] .files-bracket-corner[data-pos="tl"]::before {
+  top: 8px; left: 8px;
+  border-top: var(--bracket-width) solid var(--bracket-color);
+  border-left: var(--bracket-width) solid var(--bracket-color);
+  border-radius: 4px 0 0 0;
+}
+[data-page="files"] .files-bracket-corner[data-pos="tr"]::before {
+  top: 8px; right: 8px;
+  border-top: var(--bracket-width) solid var(--bracket-color);
+  border-right: var(--bracket-width) solid var(--bracket-color);
+  border-radius: 0 4px 0 0;
+}
+[data-page="files"] .files-bracket-corner[data-pos="bl"]::before {
+  bottom: 8px; left: 8px;
+  border-bottom: var(--bracket-width) solid var(--bracket-color);
+  border-left: var(--bracket-width) solid var(--bracket-color);
+  border-radius: 0 0 0 4px;
+}
+[data-page="files"] .files-bracket-corner[data-pos="br"]::before {
+  bottom: 8px; right: 8px;
+  border-bottom: var(--bracket-width) solid var(--bracket-color);
+  border-right: var(--bracket-width) solid var(--bracket-color);
+  border-radius: 0 0 4px 0;
+}
+
+.group:hover .files-bracket-corner::before {
+  --bracket-color: rgba(var(--files-glow-cyan), 0.70);
+  --bracket-size: 22px;
+}
+
+/* ── Status Badge Glow Animation ── */
+@keyframes files-badge-online {
+  0%, 100% { box-shadow: 0 0 4px rgba(52, 211, 153, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(52, 211, 153, 0.7); }
+}
+
+[data-page="files"] .files-badge-online {
+  animation: files-badge-online 2.4s ease-in-out infinite;
+}
+
 /* iOS 26 theme rules moved to styles.ios26.css */
 
 /* iOS 16 Liquid Glass System */
