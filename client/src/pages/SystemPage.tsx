@@ -203,23 +203,23 @@ const INVENTORY_RARITY_OPTIONS: Array<{
     label: string;
     toneClass: string;
 }> = [
-    { value: "common", label: "Comum", toneClass: "text-slate-500" },
-    { value: "rare", label: "Raro", toneClass: "text-cyan-500" },
-    { value: "epic", label: "Epico", toneClass: "text-purple-500" },
-    { value: "legendary", label: "Lendario", toneClass: "text-amber-500" },
-    { value: "mythic", label: "Mitico", toneClass: "text-rose-500" },
-];
+        { value: "common", label: "Comum", toneClass: "text-slate-500" },
+        { value: "rare", label: "Raro", toneClass: "text-cyan-500" },
+        { value: "epic", label: "Epico", toneClass: "text-purple-500" },
+        { value: "legendary", label: "Lendario", toneClass: "text-amber-500" },
+        { value: "mythic", label: "Mitico", toneClass: "text-rose-500" },
+    ];
 
 const INVENTORY_EQUIPMENT_TYPE_OPTIONS: Array<{
     value: InventoryEquipmentType;
     label: string;
 }> = [
-    { value: "Barra", label: "Barra" },
-    { value: "Halter", label: "Halter" },
-    { value: "Anilha", label: "Anilha" },
-    { value: "Calistenia", label: "Calistenia" },
-    { value: "Cardio", label: "Cardio" },
-];
+        { value: "Barra", label: "Barra" },
+        { value: "Halter", label: "Halter" },
+        { value: "Anilha", label: "Anilha" },
+        { value: "Calistenia", label: "Calistenia" },
+        { value: "Cardio", label: "Cardio" },
+    ];
 
 const DEFAULT_INVENTORY_LOADOUT: InventoryLoadoutItem[] = [
     { id: "bar_150", icon: "dumbbell", name: "Barra 1,50m", equipmentType: "Barra", owned: true, rarity: "rare" },
@@ -300,7 +300,7 @@ const SystemWindow = ({ children, className = "", title = "MENSAGEM DO SISTEMA",
     return (
         <div className={`relative rounded-xl overflow-hidden ${isIosTheme
             ? "ios26-section ios26-sheen ios26-divider"
-            : "liquid-glass-inner backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+            : "liquid-glass-inner backdrop-blur-2xl border border-slate-700/40 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
             } ${className}`}>
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
             <div className={`px-5 py-3 flex justify-between items-center ${isIosTheme ? "ios26-divider border-b" : "liquid-glass-inner border-b"}`}>
@@ -549,13 +549,13 @@ export function SystemPage() {
     // --- ECRAS ---
 
     const renderOnboarding = () => (
-        <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 text-slate-800 font-sans relative overflow-hidden">
+        <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center p-6 text-slate-100 font-sans relative overflow-hidden">
             <div className="animate-screen w-full max-w-md z-10">
                 <SystemWindow title="AVISO DO SISTEMA">
                     <div className="text-center mb-8 relative">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"></div>
                         <Icon name="exclamation" className="mx-auto text-5xl text-cyan-400 mb-4 relative z-10 animate-float" />
-                        <h1 className="text-2xl font-black tracking-widest text-slate-900 uppercase">
+                        <h1 className="text-2xl font-black tracking-widest text-slate-100 uppercase">
                             Sincronização
                         </h1>
                         <p className="mt-2 text-xs text-cyan-400/60 font-mono tracking-widest">NOVO ARSENAL DETETADO</p>
@@ -576,7 +576,7 @@ export function SystemPage() {
                                     aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
                                     className={`h-8 w-8 rounded-lg border transition-all duration-200 flex items-center justify-center ${isInventoryConfigOpen
                                         ? "border-cyan-400 bg-cyan-500/20 text-cyan-600 shadow-[0_0_10px_rgba(6,182,212,0.35)]"
-                                        : "border-slate-300 text-slate-500 hover:border-cyan-500 hover:text-cyan-600"
+                                        : "border-slate-700 text-slate-400 hover:border-cyan-500 hover:text-cyan-400"
                                         }`}
                                 >
                                     <Icon name="settings" className="text-sm" />
@@ -603,7 +603,7 @@ export function SystemPage() {
                                                             onClick={() => toggleInventoryItemOwned(item.id)}
                                                             className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
                                                                 ? "border-cyan-400 bg-cyan-500/20 text-cyan-600"
-                                                                : "border-slate-300 text-slate-400"
+                                                                : "border-slate-700 text-slate-500"
                                                                 }`}
                                                             aria-pressed={item.owned}
                                                             aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
@@ -611,12 +611,12 @@ export function SystemPage() {
                                                             {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
                                                         </button>
                                                         <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
-                                                        <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                        <span className={`min-w-0 flex-1 truncate font-medium tracking-wide ${item.owned ? "text-slate-200" : "text-slate-500 line-through"}`}>
                                                             {item.name}
                                                         </span>
                                                         <select
                                                             data-testid={`system-inventory-rarity-${item.id}`}
-                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 outline-none focus:border-cyan-500"
+                                                            className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-200 outline-none focus:border-cyan-500"
                                                             value={item.rarity}
                                                             onChange={(event) =>
                                                                 updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
@@ -627,13 +627,13 @@ export function SystemPage() {
                                                                 <option key={option.value} value={option.value}>
                                                                     {option.label}
                                                                 </option>
-                                                                ))}
+                                                            ))}
                                                         </select>
                                                         <button
                                                             type="button"
                                                             data-testid={`system-inventory-remove-${item.id}`}
                                                             onClick={() => removeInventoryItem(item.id)}
-                                                            className="rounded-md border border-red-300/70 bg-red-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-600 transition-colors hover:border-red-400 hover:text-red-700"
+                                                            className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-red-400 transition-colors hover:border-red-400 hover:text-red-300"
                                                             aria-label={`Remover ${item.name}`}
                                                         >
                                                             Remover
@@ -643,7 +643,7 @@ export function SystemPage() {
                                                         <input
                                                             type="text"
                                                             data-testid={`system-inventory-name-${item.id}`}
-                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                            className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[11px] font-semibold text-slate-200 outline-none focus:border-cyan-500"
                                                             value={item.name}
                                                             onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
                                                             placeholder="Nome do equipamento"
@@ -651,7 +651,7 @@ export function SystemPage() {
                                                         />
                                                         <select
                                                             data-testid={`system-inventory-type-${item.id}`}
-                                                            className="rounded-md border border-white/20 bg-white/60 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                            className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[11px] font-semibold text-slate-200 outline-none focus:border-cyan-500"
                                                             value={item.equipmentType}
                                                             onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
                                                             aria-label={`Tipo do equipamento ${item.id}`}
@@ -677,8 +677,8 @@ export function SystemPage() {
                                             onClick={addInventoryItem}
                                             disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
                                             className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
-                                                ? "border-slate-300/60 text-slate-400 cursor-not-allowed"
-                                                : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500 hover:text-cyan-800"
+                                                ? "border-slate-700 text-slate-500 cursor-not-allowed"
+                                                : "border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:border-cyan-500 hover:text-cyan-300"
                                                 }`}
                                             aria-label="Adicionar equipamento"
                                         >
@@ -690,7 +690,7 @@ export function SystemPage() {
                                 <div
                                     id="system-inventory-config-panel"
                                     data-testid="system-inventory-summary"
-                                    className="space-y-2 rounded-lg border border-white/10 bg-white/30 px-3 py-2 transition-all duration-200 ease-out"
+                                    className="space-y-2 rounded-lg border border-slate-700/40 bg-slate-800/30 px-3 py-2 transition-all duration-200 ease-out"
                                 >
                                     <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
                                         Resumo rapido
@@ -700,7 +700,7 @@ export function SystemPage() {
                                             {activeInventoryItems.map((item) => (
                                                 <li key={`summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
                                                     <div className="min-w-0">
-                                                        <p className="truncate font-semibold text-slate-700">{item.name}</p>
+                                                        <p className="truncate font-semibold text-slate-200">{item.name}</p>
                                                         <p className="truncate text-[10px] font-mono uppercase tracking-[0.12em] text-slate-500">
                                                             {item.equipmentType || "Sem tipo"}
                                                         </p>
@@ -720,7 +720,7 @@ export function SystemPage() {
                             )}
                         </div>
 
-                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-slate-900 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                        <button type="submit" className="btn-primary w-full py-4 rounded-xl font-black text-white uppercase tracking-[0.2em] flex items-center justify-center gap-2">
                             Aceder ao Sistema <Icon name="angle-right" className="text-xl" />
                         </button>
                     </form>
@@ -729,7 +729,7 @@ export function SystemPage() {
         </div>
     );
 
-        const renderDashboard = () => {
+    const renderDashboard = () => {
         const currentXp = Number(user.xp || 0);
         const rankObj = getRank(currentXp);
         const nextRank = getNextRank(currentXp);
@@ -745,31 +745,31 @@ export function SystemPage() {
         return (
             <div
                 data-testid="system-dashboard-panel"
-                className={`min-h-[calc(100vh-10rem)] px-4 py-6 text-slate-900 md:px-8 ${isIosTheme ? "ios26-section ios26-text-secondary" : ""}`}
+                className={`min-h-[calc(100vh-10rem)] px-4 py-6 text-slate-100 md:px-8 ${isIosTheme ? "ios26-section ios26-text-secondary" : ""}`}
             >
                 <div className="mx-auto max-w-6xl animate-screen">
-                    <div className="relative overflow-hidden rounded-[34px] border border-white/45 bg-[linear-gradient(130deg,rgba(208,194,238,0.55)_0%,rgba(190,219,238,0.6)_42%,rgba(234,201,223,0.52)_100%)] p-4 shadow-[0_18px_55px_rgba(86,95,122,0.22)] sm:p-6 lg:p-8">
-                        <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-violet-300/30 blur-3xl" />
-                        <div className="pointer-events-none absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-sky-300/30 blur-3xl" />
+                    <div className="relative overflow-hidden rounded-[34px] border border-slate-700/40 bg-gradient-to-br from-[#0a0f1d]/90 to-[#050813]/95 p-4 shadow-[0_18px_55px_rgba(0,0,0,0.5)] backdrop-blur-2xl sm:p-6 lg:p-8">
+                        <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl" />
+                        <div className="pointer-events-none absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
 
                         <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)]">
                             <div className="space-y-6">
-                                <section className="rounded-[26px] border border-white/45 bg-white/34 p-5 backdrop-blur-xl sm:p-6">
+                                <section className="rounded-[26px] border border-slate-700/40 liquid-glass-inner p-5 backdrop-blur-xl sm:p-6">
                                     <p className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                                         <Icon name="shield" className="text-[11px]" /> Estatuto do jogador
                                     </p>
 
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <h2 className="max-w-[15ch] text-[40px] font-black uppercase leading-[0.9] tracking-tight text-slate-900 sm:text-[46px]">
+                                            <h2 className="max-w-[15ch] text-[40px] font-black uppercase leading-[0.9] tracking-tight text-slate-100 sm:text-[46px]">
                                                 {user.name || "Jogador"}
                                             </h2>
-                                            <span className="mt-4 inline-flex rounded-full border border-white/55 bg-white/40 px-3 py-1 text-[10px] font-black uppercase tracking-[0.17em] text-slate-500">
+                                            <span className="mt-4 inline-flex rounded-full border border-slate-700/40 bg-white/[0.05] px-3 py-1 text-[10px] font-black uppercase tracking-[0.17em] text-slate-400">
                                                 Classe: Solo Leveler
                                             </span>
                                         </div>
 
-                                        <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/35 bg-[#10131d] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_8px_20px_rgba(12,16,29,0.4)] sm:h-16 sm:w-16">
+                                        <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-700/40 bg-[#10131d] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_20px_rgba(0,0,0,0.6)] sm:h-16 sm:w-16">
                                             <span className="text-3xl font-black uppercase text-white">{rankObj.name}</span>
                                         </div>
                                     </div>
@@ -777,11 +777,11 @@ export function SystemPage() {
                                     <div className="mt-8">
                                         <div className="mb-2 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
                                             <span>Energia vital</span>
-                                            <span className="font-mono tracking-[0.08em] text-slate-700">
+                                            <span className="font-mono tracking-[0.08em] text-slate-300">
                                                 {currentXp} / {xpDisplayMax} XP
                                             </span>
                                         </div>
-                                        <div className="h-2.5 overflow-hidden rounded-full border border-white/50 bg-white/45">
+                                        <div className="h-2.5 overflow-hidden rounded-full border border-slate-700/40 liquid-glass shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
                                             <div
                                                 className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-cyan-400 to-emerald-300 transition-all duration-1000 ease-out"
                                                 style={{ width: `${progressToNext}%` }}
@@ -790,7 +790,7 @@ export function SystemPage() {
                                     </div>
                                 </section>
 
-                                <section className="rounded-[26px] border border-white/45 bg-white/34 p-5 backdrop-blur-xl sm:p-6">
+                                <section className="rounded-[26px] border border-slate-700/40 liquid-glass-inner p-5 backdrop-blur-xl sm:p-6">
                                     <div className="mb-4 flex items-center justify-between gap-2">
                                         <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                                             <Icon name="target" className="text-[11px]" /> Itens no inventario
@@ -803,8 +803,8 @@ export function SystemPage() {
                                             aria-expanded={isInventoryConfigOpen}
                                             aria-label={isInventoryConfigOpen ? "Fechar configuracao do inventario" : "Abrir configuracao do inventario"}
                                             className={`h-8 w-8 rounded-lg border transition-colors ${isInventoryConfigOpen
-                                                ? "border-slate-400 bg-white/55 text-slate-700"
-                                                : "border-white/55 bg-white/35 text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                                                ? "border-cyan-400 bg-cyan-500/20 text-cyan-400"
+                                                : "border-slate-700 bg-white/[0.05] text-slate-400 hover:border-cyan-500 hover:text-cyan-400"
                                                 }`}
                                         >
                                             <Icon name="bolt" className="mx-auto text-xs" />
@@ -822,7 +822,7 @@ export function SystemPage() {
                                             </p>
                                             <ul data-testid="system-dashboard-inventory-items-list" className="space-y-2.5">
                                                 {inventoryLoadout.map((item) => (
-                                                    <li key={`dashboard-${item.id}`} className="rounded-xl border border-white/45 bg-white/40 p-2.5" data-testid={`system-dashboard-inventory-item-${item.id}`}>
+                                                    <li key={`dashboard-${item.id}`} className="rounded-xl border border-slate-700/40 liquid-glass-inner p-2.5" data-testid={`system-dashboard-inventory-item-${item.id}`}>
                                                         <div className="space-y-2">
                                                             <div className="flex items-center gap-2">
                                                                 <button
@@ -830,8 +830,8 @@ export function SystemPage() {
                                                                     data-testid={`system-dashboard-inventory-toggle-${item.id}`}
                                                                     onClick={() => toggleInventoryItemOwned(item.id)}
                                                                     className={`h-6 w-6 shrink-0 rounded-md border transition-colors ${item.owned
-                                                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-700"
-                                                                        : "border-slate-300 text-slate-400"
+                                                                        ? "border-cyan-400 bg-cyan-500/20 text-cyan-400"
+                                                                        : "border-slate-700 text-slate-500"
                                                                         }`}
                                                                     aria-pressed={item.owned}
                                                                     aria-label={`${item.name} ${item.owned ? "ativo" : "inativo"}`}
@@ -839,12 +839,12 @@ export function SystemPage() {
                                                                     {item.owned ? <Icon name="check" className="mx-auto text-[11px]" /> : null}
                                                                 </button>
                                                                 <Icon name={item.icon} className={`text-base ${getRarityToneClass(item.rarity)}`} />
-                                                                <span className={`min-w-0 flex-1 truncate text-[13px] font-bold tracking-wide ${item.owned ? "text-slate-700" : "text-slate-400 line-through"}`}>
+                                                                <span className={`min-w-0 flex-1 truncate text-[13px] font-bold tracking-wide ${item.owned ? "text-slate-200" : "text-slate-500 line-through"}`}>
                                                                     {item.name}
                                                                 </span>
                                                                 <select
                                                                     data-testid={`system-dashboard-inventory-rarity-${item.id}`}
-                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-700 outline-none focus:border-cyan-500"
+                                                                    className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-200 outline-none focus:border-cyan-500"
                                                                     value={item.rarity}
                                                                     onChange={(event) =>
                                                                         updateInventoryItemRarity(item.id, event.target.value as InventoryRarity)
@@ -861,7 +861,7 @@ export function SystemPage() {
                                                                     type="button"
                                                                     data-testid={`system-dashboard-inventory-remove-${item.id}`}
                                                                     onClick={() => removeInventoryItem(item.id)}
-                                                                    className="rounded-md border border-rose-300/80 bg-rose-50/70 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-rose-700 transition-colors hover:border-rose-400"
+                                                                    className="rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-red-400 transition-colors hover:border-red-400"
                                                                     aria-label={`Remover ${item.name}`}
                                                                 >
                                                                     Remover
@@ -871,7 +871,7 @@ export function SystemPage() {
                                                                 <input
                                                                     type="text"
                                                                     data-testid={`system-dashboard-inventory-name-${item.id}`}
-                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                                    className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[11px] font-semibold text-slate-200 outline-none focus:border-cyan-500"
                                                                     value={item.name}
                                                                     onChange={(event) => updateInventoryItemName(item.id, event.target.value)}
                                                                     placeholder="Nome do equipamento"
@@ -879,7 +879,7 @@ export function SystemPage() {
                                                                 />
                                                                 <select
                                                                     data-testid={`system-dashboard-inventory-type-${item.id}`}
-                                                                    className="rounded-md border border-white/55 bg-white/65 px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-cyan-500"
+                                                                    className="rounded-md border border-slate-700 bg-slate-900/60 px-2 py-1 text-[11px] font-semibold text-slate-200 outline-none focus:border-cyan-500"
                                                                     value={item.equipmentType}
                                                                     onChange={(event) => updateInventoryItemType(item.id, event.target.value as InventoryEquipmentType)}
                                                                     aria-label={`Tipo do equipamento ${item.id}`}
@@ -905,8 +905,8 @@ export function SystemPage() {
                                                     onClick={addInventoryItem}
                                                     disabled={inventoryLoadout.length >= MAX_INVENTORY_ITEMS}
                                                     className={`rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${inventoryLoadout.length >= MAX_INVENTORY_ITEMS
-                                                        ? "cursor-not-allowed border-slate-300/60 text-slate-400"
-                                                        : "border-cyan-300 bg-cyan-500/10 text-cyan-700 hover:border-cyan-500"
+                                                        ? "cursor-not-allowed border-slate-700 text-slate-500"
+                                                        : "border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:border-cyan-500"
                                                         }`}
                                                     aria-label="Adicionar equipamento"
                                                 >
@@ -918,7 +918,7 @@ export function SystemPage() {
                                         <div
                                             id="system-dashboard-inventory-config-panel"
                                             data-testid="system-dashboard-inventory-summary"
-                                            className="space-y-2 rounded-xl border border-white/45 bg-white/40 px-3 py-3"
+                                            className="space-y-2 rounded-xl border border-slate-700/40 liquid-glass-inner px-3 py-3"
                                         >
                                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
                                                 Resumo rapido
@@ -928,12 +928,12 @@ export function SystemPage() {
                                                     {activeInventoryItems.map((item) => (
                                                         <li key={`dashboard-summary-${item.id}`} className="flex items-center justify-between gap-2 text-[12px]">
                                                             <div className="min-w-0">
-                                                                <p className="truncate font-bold text-slate-700">{item.name}</p>
+                                                                <p className="truncate font-bold text-slate-200">{item.name}</p>
                                                                 <p className="truncate text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
                                                                     {item.equipmentType || "Sem tipo"}
                                                                 </p>
                                                             </div>
-                                                            <span className={`rounded-full border border-white/60 bg-white/55 px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
+                                                            <span className={`rounded-full border border-slate-700/40 bg-white/[0.05] px-2 py-0.5 text-[10px] font-black uppercase ${getRarityToneClass(item.rarity)}`}>
                                                                 {getRarityLabel(item.rarity)}
                                                             </span>
                                                         </li>
@@ -957,26 +957,26 @@ export function SystemPage() {
                                     <button
                                         type="button"
                                         onClick={() => startDungeon(featuredDungeon)}
-                                        className="w-full rounded-[26px] border border-white/50 bg-[linear-gradient(130deg,rgba(245,248,255,0.72)_0%,rgba(184,214,236,0.64)_100%)] p-6 text-left shadow-[0_12px_35px_rgba(104,127,156,0.22)] transition-transform duration-200 hover:-translate-y-0.5"
+                                        className="w-full rounded-[26px] border border-slate-700/40 liquid-glass-inner p-6 text-left shadow-[0_12px_35px_rgba(0,0,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                                         aria-label={`Abrir missao ${featuredDungeon.title}`}
                                     >
                                         <div className="flex flex-wrap items-center gap-2 text-[9px] font-black uppercase tracking-[0.14em]">
                                             <span className="rounded-full border border-slate-300/70 bg-slate-800 px-3 py-1 text-white">
                                                 {featuredDungeon.day}
                                             </span>
-                                            <span className="rounded-full border border-slate-200/80 bg-white/70 px-3 py-1 text-slate-500">
+                                            <span className="rounded-full border border-slate-200/80 bg-slate-700/40 px-3 py-1 text-slate-300">
                                                 Rank {featuredDungeon.rank}
                                             </span>
                                         </div>
 
                                         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
-                                                <h3 className="text-[38px] font-black uppercase leading-[0.95] tracking-tight text-slate-900 sm:text-[42px]">
+                                                <h3 className="text-[38px] font-black uppercase leading-[0.95] tracking-tight text-slate-100 sm:text-[42px]">
                                                     {featuredDungeon.title}
                                                 </h3>
                                                 <p className="mt-1 text-sm font-semibold text-slate-500">{featuredDungeon.type}</p>
                                             </div>
-                                            <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-slate-700">
+                                            <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-slate-700/40 bg-white/[0.05] px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-slate-300">
                                                 <Icon name="clock" className="text-[13px]" /> ~{featuredDungeon.estimatedMinutes}m
                                                 <Icon name="angle-right" className="text-sm text-slate-500" />
                                             </div>
@@ -994,16 +994,16 @@ export function SystemPage() {
                                                 type="button"
                                                 key={dungeon.id}
                                                 onClick={() => startDungeon(dungeon)}
-                                                className={`group min-h-[128px] rounded-[22px] border border-white/45 bg-white/30 p-4 text-left backdrop-blur-md transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/70 ${dungeon.id === "sab" ? "bg-[linear-gradient(145deg,rgba(233,220,255,0.52)_0%,rgba(176,196,236,0.52)_100%)]" : ""}`}
+                                                className={`group min-h-[128px] rounded-[22px] border border-slate-700/40 liquid-glass-inner p-4 text-left backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-500/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.1)] ${dungeon.id === "sab" ? "bg-gradient-to-br from-purple-900/20 to-slate-900/20" : ""}`}
                                                 aria-label={`Abrir missao ${dungeon.title}`}
                                             >
                                                 <div className="mb-3 flex items-center justify-between gap-2 text-[9px] font-black uppercase tracking-[0.13em]">
-                                                    <span className="rounded-full border border-white/60 bg-white/70 px-2.5 py-1 text-slate-600">
+                                                    <span className="rounded-full border border-slate-700/40 bg-white/[0.05] px-2.5 py-1 text-slate-300">
                                                         {dungeon.day}
                                                     </span>
                                                     <span className="text-slate-400">Rank {dungeon.rank}</span>
                                                 </div>
-                                                <p className={`line-clamp-2 text-[19px] font-black uppercase leading-tight tracking-tight ${dungeon.id === "sab" ? "text-violet-600" : "text-slate-800"}`}>
+                                                <p className={`line-clamp-2 text-[19px] font-black uppercase leading-tight tracking-tight ${dungeon.id === "sab" ? "text-purple-400" : "text-slate-200"}`}>
                                                     {dungeon.title}
                                                 </p>
                                             </button>
@@ -1017,38 +1017,38 @@ export function SystemPage() {
             </div>
         );
     };
-const renderPreview = () => (
-        <div className="min-h-[calc(100vh-10rem)] text-slate-800 p-4 md:p-8 flex flex-col font-sans relative">
+    const renderPreview = () => (
+        <div className="min-h-[calc(100vh-10rem)] text-slate-100 p-4 md:p-8 flex flex-col font-sans relative">
             <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10 pb-6">
-                <button onClick={() => setScreen('dashboard')} className="self-start text-[10px] font-mono text-cyan-600 hover:text-cyan-500 mb-8 flex items-center uppercase tracking-[0.2em] transition-transform hover:-translate-x-1 liquid-glass-inner px-3 py-2 rounded-lg">
+                <button onClick={() => setScreen('dashboard')} className="self-start text-[10px] font-mono text-cyan-400 hover:text-cyan-300 mb-8 flex items-center uppercase tracking-[0.2em] transition-transform hover:-translate-x-1 liquid-glass-inner px-3 py-2 rounded-lg border border-slate-700/40">
                     <Icon name="angle-left" className="text-sm mr-1" /> Voltar
                 </button>
 
                 <div className="mb-8 relative">
-                    <span className="inline-block text-[10px] font-mono text-purple-600 border border-purple-500/30 liquid-glass-inner px-2 py-1 rounded-md uppercase tracking-widest mb-3">
+                    <span className="inline-block text-[10px] font-mono text-purple-400 border border-purple-500/30 liquid-glass-inner px-2 py-1 rounded-md uppercase tracking-widest mb-3">
                         Rank {activeDungeon?.rank} - {activeDungeon?.day}
                     </span>
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-wider mb-3">
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-100 uppercase tracking-wider mb-3">
                         {activeDungeon?.title}
                     </h2>
-                    <div className="flex gap-4 text-sm font-medium text-slate-600 mb-6 liquid-glass-inner p-3 rounded-lg w-auto max-w-max border border-white/10">
-                        <span className="flex items-center gap-1.5"><Icon name="pulse" className="text-sm text-cyan-600" /> {activeDungeon?.type}</span>
-                        <span className="flex items-center gap-1.5"><Icon name="clock" className="text-sm text-cyan-600" /> ~{activeDungeon?.estimatedMinutes}m</span>
+                    <div className="flex gap-4 text-sm font-medium text-slate-400 mb-6 liquid-glass-inner p-3 rounded-lg w-auto max-w-max border border-slate-700/40">
+                        <span className="flex items-center gap-1.5"><Icon name="pulse" className="text-sm text-cyan-400" /> {activeDungeon?.type}</span>
+                        <span className="flex items-center gap-1.5"><Icon name="clock" className="text-sm text-cyan-400" /> ~{activeDungeon?.estimatedMinutes}m</span>
                     </div>
                 </div>
 
                 <div className="flex-1 space-y-4 overflow-y-auto mb-8 pr-2 custom-scrollbar">
                     {activeDungeon?.blocks.map((block: any, idx: number) => (
-                        <div key={block.id} className="group liquid-glass-inner p-5 rounded-2xl border border-white/10 flex gap-4 items-center hover:border-cyan-400 transition-colors">
-                            <div className="w-10 h-10 rounded-xl liquid-glass-inner border border-slate-300 flex items-center justify-center text-xs font-mono font-bold text-slate-500 shrink-0">
+                        <div key={block.id} className="group liquid-glass-inner p-5 rounded-2xl border border-slate-700/40 flex gap-4 items-center hover:border-cyan-400 transition-colors">
+                            <div className="w-10 h-10 rounded-xl liquid-glass-inner border border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-slate-400 shrink-0">
                                 {String(idx + 1).padStart(2, '0')}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-slate-900 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
+                                <p className="font-bold text-slate-100 text-sm md:text-base uppercase tracking-wide truncate">{block.title}</p>
                                 <p className="text-xs font-medium text-slate-500 mt-1 truncate">{block.desc}</p>
                             </div>
                             <div className="shrink-0 text-right">
-                                <span className="text-[11px] font-black font-mono text-cyan-600 liquid-glass-inner px-3 py-1.5 rounded-lg border border-cyan-500/20 whitespace-nowrap">
+                                <span className="text-[11px] font-black font-mono text-cyan-400 liquid-glass-inner px-3 py-1.5 rounded-lg border border-cyan-500/20 whitespace-nowrap">
                                     {block.time}
                                 </span>
                             </div>
@@ -1074,14 +1074,14 @@ const renderPreview = () => (
         };
 
         return (
-            <div className="min-h-screen text-slate-800 p-4 md:p-8 flex flex-col relative font-sans">
+            <div className="min-h-screen text-slate-100 p-4 md:p-8 flex flex-col relative font-sans">
                 <div className="animate-screen max-w-2xl w-full mx-auto flex-1 flex flex-col relative z-10">
                     <div className="liquid-glass-inner backdrop-blur-xl border border-red-500/30 rounded-2xl p-6 mb-8 shadow-2xl flex justify-between items-center sticky top-4 z-20">
                         <div>
-                            <p className="text-[11px] font-bold font-mono text-red-600 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
+                            <p className="text-[11px] font-bold font-mono text-red-400 uppercase tracking-[0.3em] flex items-center gap-2 mb-2">
                                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" aria-hidden /> Em Combate
                             </p>
-                            <p className="text-5xl md:text-6xl font-mono font-black text-slate-900 tracking-widest">
+                            <p className="text-5xl md:text-6xl font-mono font-black text-slate-100 tracking-widest">
                                 {formatTime(workoutTimer)}
                             </p>
                         </div>
@@ -1091,7 +1091,7 @@ const renderPreview = () => (
                             className="group w-16 h-16 liquid-glass-inner rounded-full border border-cyan-500/30 flex items-center justify-center hover:scale-105 transition-transform"
                             aria-label="Abrir analise tatica"
                         >
-                            <Icon name="brain" className="text-3xl text-cyan-600" />
+                            <Icon name="brain" className="text-3xl text-cyan-400" />
                         </button>
                     </div>
 
@@ -1105,22 +1105,22 @@ const renderPreview = () => (
                                     onClick={() => toggleBlock(block.id)}
                                     className={`relative p-5 md:p-6 rounded-2xl transition-all duration-300 border text-left w-full ${isChecked
                                         ? 'liquid-glass-inner opacity-40'
-                                        : 'liquid-glass-inner border-white/20 hover:border-cyan-400'
+                                        : 'liquid-glass-inner border-slate-700/40 hover:border-cyan-400'
                                         }`}
                                     aria-pressed={isChecked}
                                     aria-label={`Marcar bloco ${block.title} como ${isChecked ? "não concluído" : "concluído"}`}
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
-                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg ${isChecked ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                                            <p className={`font-black uppercase tracking-wide text-base md:text-lg ${isChecked ? 'text-slate-500 line-through' : 'text-slate-100'}`}>
                                                 {block.title}
                                             </p>
-                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-slate-400' : 'text-slate-600'}`}>
+                                            <p className={`text-xs mt-1.5 uppercase font-medium ${isChecked ? 'text-slate-500' : 'text-slate-400'}`}>
                                                 {block.desc}
                                             </p>
                                         </div>
-                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${isChecked ? 'border-cyan-500 bg-cyan-500/20' : 'border-slate-300'}`}>
-                                            {isChecked && <Icon name="check" className="text-2xl text-cyan-600" />}
+                                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${isChecked ? 'border-cyan-500 bg-cyan-500/20' : 'border-slate-700'}`}>
+                                            {isChecked && <Icon name="check" className="text-2xl text-cyan-400" />}
                                         </div>
                                     </div>
                                 </button>
@@ -1128,7 +1128,7 @@ const renderPreview = () => (
                         })}
                     </div>
 
-                    <div className="fixed bottom-0 left-0 w-full liquid-glass-inner border-t border-white/20 p-4 md:p-6 z-20 backdrop-blur-2xl">
+                    <div className="fixed bottom-0 left-0 w-full liquid-glass-inner border-t border-slate-700/40 p-4 md:p-6 z-20 backdrop-blur-2xl">
                         <div className="max-w-xl mx-auto">
                             <button
                                 onClick={finishWorkout}
@@ -1145,7 +1145,7 @@ const renderPreview = () => (
                 </div>
 
                 {showSystemAlert && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md">
                         <div
                             ref={alertDialogRef}
                             role="dialog"
@@ -1153,8 +1153,8 @@ const renderPreview = () => (
                             aria-labelledby="system-tactical-analysis-title"
                             className="animate-screen liquid-glass-inner border-2 border-cyan-500/40 rounded-3xl max-w-sm w-full p-8 shadow-2xl"
                         >
-                            <h3 id="system-tactical-analysis-title" className="text-base font-black font-mono text-slate-900 uppercase tracking-widest mb-4">Análise Tática</h3>
-                            <p className="text-slate-700 text-sm leading-relaxed mb-8">
+                            <h3 id="system-tactical-analysis-title" className="text-base font-black font-mono text-slate-100 uppercase tracking-widest mb-4">Análise Tática</h3>
+                            <p className="text-slate-300 text-sm leading-relaxed mb-8">
                                 O Sistema recomenda períodos de descanso de 60-90s entre as séries para maximizar o ganho de XP e regeneração de vigor.
                             </p>
                             <button onClick={() => setShowSystemAlert(false)} className="w-full py-4 btn-primary text-white font-black font-mono uppercase rounded-xl">
@@ -1172,22 +1172,22 @@ const renderPreview = () => (
             <div className="animate-screen max-w-sm w-full relative z-10">
                 <div className="text-center mb-10">
                     <Icon name="trophy" className="text-[64px] text-yellow-500 mb-4" />
-                    <h2 className="text-5xl font-black text-slate-900 uppercase tracking-widest">Concluído</h2>
+                    <h2 className="text-5xl font-black text-slate-100 uppercase tracking-widest">Concluído</h2>
                 </div>
 
                 <SystemWindow title="Recompensas Adquiridas">
                     <div className="space-y-4">
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
-                            <span className="text-slate-600 font-bold uppercase text-xs">Ações</span>
-                            <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.blocks} XP</span>
+                            <span className="text-slate-400 font-bold uppercase text-xs">Ações</span>
+                            <span className="text-cyan-400 font-mono font-black">+{xpGainedInfo?.blocks} XP</span>
                         </div>
                         <div className="flex justify-between items-center liquid-glass-inner p-3 rounded-xl">
-                            <span className="text-slate-600 font-bold uppercase text-xs">Tempo</span>
-                            <span className="text-cyan-600 font-mono font-black">+{xpGainedInfo?.time} XP</span>
+                            <span className="text-slate-400 font-bold uppercase text-xs">Tempo</span>
+                            <span className="text-cyan-400 font-mono font-black">+{xpGainedInfo?.time} XP</span>
                         </div>
-                        <div className="pt-4 mt-4 border-t border-slate-200 flex justify-between items-center">
-                            <span className="text-slate-900 font-black uppercase tracking-widest">Total</span>
-                            <span className="text-yellow-600 font-mono text-3xl font-black">+{xpGainedInfo?.total} XP</span>
+                        <div className="pt-4 mt-4 border-t border-slate-700/40 flex justify-between items-center">
+                            <span className="text-slate-100 font-black uppercase tracking-widest">Total</span>
+                            <span className="text-yellow-400 font-mono text-3xl font-black">+{xpGainedInfo?.total} XP</span>
                         </div>
                     </div>
                 </SystemWindow>
@@ -1212,7 +1212,7 @@ const renderPreview = () => (
     return (
         <>
             <style>{globalStyles}</style>
-            <div className={`w-full h-full text-slate-900 ${isIosTheme ? "ios26-text-secondary" : ""}`}>
+            <div className={`w-full h-full text-slate-100 ${isIosTheme ? "ios26-text-secondary" : ""}`}>
                 {screen === 'onboarding' && renderOnboarding()}
                 {screen === 'dashboard' && renderDashboard()}
                 {screen === 'preview' && renderPreview()}
