@@ -23,7 +23,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Desperte na Simulação",
         color: "#00ff41",
         glow: "0, 255, 65",
-        bgImage: "https://images6.alphacoders.com/550/550739.jpg",
+        bgImage: "/assets/themes/matrix.png",
         icon: "🟢",
     },
     {
@@ -32,7 +32,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Caminho do Ninja",
         color: "#ff6400",
         glow: "255, 100, 0",
-        bgImage: "/assets/themes/naruto.gif",
+        bgImage: "/assets/themes/naruto.png",
         icon: "🍥",
     },
     {
@@ -41,7 +41,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Poder Além dos Limites",
         color: "#ffd700",
         glow: "255, 215, 0",
-        bgImage: "/assets/themes/dragonball.gif",
+        bgImage: "/assets/themes/dragonball.png",
         icon: "🐉",
     },
     {
@@ -50,7 +50,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Surge, Despertar!",
         color: "#1a73e8",
         glow: "26, 115, 232",
-        bgImage: "/assets/themes/sololeveling.gif",
+        bgImage: "/assets/themes/sololeveling.png",
         icon: "⚔️",
     },
     {
@@ -59,7 +59,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Nen Despertado",
         color: "#dc143c",
         glow: "220, 20, 60",
-        bgImage: "/assets/themes/hxh.gif",
+        bgImage: "/assets/themes/hxh.png",
         icon: "♠️",
     },
     {
@@ -68,7 +68,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Um Anel para Todos",
         color: "#c0c0c0",
         glow: "192, 192, 192",
-        bgImage: "/assets/themes/lotr.gif",
+        bgImage: "/assets/themes/lotr.png",
         icon: "💍",
     },
     {
@@ -77,8 +77,7 @@ const THEME_METAS: ThemeMeta[] = [
         subtitle: "Glass Azul Noturno",
         color: "#007AFF",
         glow: "0, 122, 255",
-        bgImage: "",
-        bgGradient: "radial-gradient(ellipse at 22% 0%, rgba(56,138,255,0.36) 0%, transparent 56%), radial-gradient(ellipse at 82% 8%, rgba(129,179,255,0.22) 0%, transparent 60%), linear-gradient(165deg, #0d1f42 0%, #08152f 52%, #020915 100%)",
+        bgImage: "/assets/themes/ios26.png",
         icon: "🍎",
     },
 ];
@@ -219,7 +218,7 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
                 <div
                     className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${isActive ? "scale-110 opacity-80" : "scale-100 opacity-40 group-hover:scale-105 group-hover:opacity-60"
                         }`}
-                    style={{ backgroundImage: meta.bgImage ? `url(${meta.bgImage})` : meta.bgGradient ?? undefined }}
+                    style={{ backgroundImage: `url(${meta.bgImage})` }}
                 />
                 {/* Spotlight follow cursor */}
                 <div
@@ -262,14 +261,14 @@ const ThemeCard = memo(function ThemeCard({ meta, isActive, onSelect }: ThemeCar
                         }}
                     />
                     <span
-                        className={`text-xs font-black uppercase tracking-[0.15em] transition-colors duration-300 ${isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-200"
+                        className={`text-xs font-black uppercase tracking-[0.15em] transition-colors duration-300 ${isActive ? "text-slate-100" : "text-slate-600 group-hover:text-slate-200"
                             }`}
                         style={isActive ? { textShadow: `0 0 20px rgba(${meta.glow}, 0.5)` } : {}}
                     >
                         {meta.name}
                     </span>
                 </div>
-                <p className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? "text-slate-800" : "text-slate-600 group-hover:text-slate-500"
+                <p className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? "text-slate-300" : "text-slate-600 group-hover:text-slate-500"
                     }`}>
                     {meta.subtitle}
                 </p>

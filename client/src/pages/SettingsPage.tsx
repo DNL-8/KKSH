@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
-import { Icon } from "../components/common/Icon";
+
 import { useToast } from "../components/common/Toast";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences, type ClientPreferences } from "../contexts/PreferencesContext";
@@ -50,9 +50,7 @@ export function SettingsPage() {
     [setPreference],
   );
 
-  const handleSave = useCallback(() => {
-    showToast("Preferencias aplicadas automaticamente.", "info");
-  }, [showToast]);
+
 
   const executeHardReset = useCallback(async () => {
     setDangerBusy("reset");
@@ -116,29 +114,14 @@ export function SettingsPage() {
       data-testid="settings-page"
     >
       <div data-testid="settings-main-panel" className={`mx-auto max-w-4xl space-y-8 pb-20 ${isIosTheme ? "ios26-section" : ""}`}>
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-slate-100 md:text-6xl" data-text="SISTEMA">
-              SISTEMA
-            </h1>
-            <p className="flex items-center gap-2 font-mono text-sm text-slate-600">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-              CONFIGURACOES DO TERMINAL DO USUARIO
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleSave}
-              className={`flex items-center gap-3 rounded-[20px] px-8 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${isIosTheme
-                ? "ios26-control ios26-focusable text-slate-800"
-                : "liquid-glass-inner text-slate-300 shadow-[0_0_20px_rgba(0,0,0,0.5),inset_0_2px_5px_rgba(255,255,255,0.1)] hover:bg-slate-700 hover:text-slate-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 backdrop-blur-md border border-slate-700/40"
-                }`}
-              type="button"
-            >
-              <Icon name="disk" className="text-[16px]" />
-              Aplicar Configuracoes
-            </button>
-          </div>
+        <div className="space-y-2">
+          <h1 className="glitch-text text-4xl font-black uppercase italic tracking-tighter text-slate-100 md:text-6xl" data-text="SISTEMA">
+            SISTEMA
+          </h1>
+          <p className="flex items-center gap-2 font-mono text-sm text-slate-600">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            CONFIGURACOES DO TERMINAL DO USUARIO
+          </p>
         </div>
 
         <SettingsProfile />

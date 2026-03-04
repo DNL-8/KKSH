@@ -75,8 +75,8 @@ export function SettingsSidebar({ preferences, updatePreference }: SettingsSideb
                 <div className="mb-6 rounded-full border border-red-500/20 bg-red-950/40 p-6 text-red-500 shadow-[inset_0_2px_10px_rgba(220,38,38,0.2),0_0_30px_rgba(220,38,38,0.1)] inline-block transition-transform duration-700 group-hover:scale-110">
                     <Icon name="skull" className="text-[48px] drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]" />
                 </div>
-                <h3 className={`text-xl font-black uppercase italic tracking-tighter mb-2 drop-shadow-sm ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Build v0.9.4</h3>
-                <p className={`text-[10px] font-mono font-bold uppercase tracking-[0.2em] ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>COMPILADO: 2024-05-20</p>
+                <h3 className={`text-xl font-black uppercase italic tracking-tighter mb-2 drop-shadow-sm ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>Build {import.meta.env.VITE_APP_VERSION || "v0.9.4"}</h3>
+                <p className={`text-[10px] font-mono font-bold uppercase tracking-[0.2em] ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>COMPILADO: {import.meta.env.VITE_BUILD_DATE || new Date().toISOString().slice(0, 10)}</p>
                 <div className="mt-8 flex justify-center gap-3">
                     <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />
                     <span className="h-2 w-2 rounded-full bg-slate-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]" />

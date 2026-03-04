@@ -85,7 +85,7 @@ export function SettingsProfile() {
                                 </div>
                             ) : (
                                 <>
-                                    <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 md:text-3xl">
+                                    <h2 className="text-2xl font-black uppercase tracking-tight text-slate-100 md:text-3xl">
                                         {user?.username || user?.email?.split('@')[0] || "Caçador"}
                                     </h2>
                                     <button
@@ -100,12 +100,16 @@ export function SettingsProfile() {
                                 </>
                             )}
 
-                            <Badge color="bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)] shadow-[0_0_10px_rgba(var(--glow),0.1)]" icon="check-circle">
-                                Verificado
-                            </Badge>
-                            <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]" icon="crown">
-                                Premium
-                            </Badge>
+                            {user?.email && (
+                                <Badge color="bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)] shadow-[0_0_10px_rgba(var(--glow),0.1)]" icon="check-circle">
+                                    Verificado
+                                </Badge>
+                            )}
+                            {user?.isAdmin && (
+                                <Badge color="bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]" icon="crown">
+                                    Admin
+                                </Badge>
+                            )}
                         </div>
 
                         <div className="grid gap-5 md:grid-cols-2">

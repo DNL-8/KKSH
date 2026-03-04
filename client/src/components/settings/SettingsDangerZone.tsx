@@ -29,7 +29,7 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
                 <div className="space-y-5">
                     <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                         <div>
-                            <h3 className="font-bold text-slate-900 text-[15px] mb-1 drop-shadow-sm">Resetar Progresso Local</h3>
+                            <h3 className="font-bold text-slate-100 text-[15px] mb-1 drop-shadow-sm">Resetar Progresso Local</h3>
                             <p className="text-[13px] text-red-200/60 font-medium">Limpa dados locais e zera progresso da conta. Nao apaga o usuario.</p>
                         </div>
                         <HoldButton
@@ -47,7 +47,7 @@ export function SettingsDangerZone({ dangerBusy, executeHardReset, handleLogout 
 
                     <div className="flex flex-col gap-5 rounded-[24px] border border-red-900/40 bg-red-950/20 p-8 md:flex-row md:items-center md:justify-between shadow-[inset_0_2px_15px_rgba(220,38,38,0.05)] transition-all hover:bg-red-950/30">
                         <div>
-                            <h3 className="font-bold text-slate-900 text-[15px] mb-1 drop-shadow-sm">Encerrar Sessao</h3>
+                            <h3 className="font-bold text-slate-100 text-[15px] mb-1 drop-shadow-sm">Encerrar Sessao</h3>
                             <p className="text-[13px] text-red-200/60 font-medium">Desconecta do terminal com seguranca.</p>
                         </div>
                         <button

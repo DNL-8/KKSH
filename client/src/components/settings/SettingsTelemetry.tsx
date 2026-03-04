@@ -3,6 +3,8 @@ import { Icon } from "../common/Icon";
 import { clearFilesTelemetry, readFilesTelemetry, type FilesTelemetryEvent } from "../../lib/filesTelemetry";
 import { useToast } from "../common/Toast";
 import { useTheme } from "../../contexts/ThemeContext";
+import { TelemetryStatsCards } from "./TelemetryStatsCards";
+import { TelemetryEventList } from "./TelemetryEventList";
 
 type FilesTelemetryFilter = "all" | "import" | "bridge" | "metadata" | "error";
 
@@ -173,24 +175,12 @@ export function SettingsTelemetry() {
                     </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                        <p className={`text-[10px] font-bold uppercase tracking-wider ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>Total</p>
-                        <p className={`mt-1 text-xl font-black ${isIosTheme ? "text-slate-900" : "text-slate-100"}`}>{filesTelemetryStats.total}</p>
-                    </div>
-                    <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-red-300/70">Erros</p>
-                        <p className="mt-1 text-xl font-black text-red-300">{filesTelemetryStats.errors}</p>
-                    </div>
-                    <div className="rounded-xl border border-cyan-900/40 bg-cyan-950/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300/70">Imports</p>
-                        <p className="mt-1 text-xl font-black text-cyan-300">{filesTelemetryStats.importEvents}</p>
-                    </div>
-                    <div className="rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300/70">Bridge Play</p>
-                        <p className="mt-1 text-xl font-black text-emerald-300">{filesTelemetryStats.bridgeEvents}</p>
-                    </div>
-                </div>
+                <TelemetryStatsCards
+                    total={filesTelemetryStats.total}
+                    errors={filesTelemetryStats.errors}
+                    importEvents={filesTelemetryStats.importEvents}
+                    bridgeEvents={filesTelemetryStats.bridgeEvents}
+                />
 
                 <div className="mt-4 flex flex-wrap gap-2" data-testid="settings-files-telemetry-filters">
                     {FILES_TELEMETRY_FILTERS.map((filterOption) => {
@@ -212,6 +202,7 @@ export function SettingsTelemetry() {
                         );
                     })}
                 </div>
+
                 {filesTelemetryEvents.length === 0 ? (
                     <div className={`mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm ${isIosTheme ? "text-slate-500" : "text-slate-300"}`}>
                         Sem eventos de telemetria no momento.
@@ -221,28 +212,9 @@ export function SettingsTelemetry() {
                         Sem eventos para o filtro selecionado.
                     </div>
                 ) : (
-                    <div className="custom-scrollbar mt-4 max-h-[320px] space-y-2 overflow-y-auto pr-1" data-testid="settings-files-telemetry-list">
-                        {visibleFilesTelemetryEvents.map((event, index) => (
-                            <div key={`${event.at}-${event.name}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <code className="text-[10px] font-black uppercase tracking-wider text-cyan-300">{event.name}</code>
-                                    <span className={`text-[10px] font-mono ${isIosTheme ? "text-slate-500" : "text-slate-400"}`}>{new Date(event.at).toLocaleString("pt-BR")}</span>
-                                </div>
-                                <div className={`mt-2 flex flex-wrap items-center gap-2 text-[10px] ${isIosTheme ? "text-slate-600" : "text-slate-300"}`}>
-                                    <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">source: {String(event.payload.source ?? "-")}</span>
-                                    {typeof event.payload.durationMs === "number" && (
-                                        <span className="rounded border border-slate-700 liquid-glass px-2 py-0.5">duracao: {Math.max(0, Math.round(event.payload.durationMs))} ms</span>
-                                    )}
-                                    {event.payload.error && (
-                                        <span className="rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-red-300">erro: {String(event.payload.error)}</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <TelemetryEventList events={visibleFilesTelemetryEvents} />
                 )}
             </div>
         </section>
     );
 }
-
