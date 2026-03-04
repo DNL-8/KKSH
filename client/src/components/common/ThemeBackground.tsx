@@ -14,13 +14,27 @@ export function ThemeBackground() {
                 style={{ background: theme.bgGradient }}
             >
                 {theme.bgImage && (
-                    <div
-                        data-testid="theme-background-image"
-                        data-theme-id={themeId}
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100 transition-opacity duration-700"
-                        style={{ backgroundImage: `url(${theme.bgImage})` }}
-                        aria-hidden="true"
-                    />
+                    theme.bgImage.endsWith('.mp4') ? (
+                        <video
+                            data-testid="theme-background-video"
+                            data-theme-id={themeId}
+                            className="absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-700"
+                            src={theme.bgImage}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            aria-hidden="true"
+                        />
+                    ) : (
+                        <div
+                            data-testid="theme-background-image"
+                            data-theme-id={themeId}
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100 transition-opacity duration-700"
+                            style={{ backgroundImage: `url(${theme.bgImage})` }}
+                            aria-hidden="true"
+                        />
+                    )
                 )}
                 {/* Subtle motion layer */}
                 {themeId === "ios26" ? (

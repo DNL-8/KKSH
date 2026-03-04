@@ -34,7 +34,7 @@ const THEMES: Record<ThemeId, ThemeColors> = {
         accent: "25 95% 50%",
         accentLight: "25 95% 70%",
         glow: "255, 100, 0",
-        bgImage: "/assets/themes/naruto.gif",
+        bgImage: "/assets/themes/naruto.mp4",
         bgGradient: "linear-gradient(135deg, #2a1000 0%, #000000 100%)",
         overlayColor: "rgba(20, 10, 0, 0.85)",
     },
